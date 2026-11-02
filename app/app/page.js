@@ -15,7 +15,7 @@ export default function Dash() {
   const cur = profile.currency || "XOF";
   const k = useMemo(() => {
     if (!docs) return null; const inv = docs.filter(d => d.kind === "invoice" && d.currency === cur);
-    const open = inv.filter(d => d.status !== "paid" && d.status !== "draft"); const late = open.filter(d => daysLate(d) > 0);
+    const open = inv.filter(d => d.status !== "paid" && d.status !== "draft"); const late = open.filter(d => daysLate(d) > 0 && !d.declared_paid_at);
     const now = new Date(); const ym = (d) => d.slice(0, 7); const thisM = now.toISOString().slice(0, 7);
     const paidM = inv.filter(d => d.status === "paid" && ym((d.paid_at || d.issue_date)) === thisM).reduce((a, d) => a + +d.total, 0);
     const months = [...Array(6)].map((_, i) => { const x = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const key = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}`; return { key, l: M[x.getMonth()], v: inv.filter(d => ym(d.issue_date) === key).reduce((a, d) => a + +d.total, 0) }; });
@@ -40,7 +40,7 @@ export default function Dash() {
       <div><div className="u">Encaissé ce mois</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, marginTop: 12 }}>{fmt(k.paidM, cur)}</div></div>
       <div><div className="u">Ce mois</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, marginTop: 12 }}>{k.monthDocs}{profile.plan !== "pro" && <span className="mute" style={{ fontSize: 15 }}> / 10</span>}</div><div className="mute" style={{ fontSize: 13.5 }}>documents{profile.plan !== "pro" && " gratuits"}</div></div>
     </div>
-    <div className="dgrid" style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 22, marginTop: 26 }}>
+    <div className="dgrid" style={{ display: "grid", gridTemplateColumns: "minmax(0,1.25fr) minmax(0,1fr)", gap: 22, marginTop: 26 }}>
       <section>
         <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}><h2 style={{ fontSize: 24 }}>Qui vous doit</h2><Link href="/app/documents?f=open" className="lnk" style={{ fontSize: 14 }}>Tout voir</Link></div>
         {k.open.length === 0 ? <div className="list" style={{ padding: 22 }}><b>Tout est encaissé.</b> <span className="mute">Aucune facture en attente.</span></div> :

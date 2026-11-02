@@ -15,7 +15,7 @@ export default function Trial({ heading = true }) {
   const ready = doc.items.some(i => +i.price > 0); const set = (k, v) => setP({ ...p, [k]: v });
   return (<div>
     {heading && <div className="ph np"><div><p className="u" style={{ margin: "0 0 8px" }}>Sans inscription · rien n'est envoyé tant que vous ne le décidez pas</p><h1 style={{ fontSize: "clamp(32px,5vw,52px)" }}>Faites votre facture.</h1></div>
-      <div className="row" style={{ flexWrap: "wrap" }}><button className="b o" disabled={!ready} onClick={() => { document.title = `Facture-${doc.number}`; window.print(); }}><IDown width="17" height="17" /> PDF</button>
+      <div className="row acts" style={{ flexWrap: "wrap" }}><button className="b o" disabled={!ready} onClick={() => { document.title = `Facture-${doc.number}`; window.print(); }}><IDown width="17" height="17" /> PDF</button>
         <a className={`b wa ${ready ? "" : "dis"}`} target="_blank" rel="noreferrer" href={ready ? waLink(doc.client?.phone, shareText({ ...doc, total: totals(doc).total }, p)) : undefined}>WhatsApp</a>
         <Link className="b k" href="/connexion?mode=signup&from=essai">Enregistrer</Link></div></div>}
     <div className="blk np" style={{ marginBottom: 14 }}>

@@ -185,7 +185,7 @@ input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--kola
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11.5px;font-weight:600;text-decoration:none;color:var(--mute)} .tabbar a.on{color:var(--ink)} .tabbar svg{width:22px;height:22px}
   .tabbar a.plus{color:#fff} .tabbar a.plus span.c{width:48px;height:48px;border-radius:50%;background:var(--kola);display:grid;place-items:center;margin-top:-22px;box-shadow:0 8px 18px -6px #B8321A99}
   .stats{grid-template-columns:1fr 1fr} .stats>div:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--line)}
-  .ed{grid-template-columns:1fr} .ed .preview{position:static}
+  .ed{grid-template-columns:minmax(0,1fr)} .ed .preview{position:static}
   .line{grid-template-columns:1fr 1fr 36px} .line .lbl-in{grid-column:1/-1}
   .totbar{display:flex;position:fixed;left:0;right:0;bottom:64px;z-index:39;background:var(--ink);color:var(--paper);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px}
   .g3{grid-template-columns:1fr 1fr} .tpls{grid-template-columns:repeat(2,1fr)}
@@ -207,3 +207,6 @@ body:not(:has(.tabbar)) .totbar{bottom:0}
 .hero h1{position:relative;z-index:0}
 .phone{color:var(--ink)} .phone .wa-top{color:#fff}
 html,body{overflow-x:clip} .tshow{overflow:hidden;border-radius:12px}
+.ed-form,.ed-prev{min-width:0} .ai textarea{width:100%;box-sizing:border-box}
+@media (max-width:600px){.acts{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}.acts .b{padding-inline:6px;justify-content:center;font-size:15px}}
+@media (max-width:900px){.dgrid{grid-template-columns:minmax(0,1fr)!important}} .main{min-width:0}
