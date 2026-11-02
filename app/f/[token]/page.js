@@ -24,8 +24,8 @@ export default function Pub() {
       <p className="u" style={{ margin: 0 }}>{k.fr}{doc.client?.name ? ` pour ${doc.client.name}` : ""}</p>
       <div className="big" style={{ margin: "10px 0 8px", fontSize: "clamp(44px,12vw,64px)" }}>{fmt(doc.total, doc.currency)}</div>
       <p style={{ margin: "0 0 22px", fontSize: 16 }}>{paid ? <span className="pill paid">Payée — merci</span> : doc.kind === "quote" ? <span className="mute">Devis valable jusqu'au {doc.due_date ? new Date(doc.due_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "—"}</span> : doc.due_date ? <span style={{ color: late ? "var(--kola)" : "var(--ink-2)", fontWeight: late ? 600 : 400 }}>À régler {late ? "depuis" : "avant"} le {new Date(doc.due_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</span> : null}</p>
-      {doc.kind === "invoice" && !paid && momo.length > 0 && <div className="paybox">
-        <div style={{ padding: "14px 16px" }}><b>Payer par Mobile Money</b><div className="mute" style={{ fontSize: 14 }}>Envoyez le montant au numéro ci-dessous. Référence : <span className="mono">{doc.number}</span></div></div>
+      {doc.kind === "invoice" && !paid && <div className="paybox">
+        <div style={{ padding: "14px 16px" }}><b>{momo.length ? "Payer par Mobile Money" : "Régler cette facture"}</b><div className="mute" style={{ fontSize: 14 }}>{momo.length ? "Envoyez le montant au numéro ci-dessous." : `Réglez directement auprès de ${profile.business_name || "votre fournisseur"}, puis prévenez-le ici.`} Référence : <span className="mono">{doc.number}</span></div></div>
         {momo.map((m, i) => { const [bg, fg] = OP_COLORS[m.op] || ["#141210", "#fff"]; return (<div className="payrow" key={i}>
           <span className="op" style={{ background: bg, color: fg }}>{opShort(m.op)}</span>
           <div style={{ flex: 1, minWidth: 0 }}><div className="mono" style={{ fontSize: 17, fontWeight: 600 }}>{m.number}</div><div className="mute" style={{ fontSize: 13.5 }}>{m.op}{m.name ? ` · ${m.name}` : ""}</div></div>
