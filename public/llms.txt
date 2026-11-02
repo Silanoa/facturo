@@ -1,0 +1,25 @@
+# Kola
+
+> Kola is a free invoicing web app for freelancers and small businesses in French-speaking West and Central Africa (Bénin, Sénégal, Côte d'Ivoire, Togo, Cameroun…) and the diaspora. It creates invoices, quotes and receipts with OHADA-style mentions (IFU/NINEA, RCCM, VAT, amount in words), shares them on WhatsApp with a payment link showing the seller's Mobile Money numbers (MTN MoMo, Moov, Wave, Orange Money), and tracks who still owes money. Free plan: 10 documents/month. Pro: 2,500 FCFA/month. Kola never holds the money; customers pay the seller directly.
+
+## Product
+- [Home (FR)](https://facturo-woad.vercel.app/): features and pricing
+- [Home (EN)](https://facturo-woad.vercel.app/en)
+- [Create an invoice without an account](https://facturo-woad.vercel.app/essai)
+
+## Free tools
+- [Invoice generator](https://facturo-woad.vercel.app/outils/generateur-facture)
+- [VAT calculator (18 %, 19 %, 19.25 %)](https://facturo-woad.vercel.app/outils/calcul-tva)
+- [Amount in French words](https://facturo-woad.vercel.app/outils/montant-en-lettres)
+
+## Guides (French)
+- [Mandatory invoice mentions in OHADA countries](https://facturo-woad.vercel.app/blog/mentions-obligatoires-facture-ohada)
+- [Invoice template for Bénin](https://facturo-woad.vercel.app/blog/modele-facture-benin)
+- [Invoicing as a freelancer in Sénégal](https://facturo-woad.vercel.app/blog/facture-auto-entrepreneur-senegal)
+- [VAT in WAEMU/UEMOA](https://facturo-woad.vercel.app/blog/tva-uemoa-18)
+- [Invoice in Côte d'Ivoire](https://facturo-woad.vercel.app/blog/facture-cote-divoire)
+- [Invoice in Cameroon, 19.25 % VAT](https://facturo-woad.vercel.app/blog/facture-cameroun-tva-19-25)
+- [Payment reminders on WhatsApp](https://facturo-woad.vercel.app/blog/relancer-client-impaye-whatsapp)
+- [Quote vs proforma vs invoice vs receipt](https://facturo-woad.vercel.app/blog/devis-facture-proforma)
+- [Getting paid by Mobile Money](https://facturo-woad.vercel.app/blog/facture-mobile-money)
+- [Invoice numbering](https://facturo-woad.vercel.app/blog/numerotation-facture)

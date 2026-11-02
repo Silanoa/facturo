@@ -1,83 +1,83 @@
 import Link from "next/link";
+import { SiteNav, SiteFooter, Mark } from "../components/Brand";
+import DocPaper from "../components/DocPaper";
+import { SAMPLE } from "../lib/sample";
+import { FAQ_FR } from "../lib/faq";
+import { SITE } from "../lib/site";
+export const metadata = { title: { absolute: "Kola — Factures, devis et reçus avec paiement Mobile Money" }, description: "Créez une facture en FCFA en moins d'une minute, envoyez-la sur WhatsApp avec un lien de paiement MTN MoMo, Wave, Orange Money. Conforme aux mentions OHADA. Gratuit.", alternates: { canonical: "/", languages: { fr: "/", en: "/en", "x-default": "/" } } };
+const P = { business_name: "Atelier Sèmè Design", address: "Akpakpa, Cotonou", phone: "+229 01 97 11 22 33", ifu: "0202412345678", rccm: "RB/COT/24 A 12345", momo: [{ op: "MTN MoMo", number: "+229 01 97 11 22 33", name: "A. Houngbo" }, { op: "Moov Money", number: "+229 01 95 44 55 66" }] };
+const TICK = ["Cotonou", "Dakar", "Abidjan", "Lomé", "Ouagadougou", "Douala", "Lagos", "Accra", "Bamako", "Niamey", "Paris", "Bruxelles"];
 export default function Home() {
-  return (<div className="pattern" style={{minHeight:"100vh"}}>
-    <div className="wrap">
-      <nav className="top">
-        <Link href="/" className="logo"><i>F</i>Facturo</Link>
-        <div style={{display:"flex",gap:10}}>
-          <a href="#tarifs" className="btn ghost sm">Tarifs</a>
-          <Link href="/connexion" className="btn ghost sm">Se connecter</Link>
-          <Link href="/connexion?mode=signup" className="btn sm">Créer un compte</Link>
+  const ld = [{ "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Kola", applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", url: SITE.url, description: metadata.description, inLanguage: ["fr", "en"],
+    offers: [{ "@type": "Offer", price: "0", priceCurrency: "XOF", name: "Gratuit" }, { "@type": "Offer", price: "2500", priceCurrency: "XOF", name: "Pro mensuel" }, { "@type": "Offer", price: "25000", priceCurrency: "XOF", name: "Pro annuel" }] },
+    { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ_FR.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }];
+  return (<>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+    <SiteNav />
+    <main>
+      <section className="wrap hero">
+        <div className="in">
+          <p className="u" style={{ margin: "0 0 22px" }}>Factures · devis · reçus — FCFA, naira, euro</p>
+          <h1>La facture qui se fait <span className="sq">payer</span><span className="k">.</span></h1>
+          <p className="lead">Décrivez la vente en une phrase. Kola prépare une facture propre, aux mentions OHADA, et l'envoie sur WhatsApp avec vos numéros Mobile Money. Votre client paie, vous êtes prévenu.</p>
+          <div className="row" style={{ flexWrap: "wrap" }}><Link href="/essai" className="b k" style={{ minHeight: 54, padding: "0 26px", fontSize: 16 }}>Faire une facture maintenant</Link><Link href="/connexion" className="b o" style={{ minHeight: 54 }}>Voir la démo</Link></div>
+          <p className="mute" style={{ fontSize: 14, marginTop: 16 }}>Sans compte, sans carte. 10 documents offerts chaque mois.</p>
         </div>
-      </nav>
-      <section className="hero">
-        <div>
-          <span className="eyebrow">Cotonou · Dakar · Abidjan · Lagos · Paris</span>
-          <h1>Vos factures en <em>FCFA</em>, payées par Mobile Money.</h1>
-          <p className="lead">Facturo crée des factures, devis et reçus conformes aux usages OHADA — IFU, NINEA, RCCM, montant en lettres — et les envoie à vos clients sur WhatsApp avec les instructions MTN, Moov, Orange ou Wave.</p>
-          <div style={{display:"flex",gap:12,marginTop:26,flexWrap:"wrap"}}>
-            <Link href="/connexion?mode=signup" className="btn clay">Faire ma première facture — gratuit</Link>
-            <a href="#comment" className="btn ghost">Voir comment ça marche</a>
-          </div>
-          <p className="muted" style={{fontSize:13,marginTop:14}}>10 documents par mois offerts. Sans carte bancaire.</p>
-        </div>
-        <div className="paperdemo">
-          <div className="stamp">PAYÉE</div>
-          <div style={{display:"flex",justifyContent:"space-between"}}><div><b style={{fontSize:15}}>Atelier Sèmè Design</b><div className="muted">IFU 3201910456782 · RCCM RB/COT/21 B 4410</div><div className="muted">Haie Vive, Cotonou</div></div><div style={{textAlign:"right"}}><div className="serif" style={{fontSize:22,color:"#1F3A2E"}}>Facture</div><div className="muted">FAC-2026-0042</div></div></div>
-          <table style={{width:"100%",marginTop:22,borderCollapse:"collapse"}}><tbody>
-            <tr style={{background:"#F4EFE6"}}><td style={{padding:6}}><b>Désignation</b></td><td style={{textAlign:"right",padding:6}}><b>Montant</b></td></tr>
-            <tr><td style={{padding:6}}>Identité visuelle complète</td><td style={{textAlign:"right",padding:6}}>350 000 FCFA</td></tr>
-            <tr><td style={{padding:6}}>Supports imprimés (x200)</td><td style={{textAlign:"right",padding:6}}>90 000 FCFA</td></tr>
-            <tr><td style={{padding:6}}>TVA 18 %</td><td style={{textAlign:"right",padding:6}}>79 200 FCFA</td></tr>
-            <tr><td style={{padding:6,borderTop:"2px solid #222"}}><b>Total TTC</b></td><td style={{textAlign:"right",padding:6,borderTop:"2px solid #222"}}><b>519 200 FCFA</b></td></tr>
-          </tbody></table>
-          <div className="muted" style={{fontStyle:"italic"}}>Arrêtée à la somme de cinq cent dix-neuf mille deux cents francs CFA.</div>
-          <div style={{background:"#F7F3EA",borderRadius:8,padding:10,marginTop:12}}><b>Payer par Mobile Money</b><br/>MTN MoMo : +229 01 97 00 00 00 · Wave : +221 77 000 00 00</div>
+        <div className="hero-photo in" style={{ animationDelay: ".1s" }}>
+          <img src="/img/tailor.webp" alt="Une couturière dans son atelier à Cotonou, téléphone à la main" fetchPriority="high" />
+          <div className="chip"><span className="op" style={{ background: "#FFCB05", color: "#1a1a1a" }}>MTN</span><div style={{ flex: 1 }}><b style={{ fontSize: 14.5 }}>Hôtel Les Cocotiers a payé</b><div className="mute" style={{ fontSize: 13 }}>FAC-2026-0042 · il y a 2 min</div></div><b className="mono">346 060 F</b></div>
         </div>
       </section>
-    </div>
-    <section className="section" id="comment" style={{background:"var(--paper)"}}><div className="wrap">
-      <span className="eyebrow">Pourquoi Facturo</span>
-      <h2>Les outils de facturation sont pensés pour Stripe et l'euro.<br/>Vos clients, eux, paient sur WhatsApp et MoMo.</h2>
-      <div className="feat">
-        {[["01","Mentions OHADA intégrées","IFU, NINEA, RCCM, TVA à 18 % par défaut, montant en toutes lettres : vos documents passent en comptabilité sans retouche."],
-          ["02","Mobile Money sur la facture","Vos numéros MTN, Moov, Orange Money, Wave, Celtiis apparaissent en bas de chaque document. Le client sait exactement où payer."],
-          ["03","Envoi WhatsApp en un geste","Un message prêt à partir, avec le montant, l'échéance et vos numéros de paiement. Fini les captures d'écran floues."],
-          ["04","8 devises, zéro conversion","XOF, XAF, NGN, GHS, MAD, KES, EUR, USD. Facturez un client parisien et un client de Lomé depuis le même compte."],
-          ["05","Devis → facture → reçu","Un devis accepté devient une facture en un clic, puis un reçu une fois payé. La numérotation suit toute seule."],
-          ["06","PDF propre, format A4","Une mise en page sobre, imprimable, à votre couleur. Le genre de document qui inspire confiance à un grand compte."]
-        ].map(([n,t,d])=>(<div className="card" key={n}><span className="num">{n}</span><h3>{t}</h3><p className="muted" style={{margin:0}}>{d}</p></div>))}
-      </div>
-    </div></section>
-    <section className="section"><div className="wrap">
-      <span className="eyebrow">Comparatif honnête</span>
-      <h2>Ce qui change par rapport aux générateurs classiques</h2>
-      <table className="compare"><thead><tr><th></th><th>Générateurs génériques</th><th>Facturo</th></tr></thead><tbody>
-        <tr><td>Franc CFA sans centimes, montant en lettres</td><td className="muted">Rarement</td><td>Oui</td></tr>
-        <tr><td>Champs IFU / NINEA / RCCM</td><td className="muted">Non</td><td>Oui</td></tr>
-        <tr><td>Instructions Mobile Money</td><td className="muted">Non</td><td>Oui, multi-opérateurs</td></tr>
-        <tr><td>Partage WhatsApp</td><td className="muted">Non</td><td>Oui</td></tr>
-        <tr><td>Fichier clients, historique, tableau de bord</td><td className="muted">Souvent payant</td><td>Inclus</td></tr>
-        <tr><td>Payer l'abonnement en Mobile Money</td><td className="muted">Carte uniquement</td><td>Oui (FedaPay)</td></tr>
-      </tbody></table>
-    </div></section>
-    <section className="section" id="tarifs" style={{background:"var(--paper)"}}><div className="wrap">
-      <span className="eyebrow">Tarifs</span>
-      <h2>Un prix qui a du sens à Cotonou comme à Paris</h2>
-      <div className="price">
-        <div className="card"><b>Découverte</b><div className="amt">0 FCFA</div><span className="muted">Pour démarrer</span>
-          <ul><li>10 documents / mois</li><li>Factures, devis, reçus</li><li>PDF + WhatsApp</li><li>Clients illimités</li></ul>
-          <a href="/connexion?mode=signup" className="btn ghost">Commencer</a></div>
-        <div className="card hl"><b>Pro</b><div className="amt">2 500 FCFA<span style={{fontSize:16}}> /mois</span></div><span className="muted">≈ 3,80 € — payable en Mobile Money</span>
-          <ul><li>Documents illimités</li><li>Votre logo et votre couleur</li><li>Sans mention « Facturo »</li><li>Export comptable CSV</li></ul>
-          <a href="/connexion?mode=signup" className="btn clay">Passer Pro</a></div>
-        <div className="card"><b>Annuel</b><div className="amt">25 000 FCFA<span style={{fontSize:16}}> /an</span></div><span className="muted">2 mois offerts</span>
-          <ul><li>Tout le plan Pro</li><li>Support WhatsApp prioritaire</li><li>Accès anticipé aux relances automatiques</li></ul>
-          <a href="/connexion?mode=signup" className="btn ghost">Choisir l'annuel</a></div>
-      </div>
-    </div></section>
-    <footer><div className="wrap" style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-      <span><b className="serif" style={{color:"var(--ink)"}}>Facturo</b> — fait au Bénin, pour l'Afrique et sa diaspora.</span>
-      <span>© 2026 · <a href="mailto:contact@facturo.app">contact</a></span></div></footer>
-  </div>);
+      <div className="ticker" aria-hidden="true"><div>{[...TICK, ...TICK].map((t, i) => <span key={i}>{t} <i>✳</i></span>)}</div></div>
+      <section className="wrap sec">
+        <p className="u">Comment ça marche</p>
+        <h2 style={{ maxWidth: 820 }}>Trois gestes, du message du client à l'argent sur votre compte.</h2>
+        <div className="steps">
+          <div><span className="n">01</span><h3>Dites-le.</h3><p className="mute">Tapez ou dictez : « 12 uniformes à 18 500 et livraison 5 000 pour l'Hôtel Les Cocotiers ». Les lignes, la TVA et le total se remplissent.</p></div>
+          <div><span className="n">02</span><h3>Envoyez-le.</h3><p className="mute">Un bouton, et WhatsApp s'ouvre avec le message prêt. Votre client reçoit un lien, pas un PDF perdu dans la conversation.</p></div>
+          <div><span className="n">03</span><h3>Encaissez.</h3><p className="mute">Il copie votre numéro MoMo, paie, appuie sur « J'ai payé ». Vous voyez qui a ouvert, qui a payé, qui doit encore.</p></div>
+        </div>
+      </section>
+      <section className="pattern" style={{ color: "#fff" }}><div className="wrap sec split">
+        <div><p className="u" style={{ color: "var(--ochre)" }}>Le lien de paiement</p><h2>Vos clients sont sur WhatsApp. Votre facture aussi.</h2>
+          <p style={{ fontSize: 18, color: "#D5DAEA", maxWidth: 480, margin: "20px 0 26px" }}>La page de paiement s'ouvre en une seconde, même en 3G. Montant en gros, numéros à copier, et un bouton pour vous prévenir. Fini les « tu peux me renvoyer ton numéro ? ».</p>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10, fontSize: 16 }}>{["Vous savez quand la facture est ouverte", "Relances WhatsApp prêtes : cordiale, ferme, dernier rappel", "L'argent arrive sur votre compte, sans commission Kola"].map(x => <li key={x} style={{ display: "flex", gap: 10 }}><span style={{ color: "var(--ochre)" }}>—</span>{x}</li>)}</ul></div>
+        <div className="phone"><div className="scr">
+          <div className="wa-top"><i>H</i><div><b>Hôtel Les Cocotiers</b><div style={{ fontSize: 12, opacity: .8 }}>en ligne</div></div></div>
+          <div className="bub">Bonjour, vous pouvez m'envoyer la facture pour les uniformes ?<div className="mute" style={{ fontSize: 11, textAlign: "right" }}>09:12</div></div>
+          <div className="bub me"><div className="att"><Mark size={22} /><div><b style={{ fontSize: 13 }}>Facture FAC-2026-0042</b><div style={{ fontSize: 12, color: "#555" }}>346 060 FCFA · à régler avant le 17 nov.</div></div></div>Voici votre facture. Paiement MTN MoMo : +229 01 97 11 22 33<div className="mute" style={{ fontSize: 11, textAlign: "right" }}>09:14 ✓✓</div></div>
+          <div className="bub">C'est payé 👍<div className="mute" style={{ fontSize: 11, textAlign: "right" }}>11:40</div></div>
+          <div style={{ margin: "auto 12px 14px", background: "#fff", borderRadius: 14, padding: 12, fontSize: 13, display: "flex", gap: 10, alignItems: "center" }}><span className="pill paid">Payée</span>Kola a mis la facture à jour.</div>
+        </div></div>
+      </div></section>
+      <section className="wrap sec">
+        <div className="split" style={{ alignItems: "start" }}>
+          <div><p className="u">Des factures dont vous êtes fier</p><h2>Quatre modèles. Votre logo, vos couleurs.</h2>
+            <p className="mute" style={{ fontSize: 18, maxWidth: 460, margin: "20px 0" }}>Atelier, Marché, Registre, Sahel : du classique au plus graphique. IFU, RCCM, TVA 18 %, montant en lettres et bloc Mobile Money sont déjà à leur place.</p>
+            <Link href="/essai" className="lnk" style={{ fontSize: 17 }}>Essayer les modèles →</Link></div>
+          <div className="tshow"><div className="tsc a"><DocPaper doc={SAMPLE} profile={{ ...P, template: "marche", accent: "#B8321A" }} /></div><div className="tsc b"><DocPaper doc={SAMPLE} profile={{ ...P, template: "atelier", accent: "#1D2B55" }} /></div></div>
+        </div>
+      </section>
+      <section style={{ background: "var(--ink)", color: "var(--paper)" }}><div className="wrap sec split">
+        <div style={{ borderRadius: 22, overflow: "hidden", aspectRatio: "4/3.4" }}><img src="/img/dakar.webp" alt="Réparateur de téléphones dans son échoppe à Dakar" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>
+        <div><p className="u" style={{ color: "var(--ochre)" }}>Qui vous doit</p><h2>Ouvrez l'application, sachez tout de suite combien on vous doit.</h2>
+          <p style={{ color: "#B3ACA2", fontSize: 18, margin: "20px 0" }}>Les retards en rouge, la relance à un doigt. Kola calcule aussi combien de jours chaque client met à payer, pour savoir à qui demander un acompte.</p>
+          <div style={{ border: "1px solid #ffffff22", borderRadius: 16, overflow: "hidden" }}>{[["Hôtel Les Cocotiers", "12 j de retard", "346 060 F", 1], ["Awa Diop", "échéance 9 nov.", "50 000 F", 0], ["Sèmè Agro SARL", "paiement signalé", "601 800 F", 2]].map(([n, s, a, l]) => <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "14px 16px", borderTop: "1px solid #ffffff1a" }}><div><b>{n}</b><div style={{ fontSize: 13.5, color: l === 1 ? "#F08A6E" : l === 2 ? "#9BD3AE" : "#B3ACA2" }}>{s}</div></div><b className="mono">{a}</b></div>)}</div></div>
+      </div></section>
+      <section className="wrap sec" id="tarifs">
+        <p className="u">Tarifs</p><h2>Gratuit pour commencer. Moins cher qu'un carnet à souches pour continuer.</h2>
+        <div className="price">
+          <div><div className="u">Gratuit</div><div className="amt">0 F</div><div className="mute">pour toujours</div><ul><li>10 documents par mois</li><li>4 modèles, logo, couleurs</li><li>Lien de paiement et WhatsApp</li><li>Saisie par phrase ou à la voix</li></ul><Link href="/essai" className="b o full">Commencer</Link></div>
+          <div className="hl"><div className="u" style={{ color: "var(--ochre)" }}>Pro</div><div className="amt">2 500 F</div><div className="mute">par mois, sans engagement</div><ul><li>Documents illimités</li><li>Sans mention « Créé avec Kola »</li><li>Pied de page personnalisé</li><li>Paiement MoMo, Wave ou carte</li></ul><Link href="/connexion?mode=signup" className="b k full">Passer à Pro</Link></div>
+          <div><div className="u">Pro annuel</div><div className="amt">25 000 F</div><div className="mute">soit 2 083 F par mois</div><ul><li>Tout Pro</li><li>2 mois offerts</li><li>Support WhatsApp prioritaire</li><li>Un seul paiement par an</li></ul><Link href="/connexion?mode=signup" className="b o full">Choisir l'annuel</Link></div>
+        </div>
+      </section>
+      <section className="wrap sec faq" style={{ paddingTop: 0 }}><p className="u">Questions</p><h2 style={{ marginBottom: 24 }}>Ce qu'on nous demande.</h2>
+        {FAQ_FR.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</section>
+      <section className="wrap" style={{ paddingBottom: 40 }}><div style={{ background: "var(--kola)", color: "#fff", borderRadius: 26, padding: "clamp(28px,6vw,64px)", display: "flex", justifyContent: "space-between", alignItems: "end", gap: 24, flexWrap: "wrap" }}>
+        <h2 style={{ fontSize: "clamp(36px,5vw,64px)", maxWidth: 640 }}>Votre prochaine facture prend 40 secondes.</h2>
+        <Link href="/essai" className="b" style={{ background: "#fff", color: "var(--ink)", borderColor: "#fff", minHeight: 54, padding: "0 26px" }}>Essayer sans compte</Link></div></section>
+    </main>
+    <SiteFooter />
+  </>);
 }

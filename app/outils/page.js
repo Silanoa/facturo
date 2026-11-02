@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { SiteNav, SiteFooter } from "../../components/Brand";
+export const metadata = { title: "Outils gratuits pour facturer en Afrique", description: "Générateur de facture sans inscription, calculateur de TVA (18 %, 19 %, 19,25 %) et conversion d'un montant en lettres en francs CFA.", alternates: { canonical: "/outils" } };
+const T = [["/outils/generateur-facture", "Générateur de facture", "Facture, devis ou reçu en PDF, en FCFA ou en naira, sans créer de compte."], ["/outils/calcul-tva", "Calcul de TVA", "HT ↔ TTC aux taux de l'UEMOA, de la CEMAC, du Nigeria et du Ghana."], ["/outils/montant-en-lettres", "Montant en lettres", "« Arrêtée la présente facture à la somme de… » écrit sans faute."]];
+export default function P() { return (<><SiteNav /><main className="wrap sec" style={{ paddingTop: 40 }}><p className="u">Gratuit, sans inscription</p><h1 style={{ fontSize: "clamp(40px,6vw,76px)", maxWidth: 900, margin: "12px 0 40px" }}>Les petits outils qu'on cherche au moment de facturer.</h1>
+  <div className="cards">{T.map(([h, t, d], i) => <Link key={h} href={h}><span className="mono" style={{ color: "var(--kola)", fontSize: 14 }}>0{i + 1}</span><h3>{t}</h3><p className="mute" style={{ margin: 0 }}>{d}</p></Link>)}</div></main><SiteFooter /></>); }

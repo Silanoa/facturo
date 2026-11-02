@@ -1,94 +1,46 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../../../lib/supabase";
 import { useSession } from "../../../../lib/session";
-import { CURRENCIES, KINDS, totals, fmt } from "../../../../lib/money";
-import DocPaper from "../../../../components/DocPaper";
-const today = () => new Date().toISOString().slice(0, 10);
-const plus = (d) => { const x = new Date(); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); };
-function Editor() {
-  const s = useSession(); const r = useRouter(); const sp = useSearchParams();
-  const editId = sp.get("id"); const from = sp.get("from"); const kindQ = sp.get("kind") || "invoice";
-  const [clients, setClients] = useState([]); const [err, setErr] = useState(null); const [busy, setBusy] = useState(false);
-  const [doc, setDoc] = useState(null);
-  async function nextNumber(kind) {
-    const y = new Date().getFullYear();
-    const { count } = await supabase.from("documents").select("id", { count: "exact", head: true }).eq("kind", kind).gte("issue_date", `${y}-01-01`);
-    return `${KINDS[kind].prefix}-${y}-${String((count || 0) + 1).padStart(4, "0")}`;
-  }
+import { totals } from "../../../../lib/money";
+import { nextNumber } from "../../../../lib/data";
+import Editor, { blankDoc, plus, today } from "../../../../components/Editor";
+function Inner() {
+  const q = useSearchParams(); const r = useRouter(); const { profile, user, reload, toast } = useSession();
+  const [doc, setDoc] = useState(null); const [clients, setClients] = useState([]); const [busy, setBusy] = useState(false); const [err, setErr] = useState(null);
+  const [prof, setProf] = useState(profile);
   useEffect(() => { (async () => {
     supabase.from("clients").select("*").order("name").then(({ data }) => setClients(data || []));
-    if (editId) { const { data } = await supabase.from("documents").select("*").eq("id", editId).single(); return setDoc(data); }
-    let base = { kind: kindQ, status: "draft", client: {}, items: [{ label: "", qty: 1, price: 0 }], currency: s.profile.currency || "XOF", tax_rate: 18, discount: 0, issue_date: today(), due_date: plus(kindQ === "quote" ? 30 : 15), notes: "" };
+    const id = q.get("id"), from = q.get("from"), kind = q.get("kind") || "invoice";
+    if (id) { const { data } = await supabase.from("documents").select("*").eq("id", id).single(); if (data) return setDoc({ ...data, items: data.items?.length ? data.items : [{ label: "", qty: 1, price: "" }] }); }
     if (from) { const { data } = await supabase.from("documents").select("*").eq("id", from).single();
-      if (data) base = { ...base, client: data.client, items: data.items, currency: data.currency, tax_rate: data.tax_rate, discount: data.discount, notes: data.kind === "invoice" && kindQ === "receipt" ? `Règlement de la facture ${data.number}.` : data.kind === "quote" ? `Suite au devis ${data.number}.` : data.notes,
-        status: kindQ === "receipt" ? "paid" : "draft" }; }
-    if (kindQ === "receipt") base.status = "paid";
-    base.number = await nextNumber(kindQ); setDoc(base);
-  })(); }, [editId, from, kindQ]);
-  if (!doc) return <p className="muted">Chargement…</p>;
-  const set = (k, v) => setDoc({ ...doc, [k]: v });
-  const setItem = (i, k, v) => set("items", doc.items.map((it, n) => n === i ? { ...it, [k]: v } : it));
-  const setClient = (k, v) => set("client", { ...doc.client, [k]: v });
-  async function save() {
-    if (!doc.client?.name) return setErr("Indiquez au moins le nom du client.");
-    setBusy(true); setErr(null);
-    const payload = { kind: doc.kind, number: doc.number, status: doc.status, client: doc.client, items: doc.items.filter(i => i.label || +i.price), currency: doc.currency, tax_rate: +doc.tax_rate || 0, discount: +doc.discount || 0, total: totals(doc).total, issue_date: doc.issue_date, due_date: doc.due_date || null, notes: doc.notes };
-    if (doc.saveClient && !clients.find(c => c.name === doc.client.name)) { const { name, email, phone, address, tax_id } = doc.client; await supabase.from("clients").insert({ name, email, phone, address, tax_id }); }
-    const q = editId ? supabase.from("documents").update(payload).eq("id", editId).select().single() : supabase.from("documents").insert(payload).select().single();
-    const { data, error } = await q; setBusy(false);
-    if (error) return setErr(error.message.includes("QUOTA") ? "Vous avez atteint les 10 documents gratuits de ce mois. Passez au plan Pro (2 500 FCFA/mois) depuis « Mon entreprise » pour continuer." : error.message);
-    r.push(`/app/documents/${data.id}`);
+      if (data) { const k = q.get("kind") || "invoice"; const { id: _, public_token, number, status, viewed_at, declared_paid_at, declared_note, paid_at, created_at, ...rest } = data;
+        return setDoc({ ...rest, kind: k, status: k === "receipt" ? "paid" : "draft", issue_date: today(), due_date: k === "receipt" ? null : plus(15), number: await nextNumber(k) }); } }
+    let d = blankDoc(kind, profile.currency || "XOF");
+    if (q.get("import")) { try { const x = JSON.parse(localStorage.getItem("kola_draft") || "null"); if (x) { const { number, ...rest } = x; d = { ...d, ...rest }; } } catch {} }
+    const c = q.get("client"); if (c) { const { data } = await supabase.from("clients").select("*").eq("id", c).single(); if (data) d.client = { name: data.name, email: data.email, phone: data.phone, address: data.address, tax_id: data.tax_id }; }
+    setDoc({ ...d, number: await nextNumber(d.kind) });
+  })(); }, []);
+  async function save(status) {
+    setBusy(true); setErr(null); const t = totals(doc);
+    const { id, created_at, ...rest } = doc; const row = { ...rest, status: status || doc.status, total: t.total, tax_rate: +doc.tax_rate || 0, discount: +doc.discount || 0, items: doc.items.filter(i => i.label || +i.price).map(i => ({ label: i.label, qty: +i.qty || 0, price: +i.price || 0 })) };
+    if (!row.items.length) { setBusy(false); return setErr("Ajoutez au moins une ligne avec un prix."); }
+    const res = id ? await supabase.from("documents").update(row).eq("id", id).select().single() : await supabase.from("documents").insert({ ...row, user_id: user.id }).select().single();
+    setBusy(false);
+    if (res.error) return setErr(/QUOTA/.test(res.error.message) ? "quota" : /duplicate|unique/.test(res.error.message) ? "Ce numéro existe déjà. Changez-le." : res.error.message);
+    if (q.get("import")) localStorage.removeItem("kola_draft");
+    if (doc.client?.name && !clients.some(c => c.name.toLowerCase() === doc.client.name.toLowerCase())) await supabase.from("clients").insert({ name: doc.client.name, phone: doc.client.phone || null, email: doc.client.email || null, address: doc.client.address || null, tax_id: doc.client.tax_id || null });
+    if (prof.template !== profile.template) { await supabase.from("profiles").update({ template: prof.template }).eq("id", user.id); reload(); }
+    toast(id ? "Modifications enregistrées" : "Document créé"); r.push(`/app/documents/${res.data.id}${id ? "" : "?new=1"}`);
   }
-  const t = totals(doc);
-  return (<>
-    <div className="head noprint"><div><span className="eyebrow">{editId ? "Modifier" : "Nouveau document"}</span><h1>{KINDS[doc.kind].fr} {doc.number}</h1></div>
-      <div style={{display:"flex",gap:8}}><button className="btn ghost" onClick={() => r.back()}>Annuler</button><button className="btn clay" onClick={save} disabled={busy}>{busy ? "Enregistrement…" : "Enregistrer"}</button></div></div>
-    {err && <div className="alert">{err}</div>}
-    <div className="editor">
-      <div>
-        <div className="card" style={{marginBottom:16}}>
-          <div className="grid3">
-            <div className="field"><label>Type</label><select value={doc.kind} onChange={async e => { const k = e.target.value; setDoc({ ...doc, kind: k, number: editId ? doc.number : await nextNumber(k), status: k === "receipt" ? "paid" : doc.status }); }}>{Object.entries(KINDS).map(([k, v]) => <option key={k} value={k}>{v.fr}</option>)}</select></div>
-            <div className="field"><label>Numéro</label><input value={doc.number} onChange={e => set("number", e.target.value)}/></div>
-            <div className="field"><label>Devise</label><select value={doc.currency} onChange={e => set("currency", e.target.value)}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}</select></div>
-            <div className="field"><label>Date</label><input type="date" value={doc.issue_date} onChange={e => set("issue_date", e.target.value)}/></div>
-            {doc.kind !== "receipt" && <div className="field"><label>{doc.kind === "quote" ? "Validité" : "Échéance"}</label><input type="date" value={doc.due_date || ""} onChange={e => set("due_date", e.target.value)}/></div>}
-            <div className="field"><label>Statut</label><select value={doc.status} onChange={e => set("status", e.target.value)}><option value="draft">Brouillon</option><option value="sent">Envoyé</option>{doc.kind === "quote" ? <option value="accepted">Accepté</option> : <option value="paid">Payé</option>}</select></div>
-          </div>
-        </div>
-        <div className="card" style={{marginBottom:16}}>
-          <b>Client</b>
-          {clients.length > 0 && <select style={{margin:"10px 0"}} value="" onChange={e => { const c = clients.find(x => x.id === e.target.value); if (c) set("client", { name: c.name, email: c.email, phone: c.phone, address: c.address, tax_id: c.tax_id }); }}><option value="">Choisir dans mon fichier clients…</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}
-          <div className="grid2" style={{marginTop:10}}>
-            <div className="field"><label>Nom / raison sociale</label><input value={doc.client.name || ""} onChange={e => setClient("name", e.target.value)}/></div>
-            <div className="field"><label>Téléphone (WhatsApp)</label><input value={doc.client.phone || ""} onChange={e => setClient("phone", e.target.value)} placeholder="+229 01 …"/></div>
-            <div className="field"><label>Email</label><input value={doc.client.email || ""} onChange={e => setClient("email", e.target.value)}/></div>
-            <div className="field"><label>IFU / N° fiscal</label><input value={doc.client.tax_id || ""} onChange={e => setClient("tax_id", e.target.value)}/></div>
-          </div>
-          <div className="field"><label>Adresse</label><input value={doc.client.address || ""} onChange={e => setClient("address", e.target.value)}/></div>
-          {!editId && <label style={{textTransform:"none",letterSpacing:0,display:"flex",gap:8,alignItems:"center"}}><input type="checkbox" style={{width:"auto"}} checked={!!doc.saveClient} onChange={e => set("saveClient", e.target.checked)}/> Ajouter à mon fichier clients</label>}
-        </div>
-        <div className="card">
-          <b>Lignes</b>
-          <table className="items" style={{width:"100%",marginTop:8}}><tbody>
-            {doc.items.map((it, i) => <tr key={i}>
-              <td style={{width:"52%"}}><input placeholder="Désignation" value={it.label} onChange={e => setItem(i, "label", e.target.value)}/></td>
-              <td style={{width:"14%"}}><input type="number" min="0" step="any" value={it.qty} onChange={e => setItem(i, "qty", e.target.value)}/></td>
-              <td style={{width:"28%"}}><input type="number" min="0" step="any" value={it.price} onChange={e => setItem(i, "price", e.target.value)}/></td>
-              <td><button className="btn ghost sm" title="Supprimer" onClick={() => set("items", doc.items.filter((_, n) => n !== i))}>×</button></td></tr>)}
-          </tbody></table>
-          <button className="btn ghost sm" onClick={() => set("items", [...doc.items, { label: "", qty: 1, price: 0 }])}>+ Ajouter une ligne</button>
-          <div className="grid2" style={{marginTop:16}}>
-            <div className="field"><label>TVA (%)</label><select value={doc.tax_rate} onChange={e => set("tax_rate", e.target.value)}><option value="0">0 % — non assujetti</option><option value="18">18 % (UEMOA standard)</option><option value="19.25">19,25 % (Cameroun)</option><option value="7.5">7,5 % (Nigeria)</option><option value="15">15 % (Ghana)</option><option value="20">20 % (France, Maroc)</option></select></div>
-            <div className="field"><label>Remise ({doc.currency})</label><input type="number" min="0" value={doc.discount} onChange={e => set("discount", e.target.value)}/></div>
-          </div>
-          <div className="field"><label>Notes / conditions</label><textarea rows={3} value={doc.notes || ""} onChange={e => set("notes", e.target.value)} placeholder="Ex. : Paiement à 15 jours. Acompte de 50 % à la commande."/></div>
-          <div style={{textAlign:"right",fontSize:18}}><span className="muted">Total : </span><b className="serif">{fmt(t.total, doc.currency)}</b></div>
-        </div>
-      </div>
-      <div style={{position:"sticky",top:20}}><div style={{transform:"scale(.82)",transformOrigin:"top center"}}><DocPaper doc={doc} profile={s.profile}/></div></div>
-    </div></>);
+  if (!doc) return <div className="u">Chargement</div>;
+  return (<div>
+    <div className="ph np"><div><Link href="/app/documents" className="lnk" style={{ fontSize: 14, color: "var(--mute)" }}>← Documents</Link><h1 style={{ marginTop: 6 }}>{doc.id ? `Modifier ${doc.number}` : "Nouveau document"}</h1></div>
+      <div className="row"><button className="b o" disabled={busy} onClick={() => save(doc.id ? undefined : "draft")}>{doc.id ? "Enregistrer" : "Brouillon"}</button>{(!doc.id || doc.status === "draft") && <button className="b k" disabled={busy} onClick={() => save(doc.kind === "receipt" ? "paid" : "sent")}>{busy ? "…" : "Valider et partager"}</button>}</div></div>
+    {err && <div className="note bad np" style={{ marginBottom: 14 }}>{err === "quota" ? <>Vous avez atteint les 10 documents gratuits du mois. <Link href="/app/parametres?t=offre"><b>Passez à Pro</b></Link> pour continuer (2 500 FCFA/mois).</> : err}</div>}
+    <Editor doc={doc} setDoc={setDoc} profile={prof} setProfile={setProf} clients={clients} onNumber={async (k) => { if (!doc.id) { const n = await nextNumber(k); setDoc(d => ({ ...d, number: n })); } }} />
+  </div>);
 }
-export default function Page() { return <Suspense><Editor/></Suspense>; }
+export default function Page() { return <Suspense fallback={null}><Inner /></Suspense>; }
