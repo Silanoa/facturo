@@ -65,7 +65,7 @@ function Settings() {
       <div className="preview"><DocPaper doc={SAMPLE} profile={preview} /></div></div>}
     {tab === "offre" && <div id="offre" style={{ maxWidth: 760 }}>
       {pro ? <div className="panel"><span className="pill paid">Pro actif</span><h2 style={{ fontSize: 30, margin: "12px 0 6px" }}>Merci de faire confiance à Kola.</h2><p className="mute">Documents illimités{s.profile.pro_until ? ` jusqu'au ${new Date(s.profile.pro_until).toLocaleDateString("fr-FR")}` : ""}.</p></div> :
-      <div className="price" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 0 }}>
+      <div className="price p2" style={{ marginTop: 0 }}>
         <div><div className="u">Mensuel</div><div className="amt">2 500 <small style={{ fontSize: 16 }}>FCFA</small></div><div className="mute">par mois, sans engagement</div>
           <ul><li>Documents illimités</li><li>Sans mention Kola</li><li>Pied de page personnalisé</li><li>Relances et liens de paiement illimités</li></ul><button className="b full" onClick={() => upgrade("month")}>Payer 2 500 FCFA</button></div>
         <div className="hl"><div className="u" style={{ color: "var(--ochre)" }}>Annuel · 2 mois offerts</div><div className="amt">25 000 <small style={{ fontSize: 16 }}>FCFA</small></div><div className="mute">soit 2 083 FCFA/mois</div>
