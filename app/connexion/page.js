@@ -11,10 +11,12 @@ function Form() {
   useEffect(() => { supabase.auth.getSession().then(({ data }) => data.session && r.replace("/app")); }, [r]);
   async function submit(e) {
     e.preventDefault(); setBusy(true); setMsg(null);
-    const fn = mode === "signup" ? supabase.auth.signUp({ email, password: pw, options: { emailRedirectTo: location.origin + "/app" } }) : supabase.auth.signInWithPassword({ email, password: pw });
-    const { data, error } = await fn; setBusy(false);
+    if (mode === "signup") {
+      const { error: e1 } = await supabase.rpc("register", { p_email: email, p_password: pw });
+      if (e1) { setBusy(false); const m = e1.message; return setMsg({ bad: true, t: m.includes("TAKEN") ? "Un compte existe déjà avec cet email. Connectez-vous." : m.includes("INVALID") ? "Adresse email invalide." : m.includes("SHORT") ? "Mot de passe trop court (6 caractères minimum)." : m }); }
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: pw }); setBusy(false);
     if (error) return setMsg({ bad: true, t: error.message === "Invalid login credentials" ? "Email ou mot de passe incorrect." : error.message });
-    if (mode === "signup" && !data.session) return setMsg({ t: "Compte créé. Ouvrez l'email de confirmation que nous venons d'envoyer, puis revenez vous connecter." });
     r.replace("/app");
   }
   return (<div className="pattern" style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:20}}>

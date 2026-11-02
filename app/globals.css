@@ -48,7 +48,7 @@ footer{padding:40px 0;color:var(--mute);font-size:13.5px;border-top:1px solid va
 /* app shell */
 .shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
 .side{background:var(--forest);color:var(--sand);padding:22px 16px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
-.side .logo{color:var(--sand);margin:0 8px 24px}.side .logo i{background:var(--sand);color:var(--forest)}
+.side .logo{color:var(--sand);margin:0 8px 24px;flex-direction:row;display:flex}.side .logo i{background:var(--sand);color:var(--forest)}
 .side a,.side button.link{display:block;padding:9px 12px;border-radius:9px;text-decoration:none;color:#D8E0D8;font-weight:600;background:none;border:0;text-align:left;font:inherit;cursor:pointer;width:100%}
 .side a.on,.side a:hover{background:#ffffff14;color:#fff}
 .side .grow{flex:1}
