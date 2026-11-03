@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 import { parseDraft } from "../lib/parse";
 import { fmt } from "../lib/money";
 const EX = {
-  fr: "Refonte du site 450 000 et 3 mois de maintenance à 35 000 pour Atlas Conseil, à 15 jours",
-  en: "Website redesign 1,800 and 3 months maintenance at 120 for Northwind Ltd, due in 14 days",
+  fr: "Création d'un logo 150 000 et 3 jours de formation à 60 000 pour Atlas Conseil, à payer sous 15 jours",
+  en: "Logo design 900 and 3 days of training at 400 for Northwind Ltd, due in 14 days",
 };
 export default function LiveDemo({ lang = "fr" }) {
   const en = lang === "en"; const r = useRouter(); const [txt, setTxt] = useState(EX[lang]);
   const d = useMemo(() => parseDraft(txt), [txt]); const c = d.currency || (en ? "USD" : "XOF");
   const total = (d.items || []).reduce((a, i) => a + i.qty * i.price, 0) * (1 + (d.tax_rate || 0) / 100);
-  const go = () => { localStorage.setItem("bnv_seed", JSON.stringify({ client: d.client, items: d.items.length ? d.items : undefined, currency: c, kind: d.kind || "invoice", tax_rate: d.tax_rate || 0 })); localStorage.removeItem("bnv_draft"); r.push(en ? "/en/invoice-generator" : "/essai"); };
+  const go = () => { if (txt.trim() === EX[lang] || !d.items.length) { localStorage.removeItem("bnv_draft"); return r.push(en ? "/en/invoice-generator" : "/essai"); } localStorage.setItem("bnv_seed", JSON.stringify({ client: d.client, items: d.items.length ? d.items : undefined, currency: c, kind: d.kind || "invoice", tax_rate: d.tax_rate || 0 })); localStorage.removeItem("bnv_draft"); r.push(en ? "/en/invoice-generator" : "/essai"); };
   return (<div className="live" id="demo">
     <div className="live-in"><label htmlFor="live" className="u" style={{ display: "block" }}>{en ? "① Write what you did" : "① Écrivez ce que vous avez fait"}</label>
       <textarea id="live" rows={2} value={txt} onChange={(e) => setTxt(e.target.value)} aria-label={en ? "Describe the job" : "Décrivez la prestation"} /></div>

@@ -12,7 +12,7 @@ import { Logo } from "../../components/Brand";
 import Support from "../../components/Support";
 import { IHome, IDoc, IUsers, ISet, IPlus, IOut, IShield } from "../../components/Icons";
 export default function AppLayout({ children }) {
-  const r = useRouter(); const p = usePathname(); const [s, setS] = useState(null); const [toast, setToast] = useState(null); const [menu, setMenu] = useState(null); const { tr, setLang, lang } = useT();
+  const r = useRouter(); const p = usePathname(); const [s, setS] = useState(null); const [toast, setToast] = useState(null); const [menu, setMenu] = useState(null); const [ban, setBan] = useState(null); const { tr, setLang, lang } = useT();
   async function load() {
     const { data } = await supabase.auth.getSession();
     if (!data.session) return r.replace("/connexion?next=" + encodeURIComponent(p));
@@ -24,7 +24,7 @@ export default function AppLayout({ children }) {
       await supabase.from("profiles").update(upd).eq("id", prof.id); if (upd.country) setS((x) => x && ({ ...x, profile: { ...x.profile, ...upd } })); });
     setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: (m) => { setToast(m); setTimeout(() => setToast(null), 2600); } });
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); supabase.from("app_config").select("value").eq("key", "banner").maybeSingle().then(({ data }) => { const b = data?.value; if (b?.on && (b.fr || b.en)) setBan(b); }); }, []);
   useEffect(() => { setMenu(null); }, [p]);
   useEffect(() => { if (!menu) return; const f = (e) => { if (!e.target.closest?.("[data-menu]")) setMenu(null); }; const k = (e) => e.key === "Escape" && setMenu(null);
     document.addEventListener("pointerdown", f); document.addEventListener("keydown", k); return () => { document.removeEventListener("pointerdown", f); document.removeEventListener("keydown", k); }; }, [menu]);
@@ -36,10 +36,10 @@ export default function AppLayout({ children }) {
       <Logo href="/app" />
       <div className="ws" data-menu><button className="ws-b" onClick={() => setMenu(menu === "ws" ? null : "ws")} aria-expanded={menu === "ws"}>
         {s.profile.logo ? <img src={s.profile.logo} alt="" className="ws-av" /> : <span className="ws-av">{(s.profile.business_name || s.user.email || "?").trim()[0].toUpperCase()}</span>}
-        <span className="ws-t"><b>{s.profile.business_name || tr("Mon activité", "My business")}</b><span>{s.profile.plan === "pro" ? "Pro" : tr("Gratuit", "Free")} · {s.user.email}</span></span><span className="ws-c" aria-hidden>⌄</span></button>
+        <span className="ws-t"><b>{s.profile.business_name || tr("Mon entreprise", "My business")}</b><span><i className={`ws-plan ${s.profile.plan === "pro" ? "pro" : ""}`}>{s.profile.plan === "pro" ? "Pro" : tr("Gratuit", "Free")}</i></span></span><svg className="ws-c" width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M5 6l3-3 3 3M5 10l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         {menu === "ws" && <div className="ws-m" role="menu" onClick={() => setMenu(null)}>
-          <span className="ws-l">{tr("Entreprise", "Business")}</span>
-          <Link role="menuitem" href="/app/parametres?t=profil">{tr("Coordonnées", "Details")}</Link><Link role="menuitem" href="/app/parametres?t=modele">{tr("Apparence des documents", "Document design")}</Link><Link role="menuitem" href="/app/parametres?t=paiement">{tr("Moyens de paiement", "Payment methods")}</Link>
+          <div className="ws-me"><b>{s.profile.business_name || tr("Mon entreprise", "My business")}</b><span>{s.user.email}</span></div><hr />
+          <Link role="menuitem" href="/app/parametres?t=profil">{tr("Coordonnées", "Details")}</Link><Link role="menuitem" href="/app/parametres?t=modele">{tr("Apparence des documents", "Document design")}</Link><Link role="menuitem" href="/app/parametres?t=paiement">{tr("Moyens de paiement", "Payment methods")}</Link><Link role="menuitem" href="/app/parametres?t=offre">{tr("Abonnement", "Subscription")}{s.profile.plan !== "pro" && <em className="ws-up">Pro</em>}</Link>
           <hr /><button role="menuitem" onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "Français" : "English"}</button>
           <button role="menuitem" onClick={async () => { await supabase.auth.signOut(); r.replace("/"); }}><IOut width="15" height="15" /> {tr("Se déconnecter", "Sign out")}</button></div>}</div>
       <div className="new-w" data-menu><Link href="/app/documents/nouveau" className="b k new"><IPlus width="17" height="17" /> {tr("Nouvelle facture", "New invoice")}</Link>
@@ -48,9 +48,9 @@ export default function AppLayout({ children }) {
       <nav className="snav">{nav.map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}
         {s.profile.role === "admin" && <Link href="/app/admin" className={on("/app/admin") ? "on" : ""}><IShield />Admin</Link>}</nav>
       <div style={{ flex: 1 }} />
-      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro-c"><b>Bonova Pro</b><span>{tr("Modèles illimités, sans mention Bonova.", "Unlimited templates, no Bonova line.")}</span><em>{proPrice(s.profile.country, lang).month} {tr("/ mois", "/ month")}</em></Link>}
+      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro-c"><b>Bonova Pro</b><span>{tr("Modèles illimités, signature et cachet, sans mention Bonova.", "Unlimited templates, signature and stamp, no Bonova line.")}</span><em>{proPrice(s.profile.country, lang).month} {tr("/ mois", "/ month")}</em></Link>}
     </aside>
-    <main className="main">{children}</main>
+    <main className="main">{ban && (() => { const t = (lang === "en" ? ban.en : ban.fr) || ban.fr || ban.en; let seen = null; try { seen = localStorage.getItem("bnv_ban"); } catch {} return seen === t ? null : <div className="app-banner np" role="status"><span>{t}</span><button aria-label={tr("Fermer", "Close")} onClick={() => { try { localStorage.setItem("bnv_ban", t); } catch {} setBan(null); }}>×</button></div>; })()}{children}</main>
     <nav className="tabbar np" aria-label="Navigation">
       {nav.slice(0, 2).map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}
       <Link href="/app/documents/nouveau" className="plus" aria-label={tr("Nouvelle facture", "New invoice")}><span className="c"><IPlus /></span></Link>

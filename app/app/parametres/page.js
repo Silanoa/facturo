@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { useSession } from "../../../lib/session";
@@ -17,6 +17,7 @@ import { shrink, dominant, letterhead } from "../../../lib/img";
 const SAMPLE = { kind: "invoice", number: "FAC-2026-0042", status: "sent", currency: "XOF", tax_rate: 18, discount: 0, issue_date: "2026-11-02", due_date: "2026-11-17", client: { name: "Atlas Conseil SARL", address: "Plateau, Dakar" }, items: [{ label: "Refonte du site web", qty: 1, price: 450000 }, { label: "Maintenance mensuelle", qty: 3, price: 35000 }] };
 const LS = { month: process.env.NEXT_PUBLIC_LEMON_MONTH, year: process.env.NEXT_PUBLIC_LEMON_YEAR };
 function Settings() {
+  const sp0 = useSearchParams(); const tq = sp0.get("t"); useEffect(() => { if (tq) setTab(tq); }, [tq]);
   const s = useSession(); const sp = useSearchParams(); const { tr, lang, setLang } = useT(); const [tab, setTab] = useState(sp.get("t") || "compte");
   const [p, setP] = useState({ ...s.profile, blocks: blocksOf(s.profile), momo: s.profile.momo || [], settings: { ...(s.profile.settings || {}) } });
   const [busy, setBusy] = useState(false); const [pay, setPay] = useState(null); const [pw, setPw] = useState(""); const [drag, setDrag] = useState(null); const [tname, setTname] = useState(""); const [conf, setConf] = useState("");
@@ -129,6 +130,9 @@ function Settings() {
           {(S.templates || []).length ? <div className="mytpl">{S.templates.map((t) => <div key={t.name} className="row"><span className="sw" style={{ background: t.accent }} /><b style={{ flex: 1 }}>{t.name}</b><button className="b s o" onClick={() => applyTpl(t)}>{tr("Utiliser", "Use")}</button><button className="x" onClick={() => setS("templates", S.templates.filter(x => x.name !== t.name))} aria-label={tr("Supprimer", "Delete")}>×</button></div>)}</div> : <p className="hint" style={{ marginTop: 0 }}>{tr("Enregistrez la mise en page actuelle pour la retrouver en un clic (ex. une version pour les devis, une autre pour l'export).", "Save the current look to reuse it in one click.")}</p>}
           <div className="row" style={{ gap: 8, marginTop: 10 }}><input value={tname} onChange={(e) => setTname(e.target.value)} placeholder={tr("Nom du modèle", "Template name")} style={{ flex: 1 }} /><button className="b s" onClick={saveTpl}>{tr("Enregistrer ce modèle", "Save this template")}</button></div></div>
         <div className="blk"><h3>{tr("Pied de page", "Footer")} {!pro && <span className="pill">Pro</span>}</h3>{pro ? <input value={p.footer || ""} onChange={(e) => set("footer", e.target.value)} placeholder={tr("Ex. : Merci de votre confiance.", "E.g. Thank you for your business.")} /> : <p className="hint" style={{ marginTop: 0 }}>{tr("Remplace la mention « Fait avec Bonova » par votre propre texte.", "Replaces the “Made with Bonova” line with your own text.")} <button type="button" className="lnk" onClick={() => setTab("offre")}>{tr("Voir Pro →", "See Pro →")}</button></p>}</div>
+        <div className="blk"><h3>{tr("Signature et cachet", "Signature and stamp")} {!pro && <span className="pill">Pro</span>}</h3><p className="hint" style={{ marginTop: 0 }}>{tr("Votre signature ou cachet scanné apparaît sur chaque facture, devis et reçu. Fond blanc ou PNG transparent.", "Your scanned signature or stamp appears on every invoice, quote and receipt. White background or transparent PNG.")}</p>
+          {pro ? <div className="row" style={{ flexWrap: "wrap", gap: 10 }}>{S.sign_img && <img src={S.sign_img} alt="" style={{ height: 56, background: "#fff", border: "1px solid var(--line)", borderRadius: 8, padding: 4 }} />}<label className="b s o" style={{ cursor: "pointer" }}>{S.sign_img ? tr("Remplacer", "Replace") : tr("Importer une image", "Upload an image")}<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) setS("sign_img", await shrink(fl)); }} /></label>{S.sign_img && <button className="lnk" onClick={() => setS("sign_img", null)}>{tr("Retirer", "Remove")}</button>}</div>
+            : <button type="button" className="lnk" onClick={() => setTab("offre")}>{tr("Disponible avec Pro →", "Available with Pro →")}</button>}</div>
       </div>
       <div className="preview"><div className="sheet-stack"><DocPaper doc={{ ...SAMPLE, currency: p.currency || "XOF", tax_rate: ct.vat }} profile={preview} /></div></div></div>}
     {tab === "notifs" && <div style={{ maxWidth: 760 }}>

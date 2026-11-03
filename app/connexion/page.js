@@ -6,12 +6,12 @@ import { Logo } from "../../components/Brand";
 import { useT } from "../../lib/i18n";
 import { SUPPORT, waSupport, mailSupport } from "../../lib/site";
 async function afterLogin(r, next) {
-  let draft = null, prof = null; try { draft = JSON.parse(localStorage.getItem("bnv_draft") || localStorage.getItem("kola_draft") || "null"); prof = JSON.parse(localStorage.getItem("bnv_profile") || localStorage.getItem("kola_profile") || "null"); } catch {}
-  if (prof) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single();
+  let draft = null, prof = null; try { draft = JSON.parse(localStorage.getItem("bnv_draft") || "null"); if (Date.now() - (+localStorage.getItem("bnv_draft_at") || 0) > 12 * 3600e3) draft = null; prof = JSON.parse(localStorage.getItem("bnv_profile") || localStorage.getItem("kola_profile") || "null"); } catch {}
+  if (prof && prof.business_name) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single();
     if (!cur?.business_name) { const { business_name, phone, address, ifu, rccm, momo, template, accent, country, doc_lang, logo } = prof; const lang = localStorage.getItem("lang") || "fr";
       await supabase.from("profiles").update({ business_name, phone, address, ifu, rccm, momo: (momo || []).filter(m => m.number || m.iban || m.url), currency: draft?.currency || prof.currency, template, accent, country, doc_lang: doc_lang || lang, lang, ...(logo ? { logo } : {}) }).eq("id", u.user.id); }
     localStorage.removeItem("bnv_profile"); localStorage.removeItem("kola_profile"); }
-  else { const lang = localStorage.getItem("lang"); if (lang) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single(); if (!cur?.business_name) await supabase.from("profiles").update({ lang, doc_lang: lang, ...(lang === "en" ? { currency: "USD", country: "US" } : {}) }).eq("id", u.user.id); } }
+  else { localStorage.removeItem("bnv_profile"); const lang = localStorage.getItem("lang"); if (lang) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single(); if (!cur?.business_name) await supabase.from("profiles").update({ lang, doc_lang: lang, ...(lang === "en" ? { currency: "USD", country: "US" } : {}) }).eq("id", u.user.id); } }
   if (draft && (draft.items || []).some(i => +i.price)) return r.replace("/app/documents/nouveau?import=1");
   r.replace(next && next.startsWith("/app") ? next : "/app");
 }
@@ -34,7 +34,10 @@ function Form() {
   }
   const su = mode === "signup"; const fg = mode === "forgot"; const note = msg && (typeof msg === "string" ? { bad: 1, t: msg } : msg);
   return (<div className="auth">
-    <div className="auth-img"><span className="u" style={{ color: "#ffffffaa" }}>№ 0001</span><h2>{tr("Une facture.", "An invoice.")}<br />{tr("Envoyée.", "Sent.")}<br /><span className="serif">{tr("Payée.", "Paid.")}</span></h2><p className="mono" style={{ fontSize: 13, color: "#E4E7FF", margin: 0 }}>Mobile Money · IBAN · Stripe · PayPal · Wise</p></div>
+    <div className="auth-img"><span className="u" style={{ color: "#ffffffaa" }}>Bonova</span>
+      <div><h2>{tr("Devis, factures, reçus.", "Quotes, invoices, receipts.")}<br /><span className="serif">{tr("Au même endroit.", "In one place.")}</span></h2>
+        <ul className="auth-pts">{[tr("Un document prêt en une minute, à vos couleurs.", "A document ready in a minute, in your colours."), tr("Votre client l'ouvre et paie depuis un simple lien.", "Your client opens it and pays from a simple link."), tr("Vous voyez qui a payé et qui doit encore.", "You see who has paid and who still owes.")].map((x) => <li key={x}>{x}</li>)}</ul></div>
+      <p style={{ fontSize: 14, color: "#E4E7FF", margin: 0 }}>{tr("Gratuit pour commencer · sans carte bancaire", "Free to start · no card required")}</p></div>
     <div className="auth-f"><div style={{ width: "100%", maxWidth: 400 }}>
       <Logo /><h1 style={{ fontSize: 56, margin: "34px 0 10px" }}>{fg ? tr("Mot de passe oublié", "Forgot password") : su ? (fromTrial ? tr("Gardez votre facture.", "Keep your invoice.") : tr("Créez votre espace.", "Create your space.")) : tr("Bon retour.", "Welcome back.")}</h1>
       <p className="mute" style={{ margin: "0 0 26px" }}>{fg ? tr("Indiquez votre email : nous vous envoyons un lien pour choisir un nouveau mot de passe.", "Enter your email and we'll send you a link to choose a new password.") : su ? (fromTrial ? tr("Votre brouillon sera importé automatiquement. Gratuit, illimité.", "Your draft is imported automatically. Free, unlimited.") : tr("Gratuit, factures illimitées, sans carte bancaire.", "Free, unlimited invoices, no card.")) : tr("Retrouvez vos factures et ce qu'on vous doit.", "Your invoices and who owes you.")}</p>

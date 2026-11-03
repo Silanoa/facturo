@@ -13,9 +13,10 @@ import { detectCountry, rememberCountry } from "../lib/geo";
 const get = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
 export default function Trial({ heading = true }) {
   const { tr, lang } = useT();
-  const [doc, setDoc] = useState(null); const [p, setP] = useState(null); const [open, setOpen] = useState(false); const [copied, setCopied] = useState(false); const [warn, setWarn] = useState(false);
+  const [doc, setDoc] = useState(null); const [p, setP] = useState(null); const [open, setOpen] = useState(false); const [copied, setCopied] = useState(false); const [warn, setWarn] = useState(false); const [resumed, setResumed] = useState(false);
+  const restart = () => { localStorage.removeItem("bnv_draft"); localStorage.removeItem("bnv_draft_at"); setResumed(false); setDoc({ ...blankDoc(doc.kind, doc.currency), number: doc.number }); };
   useEffect(() => {
-    const d = get("bnv_draft") || get("kola_draft"); const pr = get("bnv_profile") || get("kola_profile");
+    const at = +localStorage.getItem("bnv_draft_at") || 0; const d0 = get("bnv_draft"); const d = d0 && Date.now() - at < 12 * 3600e3 && ((d0.items || []).some((i) => i.label || +i.price) || d0.client?.name) ? d0 : null; if (!d) { localStorage.removeItem("bnv_draft"); localStorage.removeItem("kola_draft"); } setResumed(!!d); const pr = get("bnv_profile") || get("kola_profile");
     const seed = get("bnv_seed"); if (seed) localStorage.removeItem("bnv_seed");
     const en = lang === "en";
     const base = d || { ...blankDoc("invoice", en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
@@ -24,7 +25,7 @@ export default function Trial({ heading = true }) {
     if (!pr || pr.auto !== 0) detectCountry().then((cc) => { if (!cc) return; const c = country(cc);
       setP((x) => (x && x.auto !== 0 ? { ...x, country: cc, auto: 1 } : x)); setDoc((x) => (x && (!d || !x.items.some((i) => +i.price > 0)) ? { ...x, currency: c.cur } : x)); });
   }, []);
-  useEffect(() => { if (doc) localStorage.setItem("bnv_draft", JSON.stringify(doc)); }, [doc]);
+  useEffect(() => { if (doc) { localStorage.setItem("bnv_draft", JSON.stringify(doc)); localStorage.setItem("bnv_draft_at", String(Date.now())); } }, [doc]);
   useEffect(() => { if (p) localStorage.setItem("bnv_profile", JSON.stringify(p)); }, [p]);
   if (!doc || !p) return <div style={{ minHeight: 600 }} />;
   const ready = doc.items.some(i => +i.price > 0); const set = (k, v) => setP({ ...p, [k]: v });
@@ -41,6 +42,7 @@ export default function Trial({ heading = true }) {
   </div>);
   return (<div>
     {heading && <div className="ph np"><div><p className="u">{tr("Gratuit · sans compte", "Free · no account")}</p><h1 className="ph-t">{tr("Nouvelle facture", "New invoice")}</h1></div><div className="desk-only"><Actions /></div></div>}
+    {resumed && <div className="note np resumed"><span>{tr("Votre brouillon précédent a été repris.", "Your previous draft was restored.")}</span><button type="button" className="lnk" onClick={restart}>{tr("Repartir de zéro", "Start over")}</button></div>}
     <div className="blk np prof">
       <div className="prof-h"><div className="prof-av">{p.logo ? <img src={p.logo} alt="" /> : (p.business_name || "?").trim()[0]?.toUpperCase()}</div>
         <div className="prof-t"><b>{p.business_name || tr("Votre entreprise", "Your business")}</b><span>{p.business_name ? [country(p.country)[lang === "en" ? "en" : "fr"], (p.momo || []).length ? tr(`${p.momo.length} moyen(s) de paiement`, `${p.momo.length} payment method(s)`) : null].filter(Boolean).join(" · ") : tr("Nom, logo, pays et moyens de paiement. Facultatif.", "Name, logo, country and payment details. Optional.")}</span></div>
