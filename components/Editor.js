@@ -10,9 +10,9 @@ export const today = () => new Date().toISOString().slice(0, 10);
 export const plus = (n, from) => { const x = from ? new Date(from) : new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
 export const blankDoc = (kind = "invoice", currency = "XOF", st = {}) => ({ kind, status: kind === "receipt" ? "paid" : "draft", client: {}, items: [{ label: "", qty: 1, price: "" }], currency, tax_rate: st.vat_default ? (+st.vat_rate || 0) : 0, discount: 0, issue_date: today(), due_date: kind === "receipt" ? null : plus(kind === "quote" ? (+st.quote_days || 30) : (+st.due_days || 15)), notes: (st.notes || {})[kind] || "", opts: { pay: st.show_pay !== false, ref: st.show_ref !== false, link: true } });
 export const KIND_HELP = {
-  invoice: ["Demande de paiement pour un travail fait ou vendu.", "Asks to be paid for work done or goods sold."],
-  quote: ["Proposition de prix avant de commencer. Une fois acceptée, transformez-la en facture.", "A price proposal before you start. Once accepted, turn it into an invoice."],
-  receipt: ["Preuve qu'un paiement a déjà été reçu. Rien à payer.", "Proof that a payment was already received. Nothing to pay."],
+  quote: ["Avant le travail", "Propose un prix au client.", "Before the work", "Proposes a price."],
+  invoice: ["Après le travail", "Demande le paiement.", "After the work", "Requests payment."],
+  receipt: ["Après paiement", "Confirme une somme reçue.", "After payment", "Confirms money received."],
 };
 // Dictée : Web Speech API (Chrome, Edge, Safari). Masquée si le navigateur ne la gère pas.
 function Mic({ onText, onDone, lang }) {
@@ -21,14 +21,16 @@ function Mic({ onText, onDone, lang }) {
   if (!ok) return null; const en = lang === "en";
   const start = () => {
     setErr(""); const SR = window.SpeechRecognition || window.webkitSpeechRecognition; const r = new SR();
-    r.lang = en ? "en-US" : "fr-FR"; r.interimResults = true; r.continuous = true; r.maxAlternatives = 1; rec.current = r; base.current = "";
+    r.lang = en ? "en-US" : "fr-FR"; r.interimResults = true; r.continuous = !/Android|iPhone|iPad/i.test(navigator.userAgent); r.maxAlternatives = 1; rec.current = r; base.current = "";
     let final = "";
-    r.onresult = (e) => { let interim = ""; for (let i = e.resultIndex; i < e.results.length; i++) { const x = e.results[i][0].transcript; if (e.results[i].isFinal) final += (final ? " " : "") + x.trim(); else interim += x; } onText((final + (interim ? " " + interim : "")).trim()); };
+    // On reconstruit tout le texte à chaque résultat : évite les doublons d'Android.
+    r.onresult = (e) => { let f = "", interim = ""; for (let i = 0; i < e.results.length; i++) { const x = e.results[i][0].transcript.trim(); if (e.results[i].isFinal) f += (f ? " " : "") + x; else interim += (interim ? " " : "") + x; } final = f; onText((f + (interim ? " " + interim : "")).trim()); };
     r.onerror = (e) => { setErr(e.error === "not-allowed" || e.error === "service-not-allowed" ? (en ? "Microphone blocked: allow it in your browser settings." : "Micro bloqué : autorisez-le dans les réglages du navigateur.") : e.error === "no-speech" ? (en ? "Nothing heard. Try again, closer to the mic." : "Rien entendu. Réessayez, plus près du micro.") : e.error === "network" ? (en ? "Dictation needs an internet connection." : "La dictée a besoin d'internet.") : (en ? "Dictation unavailable on this browser." : "Dictée indisponible sur ce navigateur.")); setOn(false); };
     r.onend = () => { setOn(false); if (final.trim()) onDone?.(final.trim()); };
     try { r.start(); setOn(true); } catch { setErr(en ? "Dictation unavailable." : "Dictée indisponible."); }
+    if (!window.isSecureContext) setErr(en ? "Dictation needs a secure (https) page." : "La dictée nécessite une page sécurisée (https).");
   };
-  return <span className="mic-w"><button type="button" className={`mic ${on ? "on" : ""}`} onClick={() => on ? rec.current?.stop() : start()} aria-pressed={on}>{on ? <><i className="rec" />{en ? "Stop" : "Arrêter"}</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>{en ? "Dictate" : "Dicter"}</>}</button>{err && <em className="mic-err" role="status">{err}</em>}</span>;
+  return <span className="mic-w"><button type="button" className={`mic ${on ? "on" : ""}`} onClick={() => on ? rec.current?.stop() : start()} aria-pressed={on}>{on ? <><i className="rec" />{en ? "Listening… tap to stop" : "J'écoute… touchez pour arrêter"}</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>{en ? "Dictate" : "Dicter"}</>}</button>{err && <em className="mic-err" role="status">{err}</em>}</span>;
 }
 function Tip({ children }) { return <span className="tip" tabIndex={0} role="note">?<span className="tip-b">{children}</span></span>; }
 export default function Editor({ doc, setDoc, profile, setProfile, clients = [], onNumber, compact, account }) {
@@ -37,7 +39,7 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
   const set = (k, v) => setDoc((d) => ({ ...d, [k]: v })); const setO = (k, v) => setDoc((d) => ({ ...d, opts: { pay: true, ref: true, link: true, ...(d.opts || {}), [k]: v } }));
   const setItem = (i, k, v) => setDoc((d) => ({ ...d, items: d.items.map((it, n) => n === i ? { ...it, [k]: v } : it) }));
   const setClient = (k, v) => setDoc((d) => ({ ...d, client: { ...d.client, [k]: v } }));
-  const t = totals(doc); const dl = docLang(doc, profile); const ct = country(profile.country || "BJ"); const O = { pay: true, ref: true, link: true, ...(doc.opts || {}) };
+  const t = totals(doc); const dl = docLang(doc, profile); const ct = country(profile.country || "ZZ"); const O = { pay: true, ref: true, link: true, ...(doc.opts || {}) };
   const vatOn = +doc.tax_rate > 0 || (perLine && doc.items.some((i) => +i.tax > 0)); const vatName = ct.r === "ca" ? tr("TPS/TVH", "GST/HST") : ct.r === "us" ? tr("Taxe de vente", "Sales tax") : tr("TVA", "VAT");
   const rates = useMemo(() => { const r = [{ name: tr("Taux normal", "Standard"), rate: ct.vat || 0 }, ...(st.tax_rates || [])].filter((x) => +x.rate > 0); const seen = new Set(); return r.filter((x) => !seen.has(+x.rate) && seen.add(+x.rate)); }, [ct.code, st.tax_rates, lang]);
   const guess = useMemo(() => ai.trim().length > 4 ? parseDraft(ai) : null, [ai]);
@@ -46,23 +48,25 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
     if (!text.trim()) return; setAiBusy(true); setAiMsg(null);
     let j = {}; try { const r = await fetch("/api/ai/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) }); j = await r.json(); } catch { j = parseDraft(text); }
     setAiBusy(false);
-    if (!j.items?.length) return setAiMsg({ bad: 1, t: tr("Aucun montant reconnu. Indiquez un prix, par ex. « logo 150 000 et 2 affiches à 40 000 pour Atlas Conseil ».", "No amount recognised. Include a price, e.g. “logo 500 and 2 posters at 80 for Acme Ltd”.") });
+    if (!j.items?.length) return setAiMsg({ bad: 1, t: tr("Aucun prix trouvé. Indiquez un montant, par ex. « logo à 150 000 ».", "No price found. Include an amount, e.g. “logo at 500”.") });
     setDoc((d) => { const kind = j.kind || d.kind; const keep = d.items.filter((i) => i.label || +i.price); return { ...d, kind, client: { ...d.client, ...Object.fromEntries(Object.entries(j.client || {}).filter(([, v]) => v)) }, items: [...keep, ...j.items.map(i => ({ label: i.label, qty: i.qty, price: i.price }))], currency: j.currency || d.currency, tax_rate: j.tax_rate ?? d.tax_rate, due_date: j.due_days ? plus(j.due_days) : d.due_date, status: kind === "receipt" ? "paid" : d.status }; });
     if (j.kind && onNumber) onNumber(j.kind);
-    setAi(""); setAiMsg({ t: tr(`${j.items.length} ligne(s) ajoutée(s) ci-dessous. Vérifiez les prix.`, `${j.items.length} line(s) added below. Check the prices.`) });
+    setAi(""); setAiMsg({ t: j.items.length > 1 ? tr(`${j.items.length} lignes ajoutées. Vérifiez-les ci-dessous.`, `${j.items.length} lines added. Check them below.`) : tr("Ligne ajoutée. Vérifiez-la ci-dessous.", "Line added. Check it below.") });
+    setTimeout(() => document.querySelector(".lines-blk")?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 60);
   }
   const setKind = (k) => setDoc((d) => ({ ...d, kind: k, status: k === "receipt" ? "paid" : (d.status === "paid" ? "draft" : d.status), due_date: k === "receipt" ? null : (d.due_date || plus(k === "quote" ? (+st.quote_days || 30) : (+st.due_days || 15))), notes: d.notes && d.notes !== (st.notes || {})[d.kind] ? d.notes : ((st.notes || {})[k] || "") }));
   const dueChips = [[0, tr("À réception", "On receipt")], [7, tr("7 jours", "7 days")], [15, tr("15 jours", "15 days")], [30, tr("30 jours", "30 days")]];
   const form = (<div>
     <div className="blk">
-      <div className="kinds" role="tablist">{Object.keys(KINDS).map((k) => <button type="button" role="tab" aria-selected={K === k} key={k} className={K === k ? "on" : ""} onClick={() => { setKind(k); onNumber && onNumber(k); }}>{kindName(k, lang)}</button>)}</div>
-      <p className="kind-help">{KIND_HELP[K][lang === "en" ? 1 : 0]}</p>
+      <div className="kseg" role="radiogroup" aria-label={tr("Type de document", "Document type")}>{["quote", "invoice", "receipt"].map((k, i) => { const h = KIND_HELP[k]; return <button type="button" role="radio" aria-checked={K === k} key={k} className={K === k ? "on" : ""} onClick={() => { setKind(k); onNumber && onNumber(k); }}>
+        <span className="ks-n">{i + 1}</span><span className="ks-t"><b>{kindName(k, lang)}</b><small>{lang === "en" ? h[2] : h[0]} · {lang === "en" ? h[3] : h[1]}</small></span></button>; })}</div>
     </div>
     <div className="quick np">
-      <div className="quick-h"><label htmlFor="q">{tr("Décrivez la prestation", "Describe the job")} <span className="mute">· {tr("facultatif", "optional")}</span></label><Mic lang={lang} onText={setAi} onDone={(x) => draft(x)} /></div>
-      <textarea id="q" rows={2} value={ai} onChange={(e) => { setAi(e.target.value); setAiMsg(null); }} placeholder={tr("Ex. : logo 150 000 et 2 affiches à 40 000 pour Atlas Conseil, à 15 jours", "E.g. logo 500 and 2 posters at 80 for Acme Ltd, due in 14 days")} />
-      <div className="quick-f"><span className={aiMsg?.bad ? "bad" : ""}>{aiMsg ? aiMsg.t : guess?.items?.length ? tr(`Détecté : ${guess.items.map((i) => `${i.qty > 1 ? i.qty + " × " : ""}${i.label}`).join(", ")}`, `Found: ${guess.items.map((i) => `${i.qty > 1 ? i.qty + " × " : ""}${i.label}`).join(", ")}`) : tr("Bonova crée les lignes, le client et l'échéance à partir de votre phrase.", "Bonova turns your sentence into lines, client and due date.")}</span>
-        <button type="button" className="b s inv" onClick={() => draft()} disabled={aiBusy || !ai.trim()}>{aiBusy ? "…" : tr("Créer les lignes", "Create lines")}</button></div>
+      <div className="quick-h"><label htmlFor="q">{tr("Saisie rapide", "Quick entry")}</label><Mic lang={lang} onText={(x) => { setAi(x); setAiMsg(null); }} onDone={(x) => draft(x)} /></div>
+      <textarea id="q" rows={2} value={ai} onChange={(e) => { setAi(e.target.value); setAiMsg(null); }} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) draft(); }} placeholder={tr("Ex. : 2 affiches à 40 000 et un logo à 150 000 pour Atlas Conseil, payable à 15 jours", "E.g. 2 posters at 80 and a logo at 500 for Acme Ltd, due in 14 days")} />
+      {guess?.items?.length > 0 && !aiMsg && <div className="q-prev" aria-live="polite">{guess.items.map((i, n) => <span key={n}>{i.qty > 1 ? `${i.qty} × ` : ""}{i.label}{+i.price ? <b className="mono"> {fmt(i.price, guess.currency || doc.currency, dl)}</b> : null}</span>)}{guess.client?.name && <span className="q-c">{tr("Client", "Client")} : {guess.client.name}</span>}</div>}
+      <div className="quick-f"><span className={aiMsg?.bad ? "bad" : aiMsg ? "ok" : ""}>{aiMsg ? aiMsg.t : tr("Écrivez ou dictez ce que vous facturez. Les lignes sont ajoutées au document, vous pourrez les corriger.", "Type or dictate what you're billing. Lines are added to the document; you can edit them.")}</span>
+        <button type="button" className="b s inv" onClick={() => draft()} disabled={aiBusy || !ai.trim()}>{aiBusy ? tr("Analyse…", "Reading…") : guess?.items?.length ? tr(`Ajouter ${guess.items.length > 1 ? `les ${guess.items.length} lignes` : "la ligne"}`, `Add ${guess.items.length > 1 ? `${guess.items.length} lines` : "line"}`) : tr("Ajouter au document", "Add to document")}</button></div>
     </div>
     <div className="blk">
       <h3>{K === "receipt" ? tr("Reçu de (client)", "Received from") : tr("Client", "Client")} {clients.length > 0 && <select className="inl" value="" onChange={(e) => { const c = clients.find(x => x.id === e.target.value); if (c) set("client", { name: c.name, email: c.email, phone: c.phone, address: c.address, tax_id: c.tax_id }); }}><option value="">{tr("Mes clients…", "My clients…")}</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>}</h3>
@@ -72,7 +76,7 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
         <label className="f"><span>Email</span><input type="email" value={doc.client.email || ""} onChange={(e) => setClient("email", e.target.value)} /></label>
       </div>
     </div>
-    <div className="blk">
+    <div className="blk lines-blk">
       <h3>{tr("Lignes", "Lines")} <span className="mono">{fmt(t.sub, doc.currency, dl)}</span></h3>
       {doc.items.map((it, i) => (<div className={`line ${perLine && vatOn ? "tx" : ""}`} key={i}>
         <input className="lbl-in" placeholder={tr("Désignation", "Description")} value={it.label} onChange={(e) => setItem(i, "label", e.target.value)} aria-label={tr("Désignation", "Description")} />
@@ -82,8 +86,8 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
         <button type="button" className="x" aria-label={tr("Supprimer la ligne", "Remove line")} onClick={() => set("items", doc.items.length > 1 ? doc.items.filter((_, n) => n !== i) : [{ label: "", qty: 1, price: "" }])}>×</button></div>))}
       <button type="button" className="b s o" onClick={() => set("items", [...doc.items, { label: "", qty: 1, price: "" }])}>+ {tr("Ajouter une ligne", "Add a line")}</button>
       <div className="g2" style={{ marginTop: 16 }}>
-        <label className="f"><span>{tr("Devise", "Currency")} <Tip>{tr(`Réglée selon votre pays (${lang === "en" ? ct.en : ct.fr}). Changez-la pour un client étranger.`, `Set from your country (${ct.en}). Change it for a foreign client.`)}</Tip></span><select value={doc.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{curLabel(c.code, lang)}</option>)}</select></label>
-        <div className="f"><span>{vatName} <Tip>{tr("Laissez désactivé si vous n'êtes pas assujetti : la mention légale de votre pays s'ajoute seule.", "Leave off if you're not VAT-registered: your country's legal line is added for you.")}</Tip></span>
+        <label className="f"><span>{tr("Devise", "Currency")} <Tip>{tr("Devise de votre pays par défaut. Modifiable pour un client étranger.", "Your country's currency by default. Change it for a foreign client.")}</Tip></span><select value={doc.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{curLabel(c.code, lang)}</option>)}</select></label>
+        <div className="f"><span>{vatName} <Tip>{tr("Non assujetti : laissez désactivé. La mention d'exonération est ajoutée au document.", "Not VAT-registered: leave off. The exemption line is added to the document.")}</Tip></span>
           <div className="vat"><label className="tog"><input type="checkbox" checked={vatOn} onChange={(e) => { set("tax_rate", e.target.checked ? (rates[0]?.rate || 10) : 0); if (!e.target.checked) { setPerLine(false); set("items", doc.items.map(({ tax, ...r }) => r)); } }} /><span>{vatOn ? tr("Appliquée", "Charged") : tr("Non appliquée", "Not charged")}</span></label>
             {vatOn && <span className="vat-r"><select value={rates.some(r => +r.rate === +doc.tax_rate) ? doc.tax_rate : "x"} onChange={(e) => e.target.value !== "x" && set("tax_rate", +e.target.value)} aria-label={tr("Taux", "Rate")}>{rates.map(r => <option key={r.rate} value={r.rate}>{r.rate} %{r.name ? ` · ${r.name}` : ""}</option>)}<option value="x">{tr("Autre taux…", "Other rate…")}</option></select>
               {!rates.some(r => +r.rate === +doc.tax_rate) && <><input type="number" inputMode="decimal" min="0" max="50" step="any" value={doc.tax_rate} onChange={(e) => set("tax_rate", e.target.value)} aria-label={tr("Taux personnalisé", "Custom rate")} />%</>}</span>}</div>
@@ -99,12 +103,12 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
       <label className="f"><span>{tr("Date du paiement", "Payment date")}</span><input type="date" value={O.paid_on || doc.issue_date || ""} onChange={(e) => setO("paid_on", e.target.value)} /></label>
       <label className="f"><span>{tr("Mode de paiement", "Payment method")}</span><select value={O.method || ""} onChange={(e) => setO("method", e.target.value)}><option value="">—</option>{PAY_METHODS[lang === "en" ? "en" : "fr"].map(m => <option key={m}>{m}</option>)}</select></label>
       <label className="f" style={{ gridColumn: "1/-1" }}><span>{tr("En règlement de (facture n°, objet…)", "In payment of (invoice no., purpose…)")}</span><input value={O.for || ""} onChange={(e) => setO("for", e.target.value)} placeholder={tr("Ex. : facture FAC-2026-0012", "E.g. invoice INV-2026-0012")} /></label></div></div>}
-    {K === "invoice" && <div className="blk"><h3>{tr("Sur la facture", "On the invoice")} <Tip>{tr("Une facture simple, sans moyens de paiement ni référence, est tout à fait possible. Vous marquerez vous-même le paiement ensuite.", "A plain invoice without payment details or reference is fine. You'll mark the payment yourself later.")}</Tip></h3>
+    {K === "invoice" && <div className="blk"><h3>{tr("Sur la facture", "On the invoice")} <Tip>{tr("Facultatif. Une facture peut ne comporter ni moyens de paiement ni référence.", "Optional. An invoice can have no payment details or reference.")}</Tip></h3>
       <label className="row chk"><input type="checkbox" checked={O.pay} onChange={(e) => setO("pay", e.target.checked)} />{tr("Afficher mes moyens de paiement", "Show my payment details")}</label>
       <label className="row chk"><input type="checkbox" checked={O.ref} onChange={(e) => setO("ref", e.target.checked)} />{tr("Afficher la référence de paiement", "Show the payment reference")}</label>
       {account && <label className="row chk"><input type="checkbox" checked={O.link} onChange={(e) => setO("link", e.target.checked)} />{tr("Inclure le lien en ligne dans le message", "Include the online link in the message")}</label>}</div>}
     <div className="blk">
-      <button type="button" className="more" onClick={() => setMore(!more)} aria-expanded={more}><span>{tr("Numéro, dates, remise, notes", "Number, dates, discount, notes")}</span><span className="mono">{more ? "−" : "+"}</span></button>
+      <button type="button" className="more" onClick={() => setMore(!more)} aria-expanded={more}><span>{tr("Plus d'options : numéro, date, remise, notes", "More options: number, date, discount, notes")}</span><span className="mono">{more ? "−" : "+"}</span></button>
       {more && <div style={{ marginTop: 14 }}>
         <div className="g2">
           <label className="f"><span>{tr("Numéro", "Number")}</span><input className="mono" value={doc.number || ""} onChange={(e) => set("number", e.target.value)} /></label>
@@ -118,7 +122,7 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
         <label className="f" style={{ marginBottom: 0 }}><span>{K === "quote" ? tr("Conditions", "Terms") : tr("Note pour le client", "Note to client")}</span><textarea rows={2} value={doc.notes || ""} onChange={(e) => set("notes", e.target.value)} placeholder={K === "quote" ? tr("Ex. : délai de réalisation 3 semaines après acceptation.", "E.g. delivery within 3 weeks of acceptance.") : tr("Ex. : merci pour votre confiance.", "E.g. thank you for your business.")} /></label>
       </div>}
     </div>
-    {setProfile && <div className="blk"><h3>{tr("Modèle", "Template")} <span className="mute" style={{ fontWeight: 400, fontSize: 13, textTransform: "none", letterSpacing: 0 }}>{tr("· couleurs, typo et vos propres modèles avec un compte gratuit", "· colours, fonts and your own templates with a free account")}</span></h3><div className="tpls">{TEMPLATES.map(x => <button type="button" key={x.id} className={(profile.template || "net") === x.id ? "on" : ""} onClick={() => setProfile({ ...profile, template: x.id })}><TplMini id={x.id} accent={profile.accent} />{lang === "en" ? x.en : x.name}</button>)}</div></div>}
+    <TplPick doc={doc} setO={setO} profile={profile} setProfile={setProfile} account={account} />
   </div>);
   return (<>
     <div className="ed" data-view={view}>
@@ -128,6 +132,21 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
     <div className="totbar np"><span><span className="tb-l">{kindName(K, lang)} · Total</span><b className="mono">{fmt(t.total, doc.currency, dl)}</b></span>
       <button type="button" className="b s inv" onClick={() => { setView(view === "edit" ? "prev" : "edit"); scrollTo({ top: 0, behavior: "smooth" }); }}>{view === "edit" ? tr("Aperçu", "Preview") : tr("Modifier", "Edit")}</button></div>
   </>);
+}
+function TplPick({ doc, setO, profile, setProfile, account }) {
+  const { tr, lang } = useT(); const mine = (profile.settings || {}).templates || []; const look = (doc.opts || {}).look; const pro = profile.plan === "pro";
+  const cur = account ? (look ? (look.lh_ref || look.name || look.template) : "__def") : (profile.template || "net");
+  const pick = (id, l) => account ? setO("look", l) : setProfile({ ...profile, template: id });
+  const base = (id) => ({ template: id, accent: profile.accent, font: profile.font, blocks: profile.blocks });
+  return (<div className="blk"><h3>{tr("Modèle", "Template")}</h3>
+    <div className="tpls">
+      {account && <button type="button" className={cur === "__def" ? "on" : ""} onClick={() => pick(null, undefined)}><TplMini id={profile.template || "net"} accent={profile.accent} />{tr("Mon modèle", "My default")}</button>}
+      {account && mine.map((t) => <button type="button" key={"m" + t.name} className={cur === t.name ? "on" : ""} onClick={() => { const { letterhead, ...rest } = t; pick(t.name, { ...rest, name: t.name, ...(letterhead ? { lh_ref: t.name } : {}) }); }}><TplMini id={t.template || "net"} accent={t.accent} />{t.name}</button>)}
+      {TEMPLATES.map((x) => <button type="button" key={x.id} className={cur === x.id && (!account || (look && !look.name)) ? "on" : ""} onClick={() => pick(x.id, base(x.id))}><TplMini id={x.id} accent={profile.accent} />{lang === "en" ? x.en : x.name}</button>)}
+    </div>
+    {account ? <p className="tpl-note">{pro ? tr("Pro : modèles personnalisés illimités.", "Pro: unlimited custom templates.") : mine.length ? tr("Offre gratuite : 1 modèle personnalisé (utilisé). Pro : illimité.", "Free plan: 1 custom template (used). Pro: unlimited.") : tr("Offre gratuite : 1 modèle personnalisé disponible.", "Free plan: 1 custom template available.")} <a href="/app/parametres?t=modele">{mine.length ? tr("Gérer mes modèles", "Manage templates") : tr("Créer mon modèle", "Create my template")}</a></p>
+      : <p className="tpl-note">{tr("Logo, couleurs et modèle personnalisé : disponibles avec un compte gratuit.", "Logo, colours and a custom template: available with a free account.")} <a href="/connexion?mode=signup&from=modele">{tr("Créer un compte", "Create an account")}</a></p>}
+  </div>);
 }
 export function TplMini({ id, accent = "#111110" }) {
   const a = accent;

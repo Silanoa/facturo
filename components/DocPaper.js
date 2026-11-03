@@ -14,17 +14,19 @@ export function wordsLine(doc, total, lang = "fr") {
   return `${lead} ${inWords(Math.floor(total))} ${w}${cents ? ` et ${cents} centimes` : ""}.`;
 }
 export const PAY_METHODS = { fr: ["Mobile Money", "Espèces", "Virement", "Carte", "Chèque", "PayPal", "Autre"], en: ["Mobile Money", "Cash", "Bank transfer", "Card", "Cheque", "PayPal", "Other"] };
-export default function DocPaper({ doc, profile = {}, template }) {
+export default function DocPaper({ doc, profile: prof0 = {}, template }) {
+  // Un document peut porter sa propre apparence (modèle choisi à la création).
+  const look = (doc.opts || {}).look; const profile = look ? { ...prof0, ...look, letterhead: look.lh_ref ? (((prof0.settings || {}).templates || []).find((x) => x.name === look.lh_ref) || {}).letterhead || null : null } : prof0;
   const lang = docLang(doc, profile); const en = lang === "en"; const tr = (f, e) => (en ? e : f);
   const lh = !template && profile.letterhead; const tp = lh ? "net" : (template || profile.template || DEFAULT_TPL); const t = totals(doc); const c = doc.client || {};
   const B = blocksOf(profile); const O = { pay: true, ref: true, ...(doc.opts || {}) }; const F = FONTS[profile.font] || FONTS.grotesk;
   const K = doc.kind || "invoice"; const kn = (K === "invoice" && B.title) || kindName(K, lang);
-  const pays = normPay(profile.momo); const ct = country(profile.country || "BJ");
+  const pays = normPay(profile.momo); const ct = country(profile.country);
   const money = (v) => fmt(v, doc.currency, lang);
   const style = { "--a": profile.accent || "#111110", "--pf": F.body, "--pfd": F.display, "--ls": `${B.logo_size || 56}px`, fontSize: `${(12.5 * (B.scale || 100)) / 100}px` };
   const d8 = (d) => d ? new Date(d).toLocaleDateString(en ? "en-GB" : "fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "";
   const taxL = ct.tax || "Tax ID"; const paid = +doc.paid_amount || 0; const rest = Math.max(0, t.total - paid);
-  const isPaid = K === "invoice" && doc.status === "paid"; const partial = K === "invoice" && !isPaid && paid > 0;
+  const isPaid = K === "invoice" && doc.status === "paid"; const partial = K === "invoice" && ["partial", "sent", "draft"].includes(doc.status || "draft") && paid > 0;
   const logo = B.logo && profile.logo ? <img src={profile.logo} alt="" className="logo-img" /> : null;
   const From = ({ light, bare }) => (<div>
     {!bare && logo && <div style={{ marginBottom: 10 }}>{logo}</div>}

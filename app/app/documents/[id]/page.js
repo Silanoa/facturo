@@ -33,6 +33,15 @@ function View() {
   const addPay = () => { const amt = +pay.amount || 0; if (amt <= 0) return; const paid = (+doc.paid_amount || 0) + amt; const payments = [...(doc.payments || []), { amount: amt, date: pay.date, method: pay.method }];
     status(paid >= +doc.total ? "paid" : "partial", { paid_amount: paid, payments, paid_at: paid >= +doc.total ? new Date(pay.date).toISOString() : null }); };
   const M = PAY_METHODS[lang === "en" ? "en" : "fr"]; const bal = balance(doc);
+  // Changements de statut cohérents : pas de paiement fantôme, confirmation avant d'annuler.
+  function setSt(v) {
+    if (v === doc.status) return; const paidAmt = +doc.paid_amount || 0;
+    if (v === "partial") return setPay({ amount: "", date: new Date().toISOString().slice(0, 10), method: M[0] });
+    if (v === "paid" && isI) return status("paid", { paid_amount: +doc.total, paid_at: new Date().toISOString(), payments: (doc.payments || []).length ? doc.payments : [{ amount: +doc.total - paidAmt, date: new Date().toISOString().slice(0, 10), method: "" }] });
+    if (v === "sent" && isI && paidAmt > 0) { if (!confirm(tr("Repasser en « Non payée » efface les paiements enregistrés sur cette facture. Continuer ?", "Setting it back to “Unpaid” clears the payments recorded on this invoice. Continue?"))) return; return status("sent", { paid_amount: 0, payments: [], paid_at: null }); }
+    if (v === "cancelled") { const msg = isQ ? tr("Annuler ce devis ? Le client ne pourra plus l'accepter.", "Cancel this quote? The client will no longer be able to accept it.") : paidAmt > 0 ? tr(`Cette facture a déjà reçu ${fmt(paidAmt, doc.currency)}. Une fois annulée, elle n'est plus due ; le paiement reste dans l'historique. Pour rembourser, émettez un document séparé. Annuler la facture ?`, `This invoice has already received ${fmt(paidAmt, doc.currency)}. Once cancelled it is no longer due; the payment stays in the history. Cancel it?`) : tr("Annuler cette facture ? Elle restera dans vos documents avec la mention « Annulée ».", "Cancel this invoice? It stays in your documents marked “Cancelled”."); if (!confirm(msg)) return; }
+    status(v);
+  }
   async function del() { if (!confirm(tr("Supprimer définitivement ce document ?", "Delete this document permanently?"))) return; await supabase.from("documents").delete().eq("id", id); r.replace("/app/documents"); }
   const copy = async (t, m) => { try { await navigator.clipboard.writeText(t); s.toast(m); } catch { prompt("Copy:", t); } };
   const send = () => { window.open(waLink(doc.client?.phone, shareText(doc, s.profile, dl)), "_blank"); if (doc.status === "draft") status("sent"); };
@@ -57,7 +66,7 @@ function View() {
         <div className="panel"><div className="u">{tr("Statut", "Status")}</div>
           {!isR && <div className="stgrid">{(isQ ? [["sent", tr("Envoyé", "Sent")], ["accepted", tr("Accepté", "Accepted")], ["declined", tr("Refusé", "Declined")], ["cancelled", tr("Annulé", "Cancelled")]]
             : [["sent", tr("Non payée", "Unpaid")], ["partial", tr("Partielle", "Part paid")], ["paid", tr("Payée", "Paid")], ["cancelled", tr("Annulée", "Cancelled")]]).map(([v, l]) =>
-            <button key={v} className={`stb ${v} ${(doc.status === v || (v === "sent" && doc.status === "draft" && false)) ? "on" : ""}`} onClick={() => v === "partial" ? setPay({ amount: "", date: new Date().toISOString().slice(0, 10), method: M[0] }) : v === "paid" && isI ? status("paid", { paid_amount: +doc.total, paid_at: new Date().toISOString() }) : status(v)}>{l}</button>)}</div>}
+            <button key={v} aria-pressed={doc.status === v} className={`stb ${v} ${doc.status === v ? "on" : ""}`} onClick={() => setSt(v)}>{l}</button>)}</div>}
           {isI && st === "late" && <p className="hint" style={{ margin: "8px 0 0" }}>{tr(`En retard de ${late} j — l'échéance est dépassée.`, `${late} days overdue.`)}</p>}
           {isQ && doc.status === "invoiced" && <p className="hint" style={{ margin: "8px 0 0" }}>{tr("Ce devis a été transformé en facture.", "This quote was converted to an invoice.")}</p>}
           {isR && <p className="hint" style={{ margin: "8px 0 0" }}>{tr("Un reçu atteste un paiement déjà reçu : il est toujours « payé ».", "A receipt proves a payment already received: it is always “paid”.")}</p>}

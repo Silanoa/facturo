@@ -9,6 +9,7 @@ import { COUNTRIES, country } from "../lib/countries";
 import { shareText, waLink, mailLink } from "../lib/share";
 import { useT } from "../lib/i18n";
 import { docLang } from "./DocPaper";
+import { detectCountry, rememberCountry } from "../lib/geo";
 const get = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
 export default function Trial({ heading = true }) {
   const { tr, lang } = useT();
@@ -20,8 +21,8 @@ export default function Trial({ heading = true }) {
     const base = d || { ...blankDoc("invoice", en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
     setDoc(seed ? { ...base, ...seed, client: { ...base.client, ...(seed.client || {}) } } : base);
     setP(pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
-    if (!pr) fetch("/api/geo").then((r) => r.json()).then(({ country: cc }) => { if (!cc) return; const c = country(cc);
-      setP((x) => (x && x.auto ? { ...x, country: cc } : x)); setDoc((x) => (x && !d ? { ...x, currency: c.cur } : x)); }).catch(() => {});
+    if (!pr || pr.auto !== 0) detectCountry().then((cc) => { if (!cc) return; const c = country(cc);
+      setP((x) => (x && x.auto !== 0 ? { ...x, country: cc, auto: 1 } : x)); setDoc((x) => (x && (!d || !x.items.some((i) => +i.price > 0)) ? { ...x, currency: c.cur } : x)); });
   }, []);
   useEffect(() => { if (doc) localStorage.setItem("bnv_draft", JSON.stringify(doc)); }, [doc]);
   useEffect(() => { if (p) localStorage.setItem("bnv_profile", JSON.stringify(p)); }, [p]);
@@ -39,15 +40,17 @@ export default function Trial({ heading = true }) {
     <button type="button" className="b o" onClick={(e) => guard(e) && copy()}>{copied ? tr("Copié", "Copied") : tr("Copier le texte", "Copy text")}</button>
   </div>);
   return (<div>
-    {heading && <div className="ph np"><div><p className="u">{tr("Sans compte · gratuit · rien n'est envoyé sans vous", "No account · free · nothing is sent without you")}</p><h1 className="ph-t">{tr("Nouvelle facture", "New invoice")}</h1></div><div className="desk-only"><Actions /></div></div>}
+    {heading && <div className="ph np"><div><p className="u">{tr("Gratuit · sans compte", "Free · no account")}</p><h1 className="ph-t">{tr("Nouvelle facture", "New invoice")}</h1></div><div className="desk-only"><Actions /></div></div>}
     <div className="blk np prof">
-      <button type="button" className="more" onClick={() => setOpen(!open)} aria-expanded={open}><span>{p.business_name ? `${tr("De", "From")} : ${p.business_name}` : tr("Vos coordonnées et moyens de paiement", "Your details & how you get paid")}</span><span className="mono">{open ? "−" : "+"}</span></button>
+      <div className="prof-h"><div className="prof-av">{p.logo ? <img src={p.logo} alt="" /> : (p.business_name || "?").trim()[0]?.toUpperCase()}</div>
+        <div className="prof-t"><b>{p.business_name || tr("Votre entreprise", "Your business")}</b><span>{p.business_name ? [country(p.country)[lang === "en" ? "en" : "fr"], (p.momo || []).length ? tr(`${p.momo.length} moyen(s) de paiement`, `${p.momo.length} payment method(s)`) : null].filter(Boolean).join(" · ") : tr("Nom, logo, pays et moyens de paiement. Facultatif.", "Name, logo, country and payment details. Optional.")}</span></div>
+        <button type="button" className="b s o" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? tr("Fermer", "Close") : p.business_name ? tr("Modifier", "Edit") : tr("Renseigner", "Add details")}</button></div>
       {open && <div style={{ marginTop: 14 }}>
         <div className="g2"><label className="f"><span>{tr("Nom de l'activité", "Business name")}</span><input value={p.business_name || ""} onChange={(e) => set("business_name", e.target.value)} placeholder={tr("Ex. : Studio Martin", "E.g. Martin Studio")} /></label>
-          <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "BJ"} onChange={(e) => { const c = country(e.target.value); setP({ ...p, country: c.code, auto: 0 }); setDoc({ ...doc, currency: c.cur, tax_rate: +doc.tax_rate > 0 ? (c.vat || doc.tax_rate) : 0 }); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
+          <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "ZZ"} onChange={(e) => { const c = country(e.target.value); setP({ ...p, country: c.code, auto: 0 }); rememberCountry(c.code); setDoc({ ...doc, currency: c.cur, tax_rate: +doc.tax_rate > 0 ? (c.vat || doc.tax_rate) : 0 }); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
           <label className="f"><span>{tr("Téléphone / email", "Phone / email")}</span><input value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} /></label>
           <label className="f"><span>{country(p.country).tax} <span className="mute">({tr("optionnel", "optional")})</span></span><input value={p.ifu || ""} onChange={(e) => set("ifu", e.target.value)} /></label></div>
-        <div className="f"><span>Logo <span className="mute">({tr("optionnel · gardé si vous créez un compte", "optional · kept if you create an account")})</span></span><div className="row" style={{ gap: 12, alignItems: "center" }}>
+        <div className="f"><span>Logo <span className="mute">({tr("facultatif", "optional")})</span></span><div className="row" style={{ gap: 12, alignItems: "center" }}>
           {p.logo && <img src={p.logo} alt="Logo" style={{ maxHeight: 44, maxWidth: 140, background: "#fff", padding: 4, border: "1px solid var(--line)" }} />}
           <label className="b s o" style={{ cursor: "pointer" }}>{p.logo ? tr("Changer", "Change") : tr("Ajouter un logo", "Add a logo")}<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) { try { const src = await shrink(fl); const col = await dominant(src); setP((x) => ({ ...x, logo: src, ...(col ? { accent: col } : {}) })); } catch {} } }} /></label>
           {p.logo && <button type="button" className="lnk" onClick={() => set("logo", null)}>{tr("Retirer", "Remove")}</button>}</div></div>
@@ -57,7 +60,7 @@ export default function Trial({ heading = true }) {
     <Editor doc={doc} setDoc={setDoc} profile={p} setProfile={setP} compact />
     <div className="sendbar np">{warn && !ready && <p className="hint bad" role="alert">{tr("Ajoutez au moins une ligne avec un prix pour envoyer.", "Add at least one line with a price to send.")}</p>}<Actions cls="big" /></div>
     {ready && <div className="upsell np">
-      <div><b>{tr("Envoyez un lien au lieu d'un PDF.", "Send a link instead of a PDF.")}</b><span>{tr("Votre client paie depuis le lien, vous savez quand il l'a ouvert. Compte gratuit, 20 secondes.", "Your client pays from the link, you see when they opened it. Free account, 20 seconds.")}</span></div>
-      <Link className="b" href="/connexion?mode=signup&from=essai">{tr("Enregistrer gratuitement →", "Save it free →")}</Link></div>}
+      <div><b>{tr("Enregistrez ce document", "Save this document")}</b><span>{tr("Avec un compte gratuit : historique, lien en ligne, suivi des paiements et votre modèle.", "With a free account: history, online link, payment tracking and your template.")}</span></div>
+      <Link className="b" href="/connexion?mode=signup&from=essai">{tr("Créer un compte", "Create an account")}</Link></div>}
   </div>);
 }

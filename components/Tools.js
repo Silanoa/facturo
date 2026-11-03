@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { inWords, fmt, CURRENCIES, curName } from "../lib/money";
 import { COUNTRIES } from "../lib/countries";
 import { useT } from "../lib/i18n";
 const n = (v) => parseFloat(String(v).replace(/\s/g, "").replace(",", ".")) || 0;
 export function VatCalc() {
-  const { tr, lang } = useT(); const [mode, setMode] = useState("ht"); const [c, setC] = useState(lang === "en" ? "GBP" : "XOF");
-  const def = lang === "en" ? 20 : 18; const [rows, setRows] = useState([{ amt: lang === "en" ? "1000" : "100000", rate: def }]); const [multi, setMulti] = useState(false);
+  const { tr, lang } = useT(); const [mode, setMode] = useState("ht"); const [c, setC] = useState("EUR"); const [mt, setMt] = useState(false); useEffect(() => setMt(true), []);
+  const def = 20; const [rows, setRows] = useState([{ amt: "1000", rate: def }]); const [multi, setMulti] = useState(false);
   const RATES = COUNTRIES.filter(x => x.vat > 0).map(x => [lang === "en" ? x.en : x.fr, x.vat]); const pc = (r) => lang === "en" ? `${r}%` : `${String(r).replace(".", ",")} %`;
   const opts = [...new Set([0, 5, 5.5, 7.5, 10, ...RATES.map(r => r[1])])].sort((x, y) => x - y);
   const calc = rows.map((r) => { const a = n(r.amt); const rt = n(r.rate); const ht = mode === "ht" ? a : a / (1 + rt / 100); return { rt, ht, tva: ht * rt / 100 }; });
@@ -15,8 +15,9 @@ export function VatCalc() {
   const up = (i, k, v) => setRows(rows.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
   const RateIn = ({ r, i }) => { const known = opts.includes(n(r.rate)) && !r.custom; return (<div className="row" style={{ gap: 6 }}>
     <select value={known ? n(r.rate) : "x"} onChange={(e) => e.target.value === "x" ? up(i, "custom", true) : setRows(rows.map((x, j) => j === i ? { ...x, rate: +e.target.value, custom: false } : x))} aria-label={tr("Taux", "Rate")} style={{ flex: 1 }}>
-      {opts.map(o => <option key={o} value={o}>{pc(o)}{RATES.some(x => x[1] === o) ? ` — ${RATES.filter(x => x[1] === o).map(x => x[0]).slice(0, 2).join(", ")}` : ""}</option>)}<option value="x">{tr("Autre taux…", "Other rate…")}</option></select>
+      {opts.map(o => <option key={o} value={o}>{pc(o)}</option>)}<option value="x">{tr("Autre taux…", "Other rate…")}</option></select>
     {!known && <input className="mono" inputMode="decimal" style={{ width: 80 }} value={r.rate} onChange={(e) => up(i, "rate", e.target.value)} aria-label={tr("Taux personnalisé", "Custom rate")} />}</div>); };
+  if (!mt) return <div className="panel tool" style={{ padding: 24, minHeight: 420 }} />;
   return (<div className="panel tool" style={{ padding: 24 }}>
     <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
       <div className="seg"><button className={mode === "ht" ? "on" : ""} onClick={() => setMode("ht")}>{tr("Montants HT", "Net amounts")}</button><button className={mode === "ttc" ? "on" : ""} onClick={() => setMode("ttc")}>{tr("Montants TTC", "Gross amounts")}</button></div>

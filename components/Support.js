@@ -3,8 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { SUPPORT, waSupport, mailSupport } from "../lib/site";
 import { kbMatch } from "../lib/kb";
 const T = {
-  fr: { btn: "Aide", h: "Aide Bonova", hi: "Choisissez un sujet ou décrivez votre besoin. Réponse immédiate ; si elle ne suffit pas, l'équipe vous répond sur WhatsApp ou par email.", ph: "Votre question, par ex. « facturer sans TVA »", send: "Demander", no: "Je n'ai pas de réponse fiable à cette question. Transmettez-la à l'équipe, elle vous répond directement :", wa: "Écrire sur WhatsApp", mail: "Envoyer un email", team: "Contacter l'équipe", q: ["Facturer sans TVA", "Ajouter mon logo", "Marquer une facture payée", "Devis, facture ou reçu ?", "Télécharger en PDF"] },
-  en: { btn: "Help", h: "Bonova Help", hi: "Pick a topic or describe what you need. Instant answer; if it isn't enough, the team replies on WhatsApp or by email.", ph: "Your question, e.g. “invoice without VAT”", send: "Ask", no: "I don't have a reliable answer to that. Pass it to the team, they'll reply directly:", wa: "Message on WhatsApp", mail: "Send an email", team: "Contact the team", q: ["Invoice without VAT", "Add my logo", "Mark an invoice as paid", "Quote, invoice or receipt?", "Download as PDF"] },
+  fr: { btn: "Aide", h: "Aide Bonova", hi: "Choisissez un sujet ou posez votre question. Si la réponse ne suffit pas, écrivez-nous sur WhatsApp ou par email.", ph: "Votre question, par ex. « facturer sans TVA »", send: "Demander", no: "Je n'ai pas de réponse sûre. L'équipe peut vous répondre directement :", wa: "Écrire sur WhatsApp", mail: "Envoyer un email", team: "Contacter l'équipe", q: ["Facturer sans TVA", "Ajouter mon logo", "Marquer une facture payée", "Devis, facture ou reçu ?", "Télécharger en PDF"] },
+  en: { btn: "Help", h: "Bonova Help", hi: "Pick a topic or ask your question. If the answer isn't enough, write to us on WhatsApp or by email.", ph: "Your question, e.g. “invoice without VAT”", send: "Ask", no: "I don't have a sure answer. The team can reply directly:", wa: "Message on WhatsApp", mail: "Send an email", team: "Contact the team", q: ["Invoice without VAT", "Add my logo", "Mark an invoice as paid", "Quote, invoice or receipt?", "Download as PDF"] },
 };
 export default function Support({ lang = "fr", hdr }) {
   const L = lang === "en" ? "en" : "fr"; const t = T[L]; const [open, setOpen] = useState(false); const [msgs, setMsgs] = useState([]); const [q, setQ] = useState(""); const [busy, setBusy] = useState(false); const end = useRef(null);
@@ -17,7 +17,7 @@ export default function Support({ lang = "fr", hdr }) {
   }
   return (<div className={`sup np ${hdr ? "hdr" : ""}`}>
     {open && <div className="sup-p" role="dialog" aria-label={t.h}>
-      <div className="sup-h"><div><b>{t.h}</b><span>{SUPPORT.name} · {SUPPORT.hours[L]}</span></div><button type="button" onClick={() => setOpen(false)} aria-label={L === "en" ? "Close" : "Fermer"}>×</button></div>
+      <div className="sup-h"><div><b>{t.h}</b><span>{SUPPORT.name}</span></div><button type="button" onClick={() => setOpen(false)} aria-label={L === "en" ? "Close" : "Fermer"}>×</button></div>
       <div className="sup-b">
         <p className="sup-m">{t.hi}</p>
         {!msgs.length && <div className="sup-q">{t.q.map((x) => <button type="button" key={x} onClick={() => ask(x)}>{x}</button>)}</div>}
