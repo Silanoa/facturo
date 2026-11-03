@@ -6,6 +6,7 @@ import { S } from "../../lib/session";
 import { supabase } from "../../lib/supabase";
 import { useT } from "../../lib/i18n";
 import { Logo } from "../../components/Brand";
+import Support from "../../components/Support";
 import { IHome, IDoc, IUsers, ISet, IPlus, IOut } from "../../components/Icons";
 export default function AppLayout({ children }) {
   const r = useRouter(); const p = usePathname(); const [s, setS] = useState(null); const [toast, setToast] = useState(null); const { tr, setLang, lang } = useT();
@@ -27,7 +28,7 @@ export default function AppLayout({ children }) {
       <Link href="/app/documents/nouveau" className="b k new"><IPlus width="18" height="18" /> {tr("Nouvelle facture", "New invoice")}</Link>
       {nav.map(([h, l, I], i) => <Link key={h} href={h} className={on(h) ? "on" : ""}><span className="ix">0{i + 1}</span>{l}</Link>)}
       <div style={{ flex: 1, borderTop: "1px solid var(--line)" }} />
-      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro"><b style={{ display: "block", fontSize: 14 }}>Bonova Pro →</b><span style={{ fontSize: 13, color: "var(--ink-2)" }}>{tr("Sans mention, relances auto. 2 500 F ou 4 $/mois", "No branding, auto reminders. $4/mo")}</span></Link>}
+      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro"><b style={{ display: "block", fontSize: 14 }}>Bonova Pro →</b><span style={{ fontSize: 13, color: "var(--ink-2)" }}>{tr("Sans mention Bonova, relances auto. 2 500 F/mois", "No Bonova branding, auto reminders. $4/mo")}</span></Link>}
       <div style={{ padding: "8px 18px", fontSize: 13, color: "var(--mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.profile.business_name || s.user.email}</div>
       <div className="row" style={{ padding: "0 18px 4px", justifyContent: "space-between" }}>
         <button className="lng" style={{ background: "none", cursor: "pointer" }} onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "FR" : "EN"}</button>
@@ -39,6 +40,7 @@ export default function AppLayout({ children }) {
       <Link href="/app/documents/nouveau" className="plus" aria-label={tr("Nouvelle facture", "New invoice")}><span className="c"><IPlus /></span></Link>
       {nav.slice(2).map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}
     </nav>
+    {!p.startsWith("/app/documents/nouveau") && <Support lang={lang} />}
     {toast && <div className="toast">{toast}</div>}
   </div></S.Provider>);
 }

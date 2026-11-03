@@ -50,7 +50,7 @@ function View() {
         {doc.kind === "invoice" && doc.status !== "paid" && doc.status !== "draft" && <div className="panel"><div className="u row" style={{ gap: 6 }}><IBell width="15" height="15" /> {tr("Relance", "Reminder")}{late ? ` · ${late} ${tr("j de retard", "days late")}` : ""}</div>
           <div className="seg" style={{ margin: "12px 0" }}>{Object.entries(TONES).map(([v, l]) => <button key={v} className={tone === v ? "on" : ""} onClick={() => setTone(v)}>{lang === "en" ? l[1] : l[0]}</button>)}</div>
           <textarea rows={8} value={msg} onChange={(e) => setMsg(e.target.value)} style={{ fontSize: 14 }} />
-          <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><a className="b s wa" target="_blank" rel="noreferrer" href={waLink(doc.client?.phone, msg)}>{tr("Relancer sur WhatsApp", "Remind on WhatsApp")}</a><a className="b s o" href={mailLink(doc.client?.email, `${tr("Rappel", "Reminder")} ${doc.number}`, msg)}>Email</a><button className="b s o" onClick={improve} disabled={polish}>{polish ? "…" : tr("Personnaliser (IA)", "Rewrite (AI)")}</button></div></div>}
+          <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><a className="b s wa" target="_blank" rel="noreferrer" href={waLink(doc.client?.phone, msg)}>{tr("Relancer sur WhatsApp", "Remind on WhatsApp")}</a><a className="b s o" href={mailLink(doc.client?.email, `${tr("Rappel", "Reminder")} ${doc.number}`, msg)}>Email</a></div></div>}
       </aside>
     </div>
     <style>{`@media(max-width:1100px){.vgrid{grid-template-columns:1fr!important}}`}</style>

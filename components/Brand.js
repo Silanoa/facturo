@@ -1,5 +1,7 @@
 import Link from "next/link";
 import LangSet from "./LangSet";
+import Support from "./Support";
+import { SUPPORT, waSupport } from "../lib/site";
 // Marque : un talon de carnet à souches (ticket perforé). Le "souche" = la preuve qu'on garde.
 export function Mark({ size = 24, c = "currentColor" }) {
   return (<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h20v6.2a2.8 2.8 0 000 5.6V21H2v-6.2a2.8 2.8 0 000-5.6z" fill={c} /><path d="M8.5 6.5v11" stroke="var(--paper,#F2F0EA)" strokeWidth="1.4" strokeDasharray="1.6 1.6" /></svg>);
@@ -35,6 +37,7 @@ export function SiteFooter({ lang = "fr" }) {
       <div><h4>{en ? "Free tools" : "Outils gratuits"}</h4>{en ? <><Link href="/en/invoice-generator">Invoice generator</Link><Link href="/en/tools/vat-calculator">VAT calculator</Link><Link href="/en/tools/amount-in-words">Amount in words</Link></> : <><Link href="/outils/generateur-facture">Générateur de facture</Link><Link href="/outils/calcul-tva">Calcul TVA</Link><Link href="/outils/montant-en-lettres">Montant en lettres</Link></>}</div>
       <div><h4>{en ? "Guides" : "Guides"}</h4>{en ? <><Link href="/en/blog/how-to-invoice-international-clients-from-africa">Invoicing clients abroad</Link><Link href="/en/blog/get-paid-mobile-money-invoice">Mobile Money invoices</Link><Link href="/en/blog/freelance-invoice-template-free">Free invoice template</Link><Link href="/en/blog">All guides</Link></> : <><Link href="/blog/mentions-obligatoires-facture-ohada">Mentions OHADA</Link><Link href="/blog/facturer-client-etranger">Facturer un client à l'étranger</Link><Link href="/blog/facture-freelance-france">Facture freelance en France</Link><Link href="/blog">Tous les guides</Link></>}</div>
     </div>
+    <p style={{ marginTop: 30 }}>{en ? "Support" : "Support"} · <a style={{ display: "inline" }} href={waSupport()} target="_blank" rel="noreferrer">WhatsApp {SUPPORT.waLabel}</a> · <a style={{ display: "inline" }} href={`mailto:${SUPPORT.email}`}>{SUPPORT.email}</a></p>
     <p className="fine-print">© 2026 Bonova. {en ? "Tax information in guides is indicative: always check with your tax office or an accountant." : "Les informations fiscales des guides sont indicatives : vérifiez toujours auprès de votre administration fiscale ou d'un comptable."}</p>
-  </div></footer>);
+  </div><Support lang={lang} /></footer>);
 }

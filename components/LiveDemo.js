@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { parseDraft } from "../lib/parse";
 import { fmt } from "../lib/money";
 const EX = {
-  fr: "Facture pour Hôtel Les Cocotiers : 12 uniformes à 18 500 et livraison 5 000, sous 15 jours",
-  en: "Invoice Acme Studio Ltd: logo design 1,200 and 3 social templates at 150, due in 14 days",
+  fr: "Refonte du site 450 000 et 3 mois de maintenance à 35 000 pour Atlas Conseil, à 15 jours",
+  en: "Website redesign 1,800 and 3 months maintenance at 120 for Northwind Ltd, due in 14 days",
 };
 export default function LiveDemo({ lang = "fr" }) {
   const en = lang === "en"; const r = useRouter(); const [txt, setTxt] = useState(EX[lang]);

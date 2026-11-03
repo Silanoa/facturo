@@ -1,6 +1,6 @@
 "use client";
 import { fmt, totals, inWords, kindName, cur, curName } from "../lib/money";
-import { FONTS, DEFAULT_BLOCKS } from "../lib/templates";
+import { FONTS, DEFAULT_BLOCKS, DEFAULT_TPL } from "../lib/templates";
 import { normPay, payLines } from "../lib/pay";
 import { country, legalLines } from "../lib/countries";
 export const docLang = (doc = {}, profile = {}) => doc.lang || profile.doc_lang || "fr";
@@ -15,16 +15,16 @@ export function wordsLine(doc, total, lang = "fr") {
 }
 export default function DocPaper({ doc, profile = {}, template }) {
   const lang = docLang(doc, profile); const en = lang === "en"; const tr = (f, e) => (en ? e : f);
-  const tp = template || profile.template || "atelier"; const t = totals(doc); const c = doc.client || {}; const kn = kindName(doc.kind, lang);
+  const lh = !template && profile.letterhead; const tp = lh ? "net" : (template || profile.template || DEFAULT_TPL); const t = totals(doc); const c = doc.client || {}; const kn = kindName(doc.kind, lang);
   const B = { ...DEFAULT_BLOCKS, ...(profile.blocks || {}) }; const F = FONTS[profile.font] || FONTS.grotesk;
   const pays = normPay(profile.momo); const ct = country(profile.country || "BJ");
   const money = (v) => fmt(v, doc.currency, lang);
   const style = { "--a": profile.accent || "#111110", "--pf": F.body, "--pfd": F.display };
   const d8 = (d) => d ? new Date(d).toLocaleDateString(en ? "en-GB" : "fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "";
   const taxL = ct.tax || "Tax ID";
-  const From = ({ light }) => (<div>
-    {B.logo && profile.logo && <img src={profile.logo} alt="" className="logo-img" style={{ marginBottom: 10 }} />}
-    <div style={{ fontSize: 15, fontWeight: 700 }}>{profile.business_name || tr("Votre entreprise", "Your business")}</div>
+  const From = ({ light, bare }) => (<div>
+    {!bare && B.logo && profile.logo && <img src={profile.logo} alt="" className="logo-img" style={{ marginBottom: 10 }} />}
+    {!bare && <div style={{ fontSize: 15, fontWeight: 700 }}>{profile.business_name || tr("Votre entreprise", "Your business")}</div>}
     {profile.address && <div>{profile.address}</div>}
     {(profile.phone || profile.email) && <div>{[profile.phone, profile.email].filter(Boolean).join(" · ")}</div>}
     {(profile.ifu || profile.rccm) && <div className="fine" style={light ? { color: "#ffffffaa" } : null}>{[profile.ifu && `${taxL} ${profile.ifu}`, profile.rccm && `${ct.reg || "Reg."} ${profile.rccm}`].filter(Boolean).join(" · ")}</div>}
@@ -44,7 +44,7 @@ export default function DocPaper({ doc, profile = {}, template }) {
   const Totals = () => (<div className={`tot ${tp === "registre" ? "box" : ""}`} style={{ marginTop: 18 }}>
     <div><span>{tr("Sous-total HT", "Subtotal")}</span><span className="nm">{money(t.sub)}</span></div>
     {t.disc > 0 && <div><span>{tr("Remise", "Discount")}</span><span className="nm">− {money(t.disc)}</span></div>}
-    {(+doc.tax_rate > 0 || ct.r !== "us") && <div><span>{+doc.tax_rate ? `${vatName} ${String(doc.tax_rate).replace(".", en ? "." : ",")} %` : tr(`${vatName} non applicable`, `No ${vatName}`)}</span><span className="nm">{money(t.tax)}</span></div>}
+    {+doc.tax_rate > 0 && <div><span>{`${vatName} ${String(doc.tax_rate).replace(".", en ? "." : ",")} %`}</span><span className="nm">{money(t.tax)}</span></div>}
     <div className="grand"><span>{tr("Total", "Total")}{+doc.tax_rate ? tr(" TTC", "") : ""}</span><span className="nm">{money(t.total)}</span></div></div>);
   const legal = legalLines(profile, doc, lang);
   const Bottom = () => (<>
@@ -58,6 +58,21 @@ export default function DocPaper({ doc, profile = {}, template }) {
     <div className="fine" style={{ marginTop: 18, display: "flex", justifyContent: "space-between", gap: 10 }}><span>{profile.footer || ""}</span>{profile.plan !== "pro" && <span>{tr("Fait avec Bonova", "Made with Bonova")}</span>}</div>
   </>);
   const stamp = doc.status === "paid" && doc.kind === "invoice" ? <div className="stamp">{tr("PAYÉE", "PAID")}</div> : doc.kind === "receipt" ? <div className="stamp">{tr("REÇU", "RECEIVED")}</div> : doc.status === "accepted" ? <div className="stamp">{tr("ACCEPTÉ", "ACCEPTED")}</div> : null;
+  if (tp === "net") {
+    const due = doc.kind === "receipt" ? tr("Montant reçu", "Amount received") : doc.kind === "quote" ? tr("Montant du devis", "Quote total") : doc.status === "paid" ? tr("Montant réglé", "Amount paid") : tr("Montant dû", "Amount due");
+    const lstyle = lh ? { ...style, backgroundImage: `url(${profile.letterhead})` } : style;
+    return (<div className={`paper t-net ${lh ? "lh" : ""}`} style={lstyle}>{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>
+      {!lh && <div className="n-top"><div className="n-id">{B.logo && profile.logo && <img src={profile.logo} alt="" className="logo-img" />}<div className="n-bn">{profile.business_name || tr("Votre entreprise", "Your business")}</div></div>
+        <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
+      {lh && <div className="n-kind lhk"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div>}
+      <div className="n-grid">
+        <div><div className="lbl">{tr("Émetteur", "From")}</div>{lh ? <><div style={{ fontWeight: 700 }}>{profile.business_name}</div><From bare /></> : <From bare />}</div>
+        <To />
+        <div><div className="lbl">{tr("Date d'émission", "Issue date")}</div><div>{d8(doc.issue_date)}</div>{doc.due_date && doc.kind !== "receipt" && <><div className="lbl" style={{ marginTop: 10 }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due date")}</div><div>{d8(doc.due_date)}</div></>}</div>
+      </div>
+      <div className="n-due"><span>{due}</span><b className="nm">{money(t.total)}</b></div>
+      <Items /><Totals /><Bottom /></div></div>);
+  }
   if (tp === "marche") return (<div className="paper t-marche" style={style}>{stamp}
     <div className="band"><div><div className="title">{kn}</div><div style={{ marginTop: 14 }}><From light /></div></div><Meta light /></div>
     <div className="pad" style={{ paddingTop: 28 }}><To /><Items /><Totals /><Bottom /></div></div>);

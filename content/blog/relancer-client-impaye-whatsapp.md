@@ -17,15 +17,15 @@ Le problème de la plupart des indépendants n'est pas de trouver des clients, c
 
 ## Message 1 — cordial
 
-> Bonjour Awa, j'espère que vous allez bien. Petit rappel amical pour la facture FAC-2026-0042 de 50 000 FCFA, prévue pour aujourd'hui. Vous pouvez régler par Wave au 77 123 45 67. Merci beaucoup !
+> Bonjour, j'espère que vous allez bien. Petit rappel amical pour la facture FAC-2026-0042 de 50 000 FCFA, prévue pour aujourd'hui. Vous pouvez régler par Wave au 77 123 45 67. Merci beaucoup !
 
 ## Message 2 — ferme
 
-> Bonjour Awa, sauf erreur de ma part, la facture FAC-2026-0042 de 50 000 FCFA, arrivée à échéance le 2 novembre, n'est pas encore réglée. Merci de procéder au paiement sous 48 heures, ou de me dire si quelque chose bloque.
+> Bonjour, sauf erreur de ma part, la facture FAC-2026-0042 de 50 000 FCFA, arrivée à échéance le 2 novembre, n'est pas encore réglée. Merci de procéder au paiement sous 48 heures, ou de me dire si quelque chose bloque.
 
 ## Message 3 — dernier rappel
 
-> Bonjour Awa, malgré mes messages, la facture FAC-2026-0042 de 50 000 FCFA reste impayée depuis le 2 novembre. Sans règlement d'ici 5 jours, je devrai suspendre nos prestations. Je préfère trouver une solution avec vous : un paiement en deux fois est possible.
+> Bonjour, malgré mes messages, la facture FAC-2026-0042 de 50 000 FCFA reste impayée depuis le 2 novembre. Sans règlement d'ici 5 jours, je devrai suspendre nos prestations. Je préfère trouver une solution avec vous : un paiement en deux fois est possible.
 
 ## Ce qu'il ne faut pas faire
 
