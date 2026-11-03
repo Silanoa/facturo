@@ -22,6 +22,6 @@ export default function LiveDemo({ lang = "fr" }) {
         {!d.items?.length && <tr><td className="mute">{en ? "Add an amount, e.g. “website 900”" : "Ajoutez un montant, ex. « site 300 000 »"}</td><td /></tr>}</tbody></table>
       <div className="live-tot"><span className="u" style={{ margin: 0 }}>Total</span><b>{fmt(total, c, lang)}</b></div>
     </div>
-    <div className="live-acts"><button className="b k" onClick={go}>{en ? "③ Send it — no account →" : "③ L'envoyer — sans compte →"}</button><button className="b o" onClick={go}>PDF</button></div>
+    <div className="live-acts"><button className="b k" onClick={go}>{en ? "③ Send it — no account →" : "③ L'envoyer — sans compte →"}</button><a className="b o" href={en ? "/en/example" : "/exemple"}>{en ? "Full example" : "Exemple complet"}</a></div>
   </div>);
 }

@@ -19,7 +19,9 @@ export default function Trial({ heading = true }) {
     const en = lang === "en";
     const base = d || { ...blankDoc("invoice", en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
     setDoc(seed ? { ...base, ...seed, client: { ...base.client, ...(seed.client || {}) } } : base);
-    setP(pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [] });
+    setP(pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
+    if (!pr) fetch("/api/geo").then((r) => r.json()).then(({ country: cc }) => { if (!cc) return; const c = country(cc);
+      setP((x) => (x && x.auto ? { ...x, country: cc } : x)); setDoc((x) => (x && !d ? { ...x, currency: c.cur } : x)); }).catch(() => {});
   }, []);
   useEffect(() => { if (doc) localStorage.setItem("bnv_draft", JSON.stringify(doc)); }, [doc]);
   useEffect(() => { if (p) localStorage.setItem("bnv_profile", JSON.stringify(p)); }, [p]);
@@ -42,15 +44,15 @@ export default function Trial({ heading = true }) {
       <button type="button" className="more" onClick={() => setOpen(!open)} aria-expanded={open}><span>{p.business_name ? `${tr("De", "From")} : ${p.business_name}` : tr("Vos coordonnées et moyens de paiement", "Your details & how you get paid")}</span><span className="mono">{open ? "−" : "+"}</span></button>
       {open && <div style={{ marginTop: 14 }}>
         <div className="g2"><label className="f"><span>{tr("Nom de l'activité", "Business name")}</span><input value={p.business_name || ""} onChange={(e) => set("business_name", e.target.value)} placeholder={tr("Ex. : Studio Martin", "E.g. Martin Studio")} /></label>
-          <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "BJ"} onChange={(e) => { const c = country(e.target.value); setP({ ...p, country: c.code }); setDoc({ ...doc, currency: c.cur, tax_rate: doc.tax_rate }); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
+          <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "BJ"} onChange={(e) => { const c = country(e.target.value); setP({ ...p, country: c.code, auto: 0 }); setDoc({ ...doc, currency: c.cur, tax_rate: +doc.tax_rate > 0 ? (c.vat || doc.tax_rate) : 0 }); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
           <label className="f"><span>{tr("Téléphone / email", "Phone / email")}</span><input value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} /></label>
           <label className="f"><span>{country(p.country).tax} <span className="mute">({tr("optionnel", "optional")})</span></span><input value={p.ifu || ""} onChange={(e) => set("ifu", e.target.value)} /></label></div>
-        <div className="f"><span>Logo <span className="mute">({tr("optionnel", "optional")})</span></span><div className="row" style={{ gap: 12, alignItems: "center" }}>
+        <div className="f"><span>Logo <span className="mute">({tr("optionnel · gardé si vous créez un compte", "optional · kept if you create an account")})</span></span><div className="row" style={{ gap: 12, alignItems: "center" }}>
           {p.logo && <img src={p.logo} alt="Logo" style={{ maxHeight: 44, maxWidth: 140, background: "#fff", padding: 4, border: "1px solid var(--line)" }} />}
           <label className="b s o" style={{ cursor: "pointer" }}>{p.logo ? tr("Changer", "Change") : tr("Ajouter un logo", "Add a logo")}<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) { try { const src = await shrink(fl); const col = await dominant(src); setP((x) => ({ ...x, logo: src, ...(col ? { accent: col } : {}) })); } catch {} } }} /></label>
           {p.logo && <button type="button" className="lnk" onClick={() => set("logo", null)}>{tr("Retirer", "Remove")}</button>}</div></div>
         <label className="f"><span>{tr("Adresse", "Address")}</span><input value={p.address || ""} onChange={(e) => set("address", e.target.value)} /></label>
-        <div className="f"><span>{tr("Comment vous payer", "How clients pay you")}</span><PayFields value={p.momo} onChange={(v) => set("momo", v)} /></div></div>}
+        <div className="f"><span>{tr("Comment vous payer", "How clients pay you")}</span><PayFields value={p.momo} country={p.country} onChange={(v) => set("momo", v)} /></div></div>}
     </div>
     <Editor doc={doc} setDoc={setDoc} profile={p} setProfile={setP} compact />
     <div className="sendbar np">{warn && !ready && <p className="hint bad" role="alert">{tr("Ajoutez au moins une ligne avec un prix pour envoyer.", "Add at least one line with a price to send.")}</p>}<Actions cls="big" /></div>

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { Logo } from "../../components/Brand";
 import { useT } from "../../lib/i18n";
-import { SUPPORT, waSupport } from "../../lib/site";
+import { SUPPORT, waSupport, mailSupport } from "../../lib/site";
 async function afterLogin(r, next) {
   let draft = null, prof = null; try { draft = JSON.parse(localStorage.getItem("bnv_draft") || localStorage.getItem("kola_draft") || "null"); prof = JSON.parse(localStorage.getItem("bnv_profile") || localStorage.getItem("kola_profile") || "null"); } catch {}
   if (prof) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single();
@@ -44,7 +44,7 @@ function Form() {
         {!fg && <label className="f"><span>{tr("Mot de passe", "Password")}</span><input type="password" required minLength={6} autoComplete={su ? "new-password" : "current-password"} value={pw} onChange={(e) => setPw(e.target.value)} placeholder={tr("6 caractères minimum", "6 characters minimum")} /></label>}
         <button className="b k full" disabled={busy} style={{ marginTop: 6 }}>{busy ? "…" : fg ? tr("Envoyer le lien", "Send the link") : su ? tr("Créer mon compte", "Create my account") : tr("Se connecter", "Log in")}</button></form>
       {mode === "login" && <p style={{ margin: "12px 0 0", fontSize: 14 }}><button type="button" className="lnk" onClick={() => { setMode("forgot"); setMsg(null); }}>{tr("Mot de passe oublié ?", "Forgot password?")}</button></p>}
-      {fg && <p className="mute" style={{ fontSize: 14, marginTop: 16 }}>{tr("Pas reçu ? Écrivez-nous sur ", "Nothing received? Message us on ")}<a href={waSupport(tr("Bonjour, je n'arrive pas à réinitialiser mon mot de passe Bonova.", "Hi, I can't reset my Bonova password."))} target="_blank" rel="noopener">WhatsApp</a>{tr(" ou à ", " or at ")}<a href={`mailto:${SUPPORT.email}`}>{SUPPORT.email}</a>.</p>}
+      {fg && <p className="mute" style={{ fontSize: 14, marginTop: 16 }}>{tr("Pas reçu ? Écrivez-nous sur ", "Nothing received? Message us on ")}<a href={waSupport(tr("Bonjour, je n'arrive pas à réinitialiser mon mot de passe Bonova.", "Hi, I can't reset my Bonova password."))} target="_blank" rel="noopener">WhatsApp</a>{tr(" ou à ", " or at ")}<a href={mailSupport("", lang)}>{SUPPORT.name}</a>.</p>}
       <p className="mute" style={{ fontSize: 15, marginTop: 20 }}>{fg ? <button className="lnk" onClick={() => { setMode("login"); setMsg(null); }}>{tr("← Retour à la connexion", "← Back to log in")}</button> : null}{fg ? null : <>{su ? tr("Déjà inscrit ? ", "Already have an account? ") : tr("Pas encore de compte ? ", "No account yet? ")}<button className="lnk" onClick={() => { setMode(su ? "login" : "signup"); setMsg(null); }}>{su ? tr("Se connecter", "Log in") : tr("Créer un compte", "Sign up")}</button></>}</p>
       <p className="mute" style={{ fontSize: 14, marginTop: 12 }}><a href={tr("/essai", "/en/invoice-generator")}>{tr("Ou faites une facture sans compte →", "Or make an invoice without an account →")}</a></p>
       {!su && <p className="mute" style={{ fontSize: 13.5, marginTop: 28, borderTop: "1.5px solid var(--rule)", paddingTop: 16 }}>{tr("Pour visiter", "Demo account")} : <b>demo.facturo@gmail.com</b> / <b>Test1234!</b></p>}

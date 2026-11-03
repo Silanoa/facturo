@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
+import { useDocs } from "../../lib/data";
 import { useSession } from "../../lib/session";
 import { fmt, KINDS, kindName } from "../../lib/money";
 import { effStatus, statusName, daysLate, waLink, initials, avColor, publicUrl } from "../../lib/share";
@@ -11,12 +12,11 @@ import { insights } from "../../lib/insights";
 import { IPlus, IBell, ISpark } from "../../components/Icons";
 
 export default function Dash() {
-  const { profile, user } = useSession(); const [docs, setDocs] = useState(null); const { tr, lang } = useT(); const loc = lang === "en" ? "en-GB" : "fr-FR";
-  useEffect(() => { supabase.from("documents").select("*").order("issue_date", { ascending: false }).then(({ data }) => setDocs(data || [])); }, []);
+  const { profile, user } = useSession(); const [docs, setDocs] = useDocs(); const { tr, lang } = useT(); const loc = lang === "en" ? "en-GB" : "fr-FR";
   const cur = profile.currency || "XOF";
   const k = useMemo(() => {
     if (!docs) return null; const inv = docs.filter(d => d.kind === "invoice" && d.currency === cur);
-    const open = inv.filter(d => d.status !== "paid" && d.status !== "draft"); const late = open.filter(d => daysLate(d) > 0 && !d.declared_paid_at);
+    const open = inv.filter(d => !["paid", "draft", "cancelled"].includes(d.status)); const late = open.filter(d => daysLate(d) > 0 && !d.declared_paid_at);
     const now = new Date(); const ym = (d) => d.slice(0, 7); const thisM = now.toISOString().slice(0, 7);
     const paidM = inv.filter(d => d.status === "paid" && ym((d.paid_at || d.issue_date)) === thisM).reduce((a, d) => a + +d.total, 0);
     const months = [...Array(6)].map((_, i) => { const x = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const key = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}`; return { key, l: x.toLocaleDateString(loc, { month: "short" }).replace(".", ""), v: inv.filter(d => ym(d.issue_date) === key).reduce((a, d) => a + +d.total, 0) }; });
@@ -55,7 +55,7 @@ export default function Dash() {
         <h2 style={{ fontSize: 24, margin: "30px 0 12px" }}>{tr("Derniers documents", "Recent documents")}</h2>
         <div className="list">{docs.slice(0, 5).map(d => { const st = effStatus(d); return (<Link className="li" key={d.id} href={`/app/documents/${d.id}`}>
           <div className="grow"><div className="t">{d.client?.name || "—"}</div><div className="s">{kindName(d.kind, lang)} {d.number}</div></div>
-          <span className={`pill ${st}`}>{statusName(st, lang)}</span><div className="amt" style={{ minWidth: 110 }}>{fmt(d.total, d.currency)}</div></Link>); })}</div>
+          <span className={`pill ${st}`}>{statusName(st, lang, d.kind)}</span><div className="amt" style={{ minWidth: 110 }}>{fmt(d.total, d.currency)}</div></Link>); })}</div>
       </section>
       <aside>
         <div className="panel"><div className="u">{tr("Facturé — 6 derniers mois", "Billed — last 6 months")}</div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteNav, SiteFooter } from "./Brand";
 import DocPaper from "./DocPaper";
 import LiveDemo from "./LiveDemo";
+import Reveal from "./Reveal";
 import { FAQ } from "../lib/faq";
 import { SITE } from "../lib/site";
 const SAMPLE = { kind: "invoice", number: "FAC-2026-0042", status: "sent", currency: "XOF", tax_rate: 18, discount: 0, issue_date: "2026-11-02", due_date: "2026-11-17", lang: "fr",
@@ -14,22 +15,24 @@ const P2 = { business_name: "M. Laurent — Design", address: "Lisbon, Portugal"
 const ZONES = { fr: "Sénégal · Côte d'Ivoire · Bénin · Togo · Burkina Faso · Mali · Niger · Cameroun · Gabon · Congo · RD Congo · Guinée · Madagascar · Maroc · Tunisie · Nigeria · Ghana · Kenya · Afrique du Sud · France · Belgique · Suisse · Canada · Royaume-Uni · États-Unis",
   en: "Nigeria · Ghana · Kenya · South Africa · Rwanda · Uganda · Tanzania · Senegal · Côte d'Ivoire · Cameroon · Benin · Morocco · UK · France · Belgium · Switzerland · Canada · United States" };
 const C = {
-  fr: { k: "Facturation pour indépendants et prestataires de services", h: ["Facturez.", "Encaissez."], hs: "sans perdre de temps.", lead: "Créez une facture, un devis ou un reçu en une minute, avec la bonne devise, la bonne TVA et les mentions de votre pays. Envoyez-le par WhatsApp ou email, et suivez le paiement.",
-    cta: "Créer une facture", demo: "Voir l'exemple", meta: ["Sans inscription", "0 % de commission", "Français / English"],
-    s1: "Fonctionnement", s1h: "Créer, envoyer, encaisser.", steps: [["Créer", "Décrivez la prestation ou remplissez les lignes. Devise, TVA et mentions légales sont préréglées selon votre pays."], ["Envoyer", "Un PDF ou un lien vers la facture, partagé par WhatsApp ou email. Votre client la lit sur son téléphone, sans rien installer."], ["Encaisser", "Vos coordonnées de paiement figurent sur la facture. Le client indique qu'il a payé, vous confirmez : la facture passe en « Payée »."]],
+  fr: { k: "Pour les indépendants qui facturent seuls", h: ["Facturez.", "Encaissez."], hs: "Retournez au travail.", lead: "Devis, factures et reçus prêts en une minute, avec la devise, la TVA et les mentions de votre pays déjà en place. Vous envoyez par WhatsApp, email ou PDF, et vous gardez la main sur le suivi.",
+    cta: "Faire ma première facture", demo: "Voir un exemple", meta: ["Sans compte", "Sans commission", "Français / English"],
+    s1: "Fonctionnement", s1h: "Trois étapes, pas une de plus.", steps: [["Décrire", "Tapez ou dictez la prestation : « logo 150 000 pour Atlas, à 15 jours ». Les lignes, le total et l'échéance se remplissent."], ["Envoyer", "En PDF, par WhatsApp ou par email, avec un lien si vous le souhaitez. Le client lit le document sur son téléphone, sans rien installer."], ["Suivre", "Payée, partiellement payée, en retard : vous changez le statut en un geste. Un devis accepté en ligne apparaît aussitôt."]],
     zones: "Pays pris en charge",
-    s2: "Paiements", s2h: "Les moyens de paiement de vos clients.", rails: [["Mobile Money", "Wave, Orange Money, MTN MoMo, Moov, M-Pesa, Airtel… Votre numéro s'affiche avec la référence à indiquer.", "Afrique"], ["Virement", "IBAN, RIB, SWIFT ou sort code pour les clients en Europe, au Canada ou ailleurs.", "SEPA · SWIFT"], ["Carte et PayPal", "Ajoutez votre lien Stripe, PayPal, Wise, Paystack ou FedaPay : un bouton « Payer » apparaît sur la facture.", "Vos comptes"]],
-    s4: "Le document", s4h: "Une facture qui inspire confiance.", s4p: "Cinq modèles sobres, votre logo et votre couleur, ou votre propre papier à en-tête importé en image ou en PDF. Mentions obligatoires, montant en lettres et coordonnées de paiement inclus.",
-    s5: "Tarifs", s5h: "Gratuit pour commencer.", plans: [["Gratuit", "0", "sans limite de durée", ["Factures, devis et reçus illimités", "PDF, WhatsApp, email, lien", "Mention « Fait avec Bonova »"], "Commencer"], ["Pro", "2 500 F", "FCFA / mois · environ 4 € ou 4 $", ["Sans mention Bonova", "Relances automatiques", "Pied de page, export CSV", "Mobile Money, carte ou PayPal"], "Passer à Pro"], ["Pro annuel", "25 000 F", "FCFA / an · 2 mois offerts", ["Tout Pro", "Support prioritaire"], "Choisir l'annuel"]],
-    s6: "Questions", end: ["Votre prochaine facture,", "en une minute."] },
-  en: { k: "Invoicing for freelancers and independent service providers", h: ["Invoice.", "Get paid."], hs: "without the paperwork.", lead: "Create an invoice, quote or receipt in a minute, with the right currency, the right VAT and your country's legal lines. Send it by WhatsApp or email, and track the payment.",
-    cta: "Create an invoice", demo: "See the example", meta: ["No sign-up", "0% fees", "English / Français"],
-    s1: "How it works", s1h: "Create, send, get paid.", steps: [["Create", "Describe the job or fill in the lines. Currency, VAT and legal lines are preset for your country."], ["Send", "A PDF or a link to the invoice, shared by WhatsApp or email. Your client reads it on their phone, nothing to install."], ["Get paid", "Your payment details are on the invoice. The client marks it as paid, you confirm: the invoice moves to “Paid”."]],
+    s2: "Paiements", s2h: "Indiquez comment vous payer. Ou pas.", rails: [["Mobile Money", "Votre numéro Wave, Orange Money, MTN MoMo, Moov ou M-Pesa, avec la référence de la facture. Les opérateurs de votre pays sont proposés d'office."], ["Virement bancaire", "IBAN, RIB ou numéro de compte, avec le BIC si votre client est à l'étranger."], ["Lien de paiement", "Vous avez déjà PayPal, Stripe, Wise ou Paystack ? Collez votre lien : un bouton « Payer » s'affiche sur la facture."], ["Rien du tout", "Une facture simple, sans coordonnées ni lien, quand le client vous paie autrement. Tout est facultatif."]],
+    s3: "Devis, facture, reçu", s3h: "Trois documents, trois rôles.", docs: [["Devis", "Avant le travail", "Vous proposez un prix. Le client l'accepte en ligne ou le refuse, vous le voyez en direct. Un clic le transforme en facture."], ["Facture", "Après le travail", "Vous demandez le paiement, avec une échéance. Acompte, paiement partiel, retard : le solde se calcule seul."], ["Reçu", "Une fois payé", "La preuve du paiement pour votre client : montant reçu, date, moyen de paiement et facture concernée."]],
+    s4: "Le document", s4h: "Votre facture, à votre image.", s4p: "Partez d'un des cinq modèles, déplacez les sections, choisissez couleur, police et taille, ajoutez votre logo ou importez votre propre papier à en-tête. Avec un compte gratuit, vos modèles sont enregistrés.",
+    s5: "Tarifs", s5h: "Gratuit, vraiment.", plans: [["Gratuit", "0", "sans limite de durée", ["Devis, factures et reçus illimités", "PDF, WhatsApp, email, lien", "Mention « Fait avec Bonova »"], "Commencer"], ["Pro", "2 500 F", "FCFA / mois · environ 4 € ou 4 $", ["Sans mention Bonova", "Relances automatiques", "Pied de page personnalisé", "Mobile Money, carte ou PayPal"], "Passer à Pro"], ["Pro annuel", "25 000 F", "FCFA / an · 2 mois offerts", ["Tout Pro", "Support prioritaire"], "Choisir l'annuel"]],
+    s6: "Questions", end: ["Votre prochaine facture,", "dans une minute."] },
+  en: { k: "For freelancers who do their own invoicing", h: ["Invoice.", "Get paid."], hs: "Back to work.", lead: "Quotes, invoices and receipts ready in a minute, with your country's currency, tax and legal lines already set. Send by WhatsApp, email or PDF, and keep track yourself.",
+    cta: "Make my first invoice", demo: "See an example", meta: ["No account", "No fees", "English / Français"],
+    s1: "How it works", s1h: "Three steps. That's it.", steps: [["Describe", "Type or dictate the job: “logo 900 for Northwind, due in 14 days”. Lines, total and due date fill in."], ["Send", "As a PDF, by WhatsApp or email, with a link if you want one. Your client reads it on their phone, nothing to install."], ["Track", "Paid, part paid, overdue: change the status in one tap. A quote accepted online shows up instantly."]],
     zones: "Supported countries",
-    s2: "Payments", s2h: "The way your clients pay.", rails: [["Mobile Money", "M-Pesa, MTN MoMo, Airtel, Orange Money, Wave… Your number shows with the payment reference.", "Africa"], ["Bank transfer", "IBAN, SWIFT, sort code or routing number for clients in Europe, North America or anywhere.", "SEPA · SWIFT"], ["Card and PayPal", "Add your Stripe, PayPal, Wise, Paystack or Flutterwave link: a “Pay” button appears on the invoice.", "Your accounts"]],
-    s4: "The document", s4h: "An invoice that looks the part.", s4p: "Five restrained templates, your logo and colour, or your own letterhead imported as an image or PDF. Required legal lines, amount in words and payment details included.",
-    s5: "Pricing", s5h: "Free to start.", plans: [["Free", "$0", "no time limit", ["Unlimited invoices, quotes, receipts", "PDF, WhatsApp, email, link", "“Made with Bonova” line"], "Start"], ["Pro", "$4", "per month · or 2,500 FCFA", ["No Bonova branding", "Automatic reminders", "Custom footer, CSV export", "Card, PayPal or Mobile Money"], "Go Pro"], ["Pro yearly", "$36", "per year · 3 months free", ["Everything in Pro", "Priority support"], "Choose yearly"]],
-    s6: "Questions", end: ["Your next invoice,", "in a minute."] },
+    s2: "Payments", s2h: "Tell clients how to pay you. Or don't.", rails: [["Mobile Money", "Your M-Pesa, MTN MoMo, Airtel, Orange Money or Wave number, with the invoice reference. Your country's operators are suggested."], ["Bank transfer", "IBAN, account and sort code or routing number, plus SWIFT for clients abroad."], ["Payment link", "Already on PayPal, Stripe, Wise or Paystack? Paste your link and a “Pay” button appears on the invoice."], ["Nothing at all", "A plain invoice with no details or link, when the client pays you another way. Everything is optional."]],
+    s3: "Quote, invoice, receipt", s3h: "Three documents, three jobs.", docs: [["Quote", "Before the work", "You propose a price. The client accepts or declines online and you see it live. One click turns it into an invoice."], ["Invoice", "After the work", "You request payment with a due date. Deposits, part payments, late payments: the balance works itself out."], ["Receipt", "Once paid", "Proof of payment for your client: amount received, date, method and the invoice it settles."]],
+    s4: "The document", s4h: "Your invoice, your look.", s4p: "Start from one of five templates, move sections around, pick colour, font and size, add your logo or import your own letterhead. With a free account, your templates are saved.",
+    s5: "Pricing", s5h: "Free. Really.", plans: [["Free", "$0", "no time limit", ["Unlimited quotes, invoices, receipts", "PDF, WhatsApp, email, link", "“Made with Bonova” line"], "Start"], ["Pro", "$4", "per month · or 2,500 FCFA", ["No Bonova branding", "Automatic reminders", "Custom footer", "Card, PayPal or Mobile Money"], "Go Pro"], ["Pro yearly", "$36", "per year · 3 months free", ["Everything in Pro", "Priority support"], "Choose yearly"]],
+    s6: "Questions", end: ["Your next invoice,", "a minute from now."] },
 };
 export default function Landing({ lang = "fr" }) {
   const t = C[lang]; const en = lang === "en"; const tryH = en ? "/en/invoice-generator" : "/essai";
@@ -45,7 +48,7 @@ export default function Landing({ lang = "fr" }) {
           <p className="u" style={{ color: "var(--ink)" }}>{t.k}</p>
           <h1>{t.h[0]}<br />{t.h[1]}<span className="serif">{t.hs}</span></h1>
           <div><p className="lead">{t.lead}</p>
-            <div className="row" style={{ marginTop: 26, flexWrap: "wrap" }}><Link href={tryH} className="b k" style={{ minHeight: 56, padding: "0 26px", fontSize: 16 }}>{t.cta} →</Link><a href="#demo" className="b o" style={{ minHeight: 56 }}>{t.demo}</a></div></div>
+            <div className="row" style={{ marginTop: 26, flexWrap: "wrap" }}><Link href={tryH} className="b k" style={{ minHeight: 56, padding: "0 26px", fontSize: 16 }}>{t.cta} →</Link><Link href={en ? "/en/example" : "/exemple"} className="b o" style={{ minHeight: 56 }}>{t.demo}</Link></div></div>
         </div>
         <div className="hero-r in" style={{ animationDelay: ".08s" }}>
           <div className="hero-meta">{t.meta.map((m) => <span key={m}>■ {m}</span>)}</div>
@@ -53,22 +56,25 @@ export default function Landing({ lang = "fr" }) {
         </div>
       </section></div>
       <section className="wrap sec"><div className="sec-h"><p className="u">01 — {t.s1}</p><h2>{t.s1h}</h2></div>
-        <div className="steps">{t.steps.map(([h, p], i) => <div key={h}><span className="n">0{i + 1}</span><h3>{h}</h3><p className="mute">{p}</p></div>)}</div>
+        <div className="steps">{t.steps.map(([h, p], i) => <div key={h} className="rv" style={{ transitionDelay: `${i * 80}ms` }}><span className="n">0{i + 1}</span><h3>{h}</h3><p className="mute">{p}</p></div>)}</div>
         <div className="zones"><span className="u">{t.zones}</span><p>{ZONES[lang]}</p></div></section>
       <div className="perf" aria-hidden="true" />
       <section className="wrap sec"><div className="sec-h"><p className="u">02 — {t.s2}</p><h2>{t.s2h}</h2></div>
-        <div className="rails">{t.rails.map(([h, p, m], i) => <div key={h} className={i === 0 ? "hl" : ""}><h3>{h}</h3><div><p>{p}</p><span className="mono">{m}</span></div></div>)}</div></section>
+        <div className="rails r4">{t.rails.map(([h, p], i) => <div key={h} className={`rv ${i === 3 ? "nil" : ""}`} style={{ transitionDelay: `${i * 70}ms` }}><span className="n mono">0{i + 1}</span><h3>{h}</h3><p>{p}</p></div>)}</div></section>
+      <section className="wrap sec" style={{ paddingTop: 0 }}><div className="sec-h"><p className="u">03 — {t.s3}</p><h2>{t.s3h}</h2></div>
+        <div className="kdocs">{t.docs.map(([h, w, p], i) => <div key={h} className={`rv k${i}`} style={{ transitionDelay: `${i * 80}ms` }}><span className="u">{w}</span><h3>{h}</h3><p className="mute">{p}</p>{i < 2 && <span className="arr" aria-hidden>→</span>}</div>)}</div></section>
       <section style={{ background: "var(--ink)", color: "var(--paper)" }}><div className="wrap sec split">
-        <div><p className="u" style={{ color: "#ffffff88" }}>03 — {t.s4}</p><h2 style={{ fontSize: "clamp(44px,6.4vw,96px)" }}>{t.s4h}</h2><p style={{ fontSize: 18, color: "#ffffffbb", maxWidth: 480, marginTop: 20 }}>{t.s4p}</p>
+        <div><p className="u" style={{ color: "#ffffff88" }}>04 — {t.s4}</p><h2 style={{ fontSize: "clamp(44px,6.4vw,96px)" }}>{t.s4h}</h2><p style={{ fontSize: 18, color: "#ffffffbb", maxWidth: 480, marginTop: 20 }}>{t.s4p}</p>
           <Link href={tryH} className="b inv" style={{ marginTop: 14 }}>{t.cta} →</Link></div>
         <div className="tshow" aria-hidden="true"><div className="tsc a"><DocPaper doc={en ? SAMPLE_EN : SAMPLE} profile={en ? P2 : P1} /></div><div className="tsc b"><DocPaper doc={en ? SAMPLE : SAMPLE_EN} profile={en ? P1 : P2} /></div></div>
       </div></section>
-      <section className="wrap sec" id="pricing"><div className="sec-h"><p className="u">04 — {t.s5}</p><h2>{t.s5h}</h2></div>
+      <section className="wrap sec" id="pricing"><div className="sec-h"><p className="u">05 — {t.s5}</p><h2>{t.s5h}</h2></div>
         <div className="price">{t.plans.map(([n, a, s, li, c], i) => <div key={n} className={i === 1 ? "hl" : ""}><div className="u" style={i === 1 ? { color: "#9DA7FF" } : null}>{n}</div><div className="amt">{a}</div><div className="mute">{s}</div><ul>{li.map((x) => <li key={x}>{x}</li>)}</ul>
           <Link href={i ? "/connexion?mode=signup&plan=pro" : tryH} className={`b full ${i === 1 ? "k" : "o"}`}>{c}</Link></div>)}</div></section>
-      <section className="wrap sec" style={{ paddingTop: 0 }}><div className="sec-h"><p className="u">05 — {t.s6}</p><div className="faq">{FAQ[lang].map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div></section>
+      <section className="wrap sec" style={{ paddingTop: 0 }}><div className="sec-h"><p className="u">06 — {t.s6}</p><div className="faq">{FAQ[lang].map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div></div></section>
       <section className="bigcta"><div className="wrap sec"><h2>{t.end[0]}<br /><span className="serif" style={{ color: "#fff" }}>{t.end[1]}</span></h2><Link href={tryH} className="b" style={{ marginTop: 34, minHeight: 60, padding: "0 30px", fontSize: 17 }}>{t.cta} →</Link></div></section>
     </main>
+    <Reveal />
     <SiteFooter lang={lang} />
   </div>);
 }

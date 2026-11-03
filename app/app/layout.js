@@ -7,9 +7,9 @@ import { supabase } from "../../lib/supabase";
 import { useT } from "../../lib/i18n";
 import { Logo } from "../../components/Brand";
 import Support from "../../components/Support";
-import { IHome, IDoc, IUsers, ISet, IPlus, IOut } from "../../components/Icons";
+import { IHome, IDoc, IUsers, ISet, IPlus, IOut, IShield } from "../../components/Icons";
 export default function AppLayout({ children }) {
-  const r = useRouter(); const p = usePathname(); const [s, setS] = useState(null); const [toast, setToast] = useState(null); const { tr, setLang, lang } = useT();
+  const r = useRouter(); const p = usePathname(); const [s, setS] = useState(null); const [toast, setToast] = useState(null); const [menu, setMenu] = useState(null); const { tr, setLang, lang } = useT();
   async function load() {
     const { data } = await supabase.auth.getSession();
     if (!data.session) return r.replace("/connexion?next=" + encodeURIComponent(p));
@@ -19,21 +19,29 @@ export default function AppLayout({ children }) {
     setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: (m) => { setToast(m); setTimeout(() => setToast(null), 2600); } });
   }
   useEffect(() => { load(); }, []);
+  useEffect(() => { setMenu(null); }, [p]);
   if (!s) return <div style={{ display: "grid", placeItems: "center", height: "100vh" }}><span className="u">bonova</span></div>;
   const on = (h) => (h === "/app" ? p === h : p.startsWith(h) && !(h === "/app/documents" && p === "/app/documents/nouveau"));
   const nav = [["/app", tr("Accueil", "Home"), IHome], ["/app/documents", "Documents", IDoc], ["/app/clients", "Clients", IUsers], ["/app/parametres", tr("Réglages", "Settings"), ISet]];
   return (<S.Provider value={s}><div className="shell">
     <aside className="side np">
       <Logo href="/app" />
-      <Link href="/app/documents/nouveau" className="b k new"><IPlus width="18" height="18" /> {tr("Nouvelle facture", "New invoice")}</Link>
-      {nav.map(([h, l, I], i) => <Link key={h} href={h} className={on(h) ? "on" : ""}><span className="ix">0{i + 1}</span>{l}</Link>)}
-      <div style={{ flex: 1, borderTop: "1px solid var(--line)" }} />
-      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro"><b style={{ display: "block", fontSize: 14 }}>Bonova Pro →</b><span style={{ fontSize: 13, color: "var(--ink-2)" }}>{tr("Sans mention Bonova, relances auto. 2 500 F/mois", "No Bonova branding, auto reminders. $4/mo")}</span></Link>}
-      <div style={{ padding: "8px 18px", fontSize: 13, color: "var(--mute)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.profile.business_name || s.user.email}</div>
-      <div className="row" style={{ padding: "0 18px 4px", justifyContent: "space-between" }}>
-        <button className="lng" style={{ background: "none", cursor: "pointer" }} onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "FR" : "EN"}</button>
-        <button className="lnk" style={{ fontSize: 14, display: "flex", gap: 6, alignItems: "center", textDecoration: "none" }} onClick={async () => { await supabase.auth.signOut(); r.replace("/"); }}><IOut width="16" height="16" />{tr("Déconnexion", "Sign out")}</button></div>
+      <div className="ws"><button className="ws-b" onClick={() => setMenu(menu === "ws" ? null : "ws")} aria-expanded={menu === "ws"}>
+        {s.profile.logo ? <img src={s.profile.logo} alt="" className="ws-av" /> : <span className="ws-av">{(s.profile.business_name || s.user.email || "?").trim()[0].toUpperCase()}</span>}
+        <span className="ws-t"><b>{s.profile.business_name || tr("Mon activité", "My business")}</b><span>{s.profile.plan === "pro" ? "Pro" : tr("Gratuit", "Free")} · {s.user.email}</span></span><span className="ws-c" aria-hidden>⌄</span></button>
+        {menu === "ws" && <div className="ws-m" onClick={() => setMenu(null)}>
+          <Link href="/app/parametres?t=profil">{tr("Infos de l'activité", "Business details")}</Link><Link href="/app/parametres?t=modele">{tr("Modèle et logo", "Template & logo")}</Link><Link href="/app/parametres?t=paiement">{tr("Moyens de paiement", "Payment details")}</Link>
+          <button onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "Passer en français" : "Switch to English"}</button>
+          <button onClick={async () => { await supabase.auth.signOut(); r.replace("/"); }}><IOut width="15" height="15" /> {tr("Déconnexion", "Sign out")}</button></div>}</div>
+      <div className="new-w"><Link href="/app/documents/nouveau" className="b k new"><IPlus width="17" height="17" /> {tr("Nouvelle facture", "New invoice")}</Link>
+        <button className="b k new-more" aria-label={tr("Autre document", "Other document")} onClick={() => setMenu(menu === "new" ? null : "new")}>⌄</button>
+        {menu === "new" && <div className="ws-m" style={{ top: "100%" }} onClick={() => setMenu(null)}><Link href="/app/documents/nouveau?kind=quote">{tr("Nouveau devis", "New quote")}</Link><Link href="/app/documents/nouveau?kind=receipt">{tr("Nouveau reçu", "New receipt")}</Link></div>}</div>
+      <nav className="snav">{nav.map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}
+        {s.profile.role === "admin" && <Link href="/app/admin" className={on("/app/admin") ? "on" : ""}><IShield />Admin</Link>}</nav>
+      <div style={{ flex: 1 }} />
+      {s.profile.plan !== "pro" && <Link href="/app/parametres?t=offre" className="pro-c"><b>Bonova Pro</b><span>{tr("Votre marque seule sur vos documents, relances automatiques.", "Only your brand on documents, automatic reminders.")}</span><em>{tr("2 500 F / mois →", "$4 / month →")}</em></Link>}
     </aside>
+    {menu && <div className="ws-x" onClick={() => setMenu(null)} />}
     <main className="main">{children}</main>
     <nav className="tabbar np" aria-label="Navigation">
       {nav.slice(0, 2).map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}

@@ -1,31 +1,32 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { SUPPORT, waSupport } from "../lib/site";
+import { SUPPORT, waSupport, mailSupport } from "../lib/site";
 import { kbMatch } from "../lib/kb";
 const T = {
-  fr: { btn: "Aide", h: "Une question ?", hi: "Posez votre question : TVA, PDF, modèle, paiement… Réponse immédiate, ou un humain sur WhatsApp.", ph: "Ex. : comment enlever la TVA ?", send: "Envoyer", no: "Je n'ai pas la réponse exacte. Écrivez-nous, on répond vite :", wa: "WhatsApp", mail: "Email", q: ["Comment enlever la TVA ?", "Ajouter mon logo", "Télécharger en PDF", "Être payé par Mobile Money"] },
-  en: { btn: "Help", h: "Got a question?", hi: "Ask about VAT, PDF, templates, payments… Instant answer, or a human on WhatsApp.", ph: "E.g. how do I remove VAT?", send: "Send", no: "I don't have the exact answer. Message us, we reply fast:", wa: "WhatsApp", mail: "Email", q: ["How do I remove VAT?", "Add my logo", "Download as PDF", "Get paid by Mobile Money"] },
+  fr: { btn: "Aide", h: "Aide Bonova", hi: "Choisissez un sujet ou décrivez votre besoin. Réponse immédiate ; si elle ne suffit pas, l'équipe vous répond sur WhatsApp ou par email.", ph: "Votre question, par ex. « facturer sans TVA »", send: "Demander", no: "Je n'ai pas de réponse fiable à cette question. Transmettez-la à l'équipe, elle vous répond directement :", wa: "Écrire sur WhatsApp", mail: "Envoyer un email", team: "Contacter l'équipe", q: ["Facturer sans TVA", "Ajouter mon logo", "Marquer une facture payée", "Devis, facture ou reçu ?", "Télécharger en PDF"] },
+  en: { btn: "Help", h: "Bonova Help", hi: "Pick a topic or describe what you need. Instant answer; if it isn't enough, the team replies on WhatsApp or by email.", ph: "Your question, e.g. “invoice without VAT”", send: "Ask", no: "I don't have a reliable answer to that. Pass it to the team, they'll reply directly:", wa: "Message on WhatsApp", mail: "Send an email", team: "Contact the team", q: ["Invoice without VAT", "Add my logo", "Mark an invoice as paid", "Quote, invoice or receipt?", "Download as PDF"] },
 };
 export default function Support({ lang = "fr", hdr }) {
-  const t = T[lang === "en" ? "en" : "fr"]; const [open, setOpen] = useState(false); const [msgs, setMsgs] = useState([]); const [q, setQ] = useState(""); const [busy, setBusy] = useState(false); const end = useRef(null);
+  const L = lang === "en" ? "en" : "fr"; const t = T[L]; const [open, setOpen] = useState(false); const [msgs, setMsgs] = useState([]); const [q, setQ] = useState(""); const [busy, setBusy] = useState(false); const end = useRef(null);
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs, open]);
+  useEffect(() => { const k = (e) => e.key === "Escape" && setOpen(false); addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, []);
   async function ask(text) {
     const x = (text ?? q).trim(); if (!x) return; setQ(""); setMsgs((m) => [...m, { me: 1, t: x }]); setBusy(true);
-    let a = null; try { const r = await fetch("/api/support", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: x, lang }) }); a = (await r.json()).a; } catch { a = kbMatch(x, lang); }
+    let a = null; try { const r = await fetch("/api/support", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: x, lang: L }) }); a = (await r.json()).a; } catch { a = kbMatch(x, L); }
     setBusy(false); setMsgs((m) => [...m, a ? { t: a } : { t: t.no, human: x }]);
   }
   return (<div className={`sup np ${hdr ? "hdr" : ""}`}>
     {open && <div className="sup-p" role="dialog" aria-label={t.h}>
-      <div className="sup-h"><b>{t.h}</b><button type="button" onClick={() => setOpen(false)} aria-label="Fermer">×</button></div>
+      <div className="sup-h"><div><b>{t.h}</b><span>{SUPPORT.name} · {SUPPORT.hours[L]}</span></div><button type="button" onClick={() => setOpen(false)} aria-label={L === "en" ? "Close" : "Fermer"}>×</button></div>
       <div className="sup-b">
         <p className="sup-m">{t.hi}</p>
         {!msgs.length && <div className="sup-q">{t.q.map((x) => <button type="button" key={x} onClick={() => ask(x)}>{x}</button>)}</div>}
-        {msgs.map((m, i) => <div key={i} className={`sup-m ${m.me ? "me" : ""}`}>{m.t}{m.human && <div className="sup-c"><a className="b s wa" href={waSupport(m.human)} target="_blank" rel="noreferrer">{t.wa}</a><a className="b s o" href={`mailto:${SUPPORT.email}?subject=${encodeURIComponent("Bonova")}&body=${encodeURIComponent(m.human)}`}>{t.mail}</a></div>}</div>)}
-        {busy && <div className="sup-m">…</div>}<div ref={end} />
+        {msgs.map((m, i) => <div key={i} className={`sup-m ${m.me ? "me" : ""}`}>{m.t}{m.human && <div className="sup-c"><a className="b s wa" href={waSupport(m.human, L)} target="_blank" rel="noreferrer">{t.wa}</a><a className="b s o" href={mailSupport(m.human, L)}>{t.mail}</a></div>}</div>)}
+        {busy && <div className="sup-m dots"><i /><i /><i /></div>}<div ref={end} />
       </div>
-      <form className="sup-f" onSubmit={(e) => { e.preventDefault(); ask(); }}><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.ph} aria-label={t.ph} /><button className="b s" type="submit">{t.send}</button></form>
-      <div className="sup-x"><a href={waSupport()} target="_blank" rel="noreferrer">WhatsApp {SUPPORT.waLabel}</a><a href={`mailto:${SUPPORT.email}`}>{SUPPORT.email}</a></div>
+      <form className="sup-f" onSubmit={(e) => { e.preventDefault(); ask(); }}><input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.ph} aria-label={t.ph} /><button className="b s" type="submit" disabled={!q.trim()}>{t.send}</button></form>
+      <div className="sup-x"><span>{t.team}</span><a href={waSupport("", L)} target="_blank" rel="noreferrer">WhatsApp</a><a href={mailSupport("", L)}>Email</a></div>
     </div>}
-    <button type="button" className={hdr ? "sup-l" : "sup-btn"} onClick={() => setOpen(!open)} aria-expanded={open}>{open && !hdr ? "×" : t.btn}</button>
+    <button type="button" className={hdr ? "sup-l" : "sup-btn"} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={t.h}>{open && !hdr ? "×" : t.btn}</button>
   </div>);
 }

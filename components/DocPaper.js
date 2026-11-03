@@ -1,6 +1,6 @@
 "use client";
-import { fmt, totals, inWords, kindName, cur, curName } from "../lib/money";
-import { FONTS, DEFAULT_BLOCKS, DEFAULT_TPL } from "../lib/templates";
+import { fmt, totals, inWords, kindName, cur, curName, lineRate } from "../lib/money";
+import { FONTS, DEFAULT_TPL, blocksOf } from "../lib/templates";
 import { normPay, payLines } from "../lib/pay";
 import { country, legalLines } from "../lib/countries";
 export const docLang = (doc = {}, profile = {}) => doc.lang || profile.doc_lang || "fr";
@@ -9,83 +9,97 @@ export function wordsLine(doc, total, lang = "fr") {
   const cn = (curName(doc.currency, lang) || doc.currency).toLowerCase();
   if (lang === "en") { const lead = doc.kind === "receipt" ? "Received the sum of" : doc.kind === "quote" ? "This quote amounts to" : "This invoice amounts to";
     return `${lead} ${inWords(Math.floor(total), "en")} ${cn}${cents ? ` and ${cents} cents` : ""}.`; }
-  const lead = doc.kind === "receipt" ? "Reçu la somme de" : doc.kind === "quote" ? "Le présent devis s'élève à" : "Arrêtée la présente facture à la somme de";
+  const lead = doc.kind === "receipt" ? "Reçu la somme de" : doc.kind === "quote" ? "Le présent devis s'élève à la somme de" : "Arrêtée la présente facture à la somme de";
   const w = doc.currency === "XOF" || doc.currency === "XAF" ? "francs CFA" : cn;
   return `${lead} ${inWords(Math.floor(total))} ${w}${cents ? ` et ${cents} centimes` : ""}.`;
 }
+export const PAY_METHODS = { fr: ["Mobile Money", "Espèces", "Virement", "Carte", "Chèque", "PayPal", "Autre"], en: ["Mobile Money", "Cash", "Bank transfer", "Card", "Cheque", "PayPal", "Other"] };
 export default function DocPaper({ doc, profile = {}, template }) {
   const lang = docLang(doc, profile); const en = lang === "en"; const tr = (f, e) => (en ? e : f);
-  const lh = !template && profile.letterhead; const tp = lh ? "net" : (template || profile.template || DEFAULT_TPL); const t = totals(doc); const c = doc.client || {}; const kn = kindName(doc.kind, lang);
-  const B = { ...DEFAULT_BLOCKS, ...(profile.blocks || {}) }; const F = FONTS[profile.font] || FONTS.grotesk;
+  const lh = !template && profile.letterhead; const tp = lh ? "net" : (template || profile.template || DEFAULT_TPL); const t = totals(doc); const c = doc.client || {};
+  const B = blocksOf(profile); const O = { pay: true, ref: true, ...(doc.opts || {}) }; const F = FONTS[profile.font] || FONTS.grotesk;
+  const K = doc.kind || "invoice"; const kn = (K === "invoice" && B.title) || kindName(K, lang);
   const pays = normPay(profile.momo); const ct = country(profile.country || "BJ");
   const money = (v) => fmt(v, doc.currency, lang);
-  const style = { "--a": profile.accent || "#111110", "--pf": F.body, "--pfd": F.display };
+  const style = { "--a": profile.accent || "#111110", "--pf": F.body, "--pfd": F.display, "--ls": `${B.logo_size || 56}px`, fontSize: `${(12.5 * (B.scale || 100)) / 100}px` };
   const d8 = (d) => d ? new Date(d).toLocaleDateString(en ? "en-GB" : "fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "";
-  const taxL = ct.tax || "Tax ID";
+  const taxL = ct.tax || "Tax ID"; const paid = +doc.paid_amount || 0; const rest = Math.max(0, t.total - paid);
+  const isPaid = K === "invoice" && doc.status === "paid"; const partial = K === "invoice" && !isPaid && paid > 0;
+  const logo = B.logo && profile.logo ? <img src={profile.logo} alt="" className="logo-img" /> : null;
   const From = ({ light, bare }) => (<div>
-    {!bare && B.logo && profile.logo && <img src={profile.logo} alt="" className="logo-img" style={{ marginBottom: 10 }} />}
-    {!bare && <div style={{ fontSize: 15, fontWeight: 700 }}>{profile.business_name || tr("Votre entreprise", "Your business")}</div>}
+    {!bare && logo && <div style={{ marginBottom: 10 }}>{logo}</div>}
+    {!bare && <div style={{ fontSize: "1.2em", fontWeight: 700 }}>{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div>}
     {profile.address && <div>{profile.address}</div>}
     {(profile.phone || profile.email) && <div>{[profile.phone, profile.email].filter(Boolean).join(" · ")}</div>}
     {(profile.ifu || profile.rccm) && <div className="fine" style={light ? { color: "#ffffffaa" } : null}>{[profile.ifu && `${taxL} ${profile.ifu}`, profile.rccm && `${ct.reg || "Reg."} ${profile.rccm}`].filter(Boolean).join(" · ")}</div>}
   </div>);
-  const To = () => (<div><div className="lbl">{doc.kind === "receipt" ? tr("Reçu de", "Received from") : doc.kind === "quote" ? tr("Devis pour", "Quote for") : tr("Facturé à", "Bill to")}</div>
-    <div style={{ fontWeight: 700, fontSize: 14 }}>{c.name || tr("Nom du client", "Client name")}</div>{c.address && <div>{c.address}</div>}{c.phone && <div>{c.phone}</div>}{c.email && <div>{c.email}</div>}{c.tax_id && <div className="fine">{tr("N° fiscal", "Tax ID")} {c.tax_id}</div>}</div>);
-  const Meta = ({ light }) => { const ls = light ? { color: "#ffffffaa" } : {}; return (<div className={tp === "registre" ? "" : "r"} style={light ? { textAlign: "right" } : null}>
-    <div className="lbl" style={ls}>{tr("N°", "No.")}</div><div className="nm" style={{ fontWeight: 600 }}>{doc.number}</div>
-    <div className="lbl" style={{ marginTop: 8, ...ls }}>Date</div><div>{d8(doc.issue_date)}</div>
-    {doc.due_date && doc.kind !== "receipt" && <><div className="lbl" style={{ marginTop: 8, ...ls }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due date")}</div><div>{d8(doc.due_date)}</div></>}
-  </div>); };
+  const toLbl = K === "receipt" ? tr("Reçu de", "Received from") : K === "quote" ? tr("Proposé à", "Prepared for") : tr("Facturé à", "Bill to");
+  const To = () => (<div><div className="lbl">{toLbl}</div>
+    <div style={{ fontWeight: 700, fontSize: "1.1em" }}>{c.name || tr("Nom du client", "Client name")}</div>{c.address && <div>{c.address}</div>}{c.phone && <div>{c.phone}</div>}{c.email && <div>{c.email}</div>}{B.client_tax && c.tax_id && <div className="fine">{tr("N° fiscal", "Tax ID")} {c.tax_id}</div>}</div>);
+  const dateRows = () => { const r = [[K === "receipt" ? tr("Date du paiement", "Payment date") : tr("Date d'émission", "Issue date"), d8(K === "receipt" ? (O.paid_on || doc.issue_date) : doc.issue_date)]];
+    if (K === "invoice" && doc.due_date) r.push([tr("Échéance", "Due date"), d8(doc.due_date)]);
+    if (K === "quote" && doc.due_date) r.push([tr("Valable jusqu'au", "Valid until"), d8(doc.due_date)]);
+    if (K === "receipt" && O.method) r.push([tr("Mode de paiement", "Payment method"), O.method]);
+    if (K === "receipt" && O.for) r.push([tr("En règlement de", "In payment of"), O.for]);
+    if (K === "invoice" && O.po) r.push([tr("Réf. commande", "PO number"), O.po]); return r; };
+  const Dates = ({ light }) => <div>{dateRows().map(([l, v], i) => <div key={l} style={i ? { marginTop: 8 } : null}><div className="lbl" style={light ? { color: "#ffffffaa" } : null}>{l}</div><div>{v}</div></div>)}</div>;
   const items = (doc.items || []).filter(i => i.label || +i.price);
-  const Items = () => (<table style={{ marginTop: 26 }}><thead><tr><th>{tr("Désignation", "Description")}</th><th className="r">{tr("Qté", "Qty")}</th><th className="r">{tr("P.U.", "Unit")}</th><th className="r">{tr("Montant", "Amount")}</th></tr></thead>
-    <tbody>{items.map((i, n) => <tr key={n}><td>{i.label}</td><td className="r nm">{i.qty}</td><td className="r nm">{money(i.price)}</td><td className="r nm">{money((+i.qty || 0) * (+i.price || 0))}</td></tr>)}
-      {!items.length && <tr><td colSpan={4} style={{ color: "#aaa" }}>{tr("Ajoutez une ligne…", "Add a line…")}</td></tr>}</tbody></table>);
+  const multi = new Set(items.map((i) => lineRate(doc, i))).size > 1;
+  const pc = (r) => `${String(r).replace(".", en ? "." : ",")} %`;
+  const Items = () => (<table className="items"><thead><tr><th>{tr("Désignation", "Description")}</th><th className="r">{tr("Qté", "Qty")}</th><th className="r">{tr("P.U.", "Unit")}</th>{multi && <th className="r">{tr("TVA", "VAT")}</th>}<th className="r">{tr("Montant", "Amount")}</th></tr></thead>
+    <tbody>{items.map((i, n) => <tr key={n}><td>{i.label}{i.desc && <div className="fine">{i.desc}</div>}</td><td className="r nm">{i.qty}</td><td className="r nm">{money(i.price)}</td>{multi && <td className="r nm">{pc(lineRate(doc, i))}</td>}<td className="r nm">{money((+i.qty || 0) * (+i.price || 0))}</td></tr>)}
+      {!items.length && <tr><td colSpan={5} style={{ color: "#aaa" }}>{tr("Ajoutez une ligne…", "Add a line…")}</td></tr>}</tbody></table>);
   const vatName = ct.r === "ca" ? tr("TPS/TVH", "GST/HST") : ct.r === "us" ? tr("Taxe", "Sales tax") : tr("TVA", "VAT");
-  const Totals = () => (<div className={`tot ${tp === "registre" ? "box" : ""}`} style={{ marginTop: 18 }}>
-    <div><span>{tr("Sous-total HT", "Subtotal")}</span><span className="nm">{money(t.sub)}</span></div>
+  const Totals = () => (<div className={`tot ${tp === "registre" ? "box" : ""}`}>
+    {(t.tax > 0 || t.disc > 0) && <div><span>{tr("Sous-total HT", "Subtotal")}</span><span className="nm">{money(t.sub)}</span></div>}
     {t.disc > 0 && <div><span>{tr("Remise", "Discount")}</span><span className="nm">− {money(t.disc)}</span></div>}
-    {+doc.tax_rate > 0 && <div><span>{`${vatName} ${String(doc.tax_rate).replace(".", en ? "." : ",")} %`}</span><span className="nm">{money(t.tax)}</span></div>}
-    <div className="grand"><span>{tr("Total", "Total")}{+doc.tax_rate ? tr(" TTC", "") : ""}</span><span className="nm">{money(t.total)}</span></div></div>);
-  const legal = legalLines(profile, doc, lang);
-  const Bottom = () => (<>
-    {B.words && <p className="words">{wordsLine(doc, t.total, lang)}</p>}
-    {doc.kind !== "receipt" && B.pay && pays.length > 0 && <div className={`pay ${tp === "registre" ? "box" : ""}`}><div className="lbl">{tr("Modes de paiement", "How to pay")}</div>
+    {t.taxes.map((x) => <div key={x.rate}><span>{`${vatName} ${pc(x.rate)}`}</span><span className="nm">{money(x.amount)}</span></div>)}
+    <div className="grand"><span>{K === "receipt" ? tr("Total reçu", "Total received") : tr("Total", "Total")}{t.tax > 0 ? tr(" TTC", "") : ""}</span><span className="nm">{money(t.total)}</span></div>
+    {partial && <><div><span>{tr("Déjà réglé", "Paid to date")}</span><span className="nm">− {money(paid)}</span></div><div className="rest"><span>{tr("Reste à payer", "Balance due")}</span><span className="nm">{money(rest)}</span></div></>}</div>);
+  const legal = B.legal ? legalLines(profile, doc, lang) : [];
+  const S = {
+    parties: () => tp === "net" ? null : null,
+    items: () => <Items key="items" />,
+    totals: () => <Totals key="totals" />,
+    words: () => B.words ? <p key="words" className="words">{wordsLine(doc, t.total, lang)}</p> : null,
+    pay: () => K === "invoice" && !isPaid && B.pay && O.pay && pays.length > 0 ? <div key="pay" className={`pay ${tp === "registre" ? "box" : ""}`}><div className="lbl">{tr("Modes de paiement", "Payment details")}</div>
       {pays.map((m, i) => <div key={i} style={{ marginTop: 3, wordBreak: "break-word" }}>{m.type === "momo" ? <>{m.op} · <b>{m.number}</b>{m.name ? ` — ${m.name}` : ""}</> : m.type === "bank" ? <>{tr("Virement", "Bank transfer")} · <b>{payLines(m, lang)}</b></> : <>{m.provider} · <b>{m.url.replace(/^https?:\/\//, "")}</b></>}</div>)}
-      <div className="fine" style={{ marginTop: 6 }}>{tr("Référence à indiquer", "Payment reference")} : {doc.number}{doc.public_token ? ` · ${tr("Payer en ligne", "Pay online")} : ${typeof window !== "undefined" ? location.host : ""}/f/${doc.public_token}` : ""}</div></div>}
-    {B.notes && doc.notes && <p style={{ whiteSpace: "pre-wrap", marginTop: 16 }}>{doc.notes}</p>}
-    {B.signature && <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 30 }}><div style={{ width: 200, borderTop: "1px solid #191714", paddingTop: 6, textAlign: "center" }} className="fine">{tr("Signature et cachet", "Signature")}</div></div>}
-    {legal.length > 0 && <div className="fine" style={{ marginTop: 18 }}>{legal.map((l, i) => <div key={i}>{l}</div>)}</div>}
-    <div className="fine" style={{ marginTop: 18, display: "flex", justifyContent: "space-between", gap: 10 }}><span>{profile.footer || ""}</span>{profile.plan !== "pro" && <span>{tr("Fait avec Bonova", "Made with Bonova")}</span>}</div>
-  </>);
-  const stamp = doc.status === "paid" && doc.kind === "invoice" ? <div className="stamp">{tr("PAYÉE", "PAID")}</div> : doc.kind === "receipt" ? <div className="stamp">{tr("REÇU", "RECEIVED")}</div> : doc.status === "accepted" ? <div className="stamp">{tr("ACCEPTÉ", "ACCEPTED")}</div> : null;
+      {(B.ref && O.ref) && <div className="fine" style={{ marginTop: 6 }}>{tr("Référence à indiquer", "Payment reference")} : {doc.number}{O.link !== false && doc.public_token ? ` · ${tr("Payer en ligne", "Pay online")} : ${typeof window !== "undefined" ? location.host : ""}/f/${doc.public_token}` : ""}</div>}</div> : null,
+    notes: () => { const dep = K === "quote" && +O.deposit > 0 ? tr(`Acompte de ${O.deposit} % à la commande, soit ${money(t.total * O.deposit / 100)}.`, `Deposit of ${O.deposit}% on acceptance: ${money(t.total * O.deposit / 100)}.`) : "";
+      return (B.notes && doc.notes) || dep ? <div key="notes" className="notes"><div className="lbl">{K === "quote" ? tr("Conditions", "Terms") : tr("Notes", "Notes")}</div>{dep && <p style={{ margin: "0 0 4px", fontWeight: 600 }}>{dep}</p>}{B.notes && doc.notes && <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{doc.notes}</p>}</div> : null; },
+    signature: () => K === "quote" ? <div key="sig" className="sigs"><div><div className="lbl">{tr("Bon pour accord", "Accepted by the client")}</div><div className="fine">{tr("Date, nom et signature du client", "Date, name and signature")}</div><div className="sigline" /></div>{B.signature && <div><div className="lbl">{tr("Pour l'émetteur", "For the issuer")}</div><div className="fine">&nbsp;</div><div className="sigline" /></div>}</div>
+      : K === "receipt" ? <div key="sig" className="sigs one"><div><div className="lbl">{tr("Pour acquit", "Received by")}</div><div className="fine">{profile.business_name || ""}</div><div className="sigline" /></div></div>
+      : B.signature ? <div key="sig" className="sigs one"><div><div className="lbl">{tr("Signature et cachet", "Signature")}</div><div className="fine">&nbsp;</div><div className="sigline" /></div></div> : null,
+    legal: () => legal.length > 0 ? <div key="legal" className="fine legal">{legal.map((l, i) => <div key={i}>{l}</div>)}</div> : null,
+  };
+  const body = (parties) => B.order.map((k) => k === "parties" ? (parties ? <div key="parties">{parties}</div> : null) : S[k]());
+  const foot = <div className="fine pfoot"><span>{profile.footer || ""}</span>{profile.plan !== "pro" && <span>{tr("Fait avec Bonova", "Made with Bonova")}</span>}</div>;
+  const stamp = isPaid ? <div className="stamp">{tr("PAYÉE", "PAID")}</div> : K === "receipt" ? <div className="stamp">{tr("PAYÉ", "PAID")}</div> : K === "quote" && doc.status === "accepted" ? <div className="stamp">{tr("ACCEPTÉ", "ACCEPTED")}</div> : K === "quote" && doc.status === "declined" ? <div className="stamp no">{tr("REFUSÉ", "DECLINED")}</div> : doc.status === "cancelled" ? <div className="stamp no">{tr("ANNULÉE", "CANCELLED")}</div> : partial ? <div className="stamp part">{tr("ACOMPTE REÇU", "PART PAID")}</div> : null;
+  const cls = `paper k-${K} t-${tp} lp-${B.logo_pos || "left"}`;
   if (tp === "net") {
-    const due = doc.kind === "receipt" ? tr("Montant reçu", "Amount received") : doc.kind === "quote" ? tr("Montant du devis", "Quote total") : doc.status === "paid" ? tr("Montant réglé", "Amount paid") : tr("Montant dû", "Amount due");
+    const due = K === "receipt" ? tr("Montant reçu", "Amount received") : K === "quote" ? tr("Montant du devis", "Quote total") : isPaid ? tr("Montant réglé", "Amount paid") : partial ? tr("Reste à payer", "Balance due") : tr("Montant dû", "Amount due");
     const lstyle = lh ? { ...style, backgroundImage: `url(${profile.letterhead})` } : style;
-    return (<div className={`paper t-net ${lh ? "lh" : ""}`} style={lstyle}>{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>
-      {!lh && <div className="n-top"><div className="n-id">{B.logo && profile.logo && <img src={profile.logo} alt="" className="logo-img" />}<div className="n-bn">{profile.business_name || tr("Votre entreprise", "Your business")}</div></div>
+    const hasFrom = lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm;
+    return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>
+      {!lh && <div className="n-top"><div className="n-id">{logo}<div className="n-bn">{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div></div>
         <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
       {lh && <div className="n-kind lhk"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div>}
-      <div className="n-grid">
-        <div>{(lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm) && <div className="lbl">{tr("Émetteur", "From")}</div>}{lh ? <><div style={{ fontWeight: 700 }}>{profile.business_name}</div><From bare /></> : <From bare />}</div>
-        <To />
-        <div><div className="lbl">{tr("Date d'émission", "Issue date")}</div><div>{d8(doc.issue_date)}</div>{doc.due_date && doc.kind !== "receipt" && <><div className="lbl" style={{ marginTop: 10 }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due date")}</div><div>{d8(doc.due_date)}</div></>}</div>
-      </div>
-      <div className="n-due"><span>{due}{doc.due_date && doc.kind === "invoice" && doc.status !== "paid" && <em>{tr("à régler avant le", "due by")} {d8(doc.due_date)}</em>}</span><b className="nm">{money(t.total)}</b></div>
-      <Items /><Totals /><Bottom /></div></div>);
+      {body(<><div className="n-grid">
+        <div>{hasFrom && <div className="lbl">{tr("Émetteur", "From")}</div>}{lh && <div style={{ fontWeight: 700 }}>{profile.business_name}</div>}<From bare /></div>
+        <To /><Dates /></div>
+      <div className="n-due"><span>{due}{K === "invoice" && doc.due_date && !isPaid && <em>{tr("à régler avant le", "due by")} {d8(doc.due_date)}</em>}{K === "quote" && doc.due_date && <em>{tr("offre valable jusqu'au", "valid until")} {d8(doc.due_date)}</em>}{K === "receipt" && O.method && <em>{tr("par", "by")} {O.method}</em>}</span><b className="nm">{money(partial ? rest : t.total)}</b></div></>)}
+      {foot}</div></div>);
   }
-  if (tp === "marche") return (<div className="paper t-marche" style={style}>{stamp}
-    <div className="band"><div><div className="title">{kn}</div><div style={{ marginTop: 14 }}><From light /></div></div><Meta light /></div>
-    <div className="pad" style={{ paddingTop: 28 }}><To /><Items /><Totals /><Bottom /></div></div>);
-  if (tp === "registre") return (<div className="paper t-registre" style={style}>{stamp}<div className="pad">
-    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1.5px solid #191714", paddingBottom: 10, marginBottom: 18, gap: 10 }}><span className="title">{kn} — {doc.number}</span><span>{d8(doc.issue_date)}</span></div>
-    <div className="pg2"><div className="box"><div className="lbl">{tr("Émetteur", "From")}</div><From /></div><div className="box"><To />{doc.due_date && doc.kind !== "receipt" && <div className="fine" style={{ marginTop: 6 }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due")} : {d8(doc.due_date)}</div>}</div></div>
-    <Items /><Totals /><Bottom /></div></div>);
-  if (tp === "sahel") return (<div className="paper t-sahel" style={style}>{stamp}<div className="pad">
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20 }}><div className="title">{kn.toLowerCase()}.</div><Meta /></div>
-    <div className="pg2" style={{ marginTop: 34 }}><div><div className="lbl">{tr("De", "From")}</div><From /></div><To /></div>
-    <Items /><Totals /><Bottom /></div></div>);
-  return (<div className="paper t-atelier" style={style}>{stamp}<div className="pad">
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 24, flexDirection: B.align === "right" ? "row-reverse" : "row" }}><From /><div className="r"><div className="title">{kn}</div></div></div>
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginTop: 30, paddingTop: 18, borderTop: "1px solid #e6e3dc" }}><To /><Meta /></div>
-    <Items /><Totals /><Bottom /></div></div>);
+  if (tp === "marche") return (<div className={cls} style={style}>{stamp}
+    <div className="band"><div>{logo && <div className="band-logo">{logo}</div>}<div className="title">{kn}</div><div className="nm" style={{ marginTop: 6, opacity: .8 }}>{doc.number}</div><div style={{ marginTop: 14 }}><From light /></div></div><div style={{ textAlign: "right" }}><Dates light /></div></div>
+    <div className="pad" style={{ paddingTop: 28 }}>{body(<To />)}{foot}</div></div>);
+  if (tp === "registre") return (<div className={cls} style={style}>{stamp}<div className="pad">
+    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1.5px solid #191714", paddingBottom: 10, marginBottom: 18, gap: 10, alignItems: "center" }}>{logo}<span className="title">{kn} — {doc.number}</span><span>{d8(doc.issue_date)}</span></div>
+    {body(<div className="pg2"><div className="box"><div className="lbl">{tr("Émetteur", "From")}</div><From bare /><div style={{ fontWeight: 700 }}>{profile.business_name}</div></div><div className="box"><To /><div style={{ marginTop: 8 }}><Dates /></div></div></div>)}{foot}</div></div>);
+  if (tp === "sahel") return (<div className={cls} style={style}>{stamp}<div className="pad">
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20 }}><div><div className="title">{kn.toLowerCase()}.</div><div className="nm" style={{ marginTop: 8 }}>{doc.number}</div></div><Dates /></div>
+    {body(<div className="pg2" style={{ marginTop: 34 }}><div><div className="lbl">{tr("De", "From")}</div><From /></div><To /></div>)}{foot}</div></div>);
+  return (<div className={cls} style={style}>{stamp}<div className="pad">
+    <div className="at-top"><From /><div className="r"><div className="title">{kn}</div><div className="nm" style={{ marginTop: 4 }}>{doc.number}</div></div></div>
+    {body(<div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginTop: 30, paddingTop: 18, borderTop: "1px solid #e6e3dc" }}><To /><div className="r"><Dates /></div></div>)}{foot}</div></div>);
 }

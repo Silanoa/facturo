@@ -10,3 +10,4 @@ export const IOut = I(<><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></>);
 export const ICopy = I(<><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></>);
 export const IDown = I(<><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></>);
 export const IBell = I(<><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 004 0"/></>);
+export const IShield = I(<><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></>);
