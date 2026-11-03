@@ -21,16 +21,16 @@ export default function AppLayout({ children }) {
     const pro = prof?.plan === "pro" && (!prof.pro_until || new Date(prof.pro_until) > new Date());
     bindUser(data.session.user.id);
     // Le profil fait foi : langue, pays, devise et TVA viennent du compte, jamais du navigateur d'un autre compte.
-    if (prof?.lang && prof.lang !== lang) setLang(prof.lang);
+    if (prof?.lang && !localStorage.getItem("lang")) setLang(prof.lang);
     // Géolocalisation seulement pour un profil sans pays (nouveau compte) ; un pays déjà choisi n'est jamais écrasé.
     if (prof && !prof.country) detectCountry().then(async (cc) => { const c = countryOf(cc || (prof.lang === "en" ? "US" : "SN")); const upd = { country: c.code, currency: prof.currency || c.cur, settings: { ...(prof.settings || {}), cc_ok: 1 } };
       await supabase.from("profiles").update(upd).eq("id", prof.id).is("country", null); setS((x) => x && ({ ...x, profile: { ...x.profile, ...upd } })); });
     setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: pushToast });
   }
-  const tid = useRef(0); const prevLang = useRef(null);
+  const tid = useRef(0);
   function pushToast(m, type, href) { if (!m) return; const t = type || (/erreur|error|échec|failed|invalid|impossible/i.test(String(m)) ? "err" : "ok"); const id = ++tid.current; setToast({ m: String(m), t, href, id }); setTimeout(() => setToast((x) => (x && x.id === id ? null : x)), t === "err" ? 6000 : href ? 7000 : 3000); }
   // Langue : suivie dans le profil pour la retrouver sur tout appareil.
-  useEffect(() => { const pv = prevLang.current; prevLang.current = lang; if (s && s.profile.id && pv && pv === s.profile.lang && s.profile.lang !== lang) { supabase.from("profiles").update({ lang }).eq("id", s.profile.id).then(() => {}); setS((x) => x && ({ ...x, profile: { ...x.profile, lang } })); } }, [lang, s?.profile?.id]);
+  useEffect(() => { if (s && s.profile.id && s.profile.lang !== lang) { supabase.from("profiles").update({ lang }).eq("id", s.profile.id).then(() => {}); setS((x) => x && ({ ...x, profile: { ...x.profile, lang } })); } }, [lang, s?.profile?.id]);
   // Alertes en direct, sur toutes les pages : ouverture, acceptation/refus de devis, paiement signalé.
   const known = useRef(null);
   useEffect(() => { if (!s?.user?.id) return; let ch; (async () => {

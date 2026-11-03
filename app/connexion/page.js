@@ -5,14 +5,16 @@ import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { Logo } from "../../components/Brand";
-import { useT } from "../../lib/i18n";
+import { useT, setGlobalLang } from "../../lib/i18n";
 import { SUPPORT, waSupport, mailSupport } from "../../lib/site";
 async function afterLogin(r, next) {
   // Le brouillon d'essai (anonyme, < 12 h) n'est repris que par un compte encore vierge. Sinon on l'efface : rien ne passe d'un compte à l'autre.
   let draft = null, prof = null; const fresh = (k) => Date.now() - (+localStorage.getItem(k) || 0) < 12 * 3600e3;
   try { draft = fresh("bnv_draft_at") ? JSON.parse(localStorage.getItem("bnv_draft") || "null") : null; prof = fresh("bnv_profile_at") ? JSON.parse(localStorage.getItem("bnv_profile") || "null") : null; } catch {}
-  const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name, country").eq("id", u.user.id).single();
+  const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name, country, lang").eq("id", u.user.id).single();
   const blank = !cur?.business_name; bindUser(u.user.id);
+  // Compte existant : on reprend SA langue (pas celle du compte précédent sur ce navigateur).
+  if (!blank && cur?.lang) { setGlobalLang(cur.lang); }
   if (blank && prof && prof.business_name) { const { business_name, phone, address, ifu, rccm, momo, template, accent, country, doc_lang, logo } = prof; const lang = localStorage.getItem("lang") || "fr";
     const c = countryOf(country || cur?.country || "SN");
     await supabase.from("profiles").update({ business_name, phone, address, ifu, rccm, momo: (momo || []).filter(m => m.number || m.iban || m.url), country: c.code, currency: draft?.currency || prof.currency || c.cur, template, accent, doc_lang: doc_lang || lang, lang, ...(logo ? { logo } : {}) }).eq("id", u.user.id); }
