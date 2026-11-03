@@ -5,7 +5,7 @@ import { feda, PLANS } from "../../../lib/fedapay";
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ijwpcogwdfwtivwawuee.supabase.co";
 const SB_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_U4F62VbFS2LFsgs8n4ohEg_rtG1rSkm";
 export async function POST(req) {
-  if (limited(req, "checkout", 10)) return tooMany();
+  if (await limited(req, "checkout", 10)) return tooMany();
   if (!process.env.FEDAPAY_SECRET_KEY) return NextResponse.json({ error: "Le paiement en ligne sera activé très bientôt. En attendant, écrivez-nous sur WhatsApp pour passer Pro." }, { status: 503 });
   const token = (req.headers.get("authorization") || "").replace("Bearer ", "");
   const { data: { user } } = await createClient(SB_URL, SB_KEY).auth.getUser(token);

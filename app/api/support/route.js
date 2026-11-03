@@ -1,10 +1,8 @@
 import { KBX, kbSearch } from "../../../lib/kb";
 import { hasLLM, llm } from "../../../lib/llm";
-const hits = new Map();
-function limited(ip) { const now = Date.now(), w = (hits.get(ip) || []).filter((t) => now - t < 60000); w.push(now); hits.set(ip, w); if (hits.size > 5000) hits.clear(); return w.length > 20; }
+import { limited } from "../../../lib/ratelimit";
 export async function POST(req) {
-  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "x";
-  if (limited(ip)) return Response.json({ a: null, rl: 1 }, { status: 429 });
+  if (await limited(req, "support", 20)) return Response.json({ a: null, rl: 1 }, { status: 429 });
   let q = "", lang = "fr", path = "", hist = [];
   try { ({ q = "", lang = "fr", path = "", hist = [] } = await req.json()); } catch {}
   q = String(q).slice(0, 600); lang = lang === "en" ? "en" : "fr"; path = String(path).slice(0, 80);
