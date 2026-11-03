@@ -44,4 +44,4 @@ Le **montant en lettres** n'est pas exigé partout par la loi, mais il est d'usa
 
 > Ce guide est informatif. Les règles évoluent : vérifiez auprès de la direction des impôts de votre pays ou d'un expert-comptable.
 
-Kola ajoute automatiquement ces mentions : vous renseignez IFU et RCCM une fois, la numérotation et le montant en lettres sont faits pour vous. [Essayer sans compte](/essai).
+Bonova ajoute automatiquement ces mentions : vous renseignez IFU et RCCM une fois, la numérotation et le montant en lettres sont faits pour vous. [Essayer sans compte](/essai).

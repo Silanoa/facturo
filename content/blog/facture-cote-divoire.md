@@ -21,7 +21,7 @@ En Côte d'Ivoire, l'identifiant fiscal s'appelle le **numéro de compte contrib
 
 La Direction générale des impôts ivoirienne déploie la **FNE** : les factures des entreprises concernées sont certifiées par la plateforme de la DGI et portent un QR code de contrôle. Le dispositif s'étend progressivement à de nouvelles catégories de contribuables.
 
-> Si votre entreprise est soumise à la FNE, vos factures fiscales doivent passer par la plateforme de la DGI. Kola reste utile pour les devis, proformas, reçus et le suivi des impayés. Renseignez-vous auprès de la DGI.
+> Si votre entreprise est soumise à la FNE, vos factures fiscales doivent passer par la plateforme de la DGI. Bonova reste utile pour les devis, proformas, reçus et le suivi des impayés. Renseignez-vous auprès de la DGI.
 
 ## Paiement
 

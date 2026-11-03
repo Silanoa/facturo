@@ -23,4 +23,4 @@ C'est la pièce comptable. Elle a un numéro chronologique, les [mentions obliga
 
 Le reçu prouve le paiement. Indispensable quand on vous paie en espèces ou par Mobile Money : il protège votre client, et vous.
 
-Dans Kola, un devis accepté devient une facture en un clic, et une facture payée génère son reçu. [Voir comment](/essai).
+Dans Bonova, un devis accepté devient une facture en un clic, et une facture payée génère son reçu. [Voir comment](/essai).

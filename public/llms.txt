@@ -1,25 +1,22 @@
-# Kola
+# Bonova
 
-> Kola is a free invoicing web app for freelancers and small businesses in French-speaking West and Central Africa (Bénin, Sénégal, Côte d'Ivoire, Togo, Cameroun…) and the diaspora. It creates invoices, quotes and receipts with OHADA-style mentions (IFU/NINEA, RCCM, VAT, amount in words), shares them on WhatsApp with a payment link showing the seller's Mobile Money numbers (MTN MoMo, Moov, Wave, Orange Money), and tracks who still owes money. Free plan: 10 documents/month. Pro: 2,500 FCFA/month. Kola never holds the money; customers pay the seller directly.
+> Bonova is a free invoice, quote and receipt maker (French and English) for freelancers and small businesses in Africa and worldwide. Make an invoice and send it by WhatsApp, email or PDF in seconds, without creating an account. Unlimited free invoices, 0% fees: clients pay the seller directly by Mobile Money (MTN MoMo, Orange Money, Wave, M-Pesa, Moov, Airtel…), bank transfer/IBAN, PayPal, Wise, or a Stripe/Paystack/Flutterwave/Kkiapay/FedaPay link. All African currencies plus USD, EUR, GBP, CAD and more. Country-aware tax and legal lines (OHADA, France, EU reverse charge, UK, US, Canada). Pro: 2,500 FCFA or $4/month (no branding, automatic reminders), payable by Mobile Money, card or PayPal.
 
 ## Product
-- [Home (FR)](https://facturo-woad.vercel.app/): features and pricing
+- [Home (FR)](https://facturo-woad.vercel.app/)
 - [Home (EN)](https://facturo-woad.vercel.app/en)
-- [Create an invoice without an account](https://facturo-woad.vercel.app/essai)
+- [Free invoice generator, no sign-up (EN)](https://facturo-woad.vercel.app/en/invoice-generator)
+- [Générateur de facture gratuit (FR)](https://facturo-woad.vercel.app/essai)
 
-## Free tools
-- [Invoice generator](https://facturo-woad.vercel.app/outils/generateur-facture)
-- [VAT calculator (18 %, 19 %, 19.25 %)](https://facturo-woad.vercel.app/outils/calcul-tva)
-- [Amount in French words](https://facturo-woad.vercel.app/outils/montant-en-lettres)
+## Tools
+- [VAT calculator](https://facturo-woad.vercel.app/en/tools/vat-calculator)
+- [Amount in words](https://facturo-woad.vercel.app/en/tools/amount-in-words)
+- [Calcul TVA](https://facturo-woad.vercel.app/outils/calcul-tva)
+- [Montant en lettres](https://facturo-woad.vercel.app/outils/montant-en-lettres)
 
-## Guides (French)
-- [Mandatory invoice mentions in OHADA countries](https://facturo-woad.vercel.app/blog/mentions-obligatoires-facture-ohada)
-- [Invoice template for Bénin](https://facturo-woad.vercel.app/blog/modele-facture-benin)
-- [Invoicing as a freelancer in Sénégal](https://facturo-woad.vercel.app/blog/facture-auto-entrepreneur-senegal)
-- [VAT in WAEMU/UEMOA](https://facturo-woad.vercel.app/blog/tva-uemoa-18)
-- [Invoice in Côte d'Ivoire](https://facturo-woad.vercel.app/blog/facture-cote-divoire)
-- [Invoice in Cameroon, 19.25 % VAT](https://facturo-woad.vercel.app/blog/facture-cameroun-tva-19-25)
-- [Payment reminders on WhatsApp](https://facturo-woad.vercel.app/blog/relancer-client-impaye-whatsapp)
-- [Quote vs proforma vs invoice vs receipt](https://facturo-woad.vercel.app/blog/devis-facture-proforma)
-- [Getting paid by Mobile Money](https://facturo-woad.vercel.app/blog/facture-mobile-money)
-- [Invoice numbering](https://facturo-woad.vercel.app/blog/numerotation-facture)
+## Guides
+- [Guides (EN)](https://facturo-woad.vercel.app/en/blog)
+- [Guides (FR)](https://facturo-woad.vercel.app/blog)
+
+## Limits
+- Not a certified e-invoicing system (e.g. MECeF in Benin, FNE in Côte d'Ivoire, French e-invoicing platforms).

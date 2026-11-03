@@ -36,6 +36,6 @@ Le problème de la plupart des indépendants n'est pas de trouver des clients, c
 
 ## Prévenir plutôt que relancer
 
-Demandez un **acompte de 30 à 50 %** aux clients qui paient lentement. Kola calcule combien de jours chaque client met à payer : vous savez à qui le demander.
+Demandez un **acompte de 30 à 50 %** aux clients qui paient lentement. Bonova calcule combien de jours chaque client met à payer : vous savez à qui le demander.
 
-Dans Kola, les trois relances sont pré-écrites avec le montant, vos numéros et le lien de la facture : un appui pour les envoyer. [Essayer](/essai).
+Dans Bonova, les trois relances sont pré-écrites avec le montant, vos numéros et le lien de la facture : un appui pour les envoyer. [Essayer](/essai).

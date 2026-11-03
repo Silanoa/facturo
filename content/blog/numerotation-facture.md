@@ -25,4 +25,4 @@ Repartir à 0001 chaque 1ᵉʳ janvier est admis si l'année fait partie du num�
 
 Un brouillon n'est pas une facture. Il peut porter un numéro provisoire, mais seule la facture **émise** compte dans la série.
 
-Kola numérote automatiquement chaque type de document, par année, et refuse les doublons. [Essayer](/essai).
+Bonova numérote automatiquement chaque type de document, par année, et refuse les doublons. [Essayer](/essai).

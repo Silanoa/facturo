@@ -30,6 +30,6 @@ Le **NINEA** (Numéro d'identification national des entreprises et des associati
 
 ## Être payé plus vite
 
-À Dakar, Wave a changé les habitudes : vos clients sont prêts à payer tout de suite si vous leur donnez le numéro **au moment** où ils reçoivent la facture. C'est le principe du lien de paiement Kola : la facture, le montant et vos numéros dans un seul message WhatsApp. Pour les retardataires, voir [comment relancer un client sur WhatsApp](/blog/relancer-client-impaye-whatsapp).
+À Dakar, Wave a changé les habitudes : vos clients sont prêts à payer tout de suite si vous leur donnez le numéro **au moment** où ils reçoivent la facture. C'est le principe du lien de paiement Bonova : la facture, le montant et vos numéros dans un seul message WhatsApp. Pour les retardataires, voir [comment relancer un client sur WhatsApp](/blog/relancer-client-impaye-whatsapp).
 
 [Faire ma facture maintenant →](/essai)

@@ -1,3 +1,3 @@
 import { og, size as S } from "../lib/og.jsx";
-export const size = S; export const contentType = "image/png"; export const alt = "Kola — la facture qui se fait payer";
-export default function Image() { return og("La facture qui se fait payer.", "Afrique · diaspora"); }
+export const size = S; export const contentType = "image/png"; export const alt = "Bonova — une facture, envoyée en quelques secondes";
+export default function Image() { return og("Une facture. Envoyée. En quelques secondes.", "Afrique · Europe · Monde"); }

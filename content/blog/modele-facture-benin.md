@@ -24,7 +24,7 @@ Depuis la réforme engagée en 2020, la Direction générale des impôts (DGI) i
 
 Si vous êtes à la **TPS** (taxe professionnelle synthétique) et non assujetti à la TVA, vous émettez une facture classique, **sans TVA**, avec la mention « TVA non applicable ».
 
-> Kola n'est pas un MECeF. Si vous êtes assujetti à la TVA, utilisez Kola pour vos devis, proformas, reçus et le suivi des paiements, et émettez la facture normalisée via l'e-MECeF. Vérifiez toujours votre situation auprès de la DGI.
+> Bonova n'est pas un MECeF. Si vous êtes assujetti à la TVA, utilisez Bonova pour vos devis, proformas, reçus et le suivi des paiements, et émettez la facture normalisée via l'e-MECeF. Vérifiez toujours votre situation auprès de la DGI.
 
 ## Exemple chiffré
 

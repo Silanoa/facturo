@@ -23,6 +23,6 @@ L'arnaque la plus courante : un faux SMS « Vous avez reçu 150 000 F », suivi 
 
 Une fois le paiement vérifié, envoyez un reçu. C'est un signe de sérieux qui fait revenir les clients.
 
-## Comment Kola aide
+## Comment Bonova aide
 
-Le lien de la facture affiche vos numéros avec un bouton « Copier ». Le client paie, appuie sur « J'ai payé » et peut indiquer l'ID de la transaction. Vous recevez l'information, **vérifiez dans votre application MoMo**, puis confirmez. Kola ne touche jamais l'argent : il va directement de votre client à vous.
+Le lien de la facture affiche vos numéros avec un bouton « Copier ». Le client paie, appuie sur « J'ai payé » et peut indiquer l'ID de la transaction. Vous recevez l'information, **vérifiez dans votre application MoMo**, puis confirmez. Bonova ne touche jamais l'argent : il va directement de votre client à vous.

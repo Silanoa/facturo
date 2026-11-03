@@ -3,75 +3,76 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { useSession } from "../../../lib/session";
-import { CURRENCIES, OPERATORS } from "../../../lib/money";
+import { useT } from "../../../lib/i18n";
+import { CURRENCIES, curLabel } from "../../../lib/money";
+import { COUNTRIES, country } from "../../../lib/countries";
 import { TEMPLATES, ACCENTS, FONTS, DEFAULT_BLOCKS } from "../../../lib/templates";
-import { SAMPLE } from "../../../lib/sample";
 import DocPaper from "../../../components/DocPaper";
+import PayFields from "../../../components/PayFields";
 import { TplMini } from "../../../components/Editor";
-const BLOCKS = [["logo", "Logo"], ["words", "Montant en lettres"], ["pay", "Bloc Mobile Money"], ["notes", "Notes"], ["signature", "Signature et cachet"]];
+const SAMPLE = { kind: "invoice", number: "FAC-2026-0042", status: "sent", currency: "XOF", tax_rate: 18, discount: 0, issue_date: "2026-11-02", due_date: "2026-11-17", client: { name: "Hôtel Les Cocotiers", address: "Haie Vive, Cotonou" }, items: [{ label: "Identité visuelle", qty: 1, price: 350000 }, { label: "Déclinaisons réseaux sociaux", qty: 6, price: 15000 }] };
 function shrink(file) { return new Promise((res, rej) => { const img = new Image(); const r = new FileReader(); r.onload = () => { img.onload = () => { const s = Math.min(1, 360 / Math.max(img.width, img.height)); const c = document.createElement("canvas"); c.width = img.width * s; c.height = img.height * s; c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL(file.type === "image/png" || file.type === "image/svg+xml" ? "image/png" : "image/jpeg", .85)); }; img.onerror = rej; img.src = r.result; }; r.readAsDataURL(file); }); }
+const LS = { month: process.env.NEXT_PUBLIC_LEMON_MONTH, year: process.env.NEXT_PUBLIC_LEMON_YEAR };
 function Settings() {
-  const s = useSession(); const sp = useSearchParams(); const [tab, setTab] = useState(sp.get("t") || "profil");
-  const [p, setP] = useState({ ...s.profile, blocks: { ...DEFAULT_BLOCKS, ...(s.profile.blocks || {}) }, momo: s.profile.momo?.length ? s.profile.momo : [{ op: "MTN MoMo", number: "", name: "" }] });
+  const s = useSession(); const sp = useSearchParams(); const { tr, lang, setLang } = useT(); const [tab, setTab] = useState(sp.get("t") || "profil");
+  const [p, setP] = useState({ ...s.profile, blocks: { ...DEFAULT_BLOCKS, ...(s.profile.blocks || {}) }, momo: s.profile.momo || [] });
   const [busy, setBusy] = useState(false); const [pay, setPay] = useState(null);
   const set = (k, v) => setP((x) => ({ ...x, [k]: v })); const setB = (k, v) => setP((x) => ({ ...x, blocks: { ...x.blocks, [k]: v } }));
-  const pro = s.profile.plan === "pro";
+  const pro = s.profile.plan === "pro"; const ct = country(p.country || "BJ");
   async function save() { setBusy(true);
-    const { business_name, ifu, rccm, address, phone, email, currency, momo, accent, template, logo, font, blocks, footer } = p;
-    const { error } = await supabase.from("profiles").update({ business_name, ifu, rccm, address, phone, email, currency, momo: momo.filter(m => m.number), accent, template, logo, font, blocks, footer }).eq("id", s.user.id);
-    setBusy(false); s.toast(error ? error.message : "Enregistré"); if (!error) s.reload(); }
-  async function upgrade(plan) { setPay("Redirection vers FedaPay…"); const { data } = await supabase.auth.getSession();
+    const { business_name, ifu, rccm, address, phone, email, currency, momo, accent, template, logo, font, blocks, footer, country: cc, doc_lang } = p;
+    const { error } = await supabase.from("profiles").update({ business_name, ifu, rccm, address, phone, email, currency, momo: (momo || []).filter(m => m.number || m.iban || m.url), accent, template, logo, font, blocks, footer, country: cc, doc_lang, lang }).eq("id", s.user.id);
+    setBusy(false); s.toast(error ? error.message : tr("Enregistré", "Saved")); if (!error) s.reload(); }
+  async function feda(plan) { setPay(tr("Redirection vers FedaPay…", "Redirecting to FedaPay…")); const { data } = await supabase.auth.getSession();
     const r = await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ plan }) });
-    const j = await r.json(); if (j.url) location.href = j.url; else setPay(j.error || "Paiement indisponible pour le moment."); }
+    const j = await r.json(); if (j.url) location.href = j.url; else setPay(j.error || tr("Paiement indisponible pour le moment.", "Payment unavailable right now.")); }
+  const card = (plan) => { if (!LS[plan]) return setPay(tr("Le paiement par carte / PayPal arrive très bientôt. Utilisez Mobile Money en attendant.", "Card / PayPal checkout is coming very soon. Use Mobile Money meanwhile.")); location.href = `${LS[plan]}?checkout[email]=${encodeURIComponent(s.user.email)}&checkout[custom][user_id]=${s.user.id}`; };
   const preview = { ...p, plan: s.profile.plan };
   return (<div className="in">
-    <div className="ph"><h1>Réglages</h1><button className="b k" onClick={save} disabled={busy}>{busy ? "…" : "Enregistrer"}</button></div>
-    {sp.get("paid") === "1" && <div className="note ok" style={{ marginBottom: 16 }}><b>Paiement confirmé.</b> Bienvenue dans Kola Pro.</div>}
-    {sp.get("paid") === "0" && <div className="note bad" style={{ marginBottom: 16 }}>Le paiement n'a pas abouti. Rien n'a été débité.</div>}
-    <div className="seg" style={{ marginBottom: 20 }}>{[["profil", "Entreprise"], ["modele", "Modèle de facture"], ["offre", "Offre"]].map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
-    {tab === "profil" && <div style={{ maxWidth: 720 }}>
-      <div className="blk"><h3>Votre activité</h3>
-        <div className="g2"><label className="f"><span>Nom commercial</span><input value={p.business_name || ""} onChange={(e) => set("business_name", e.target.value)} placeholder="Atelier Sèmè Design" /></label>
-          <label className="f"><span>Téléphone</span><input type="tel" value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} /></label>
-          <label className="f"><span>IFU / NINEA / NIU</span><input value={p.ifu || ""} onChange={(e) => set("ifu", e.target.value)} /></label>
-          <label className="f"><span>RCCM</span><input value={p.rccm || ""} onChange={(e) => set("rccm", e.target.value)} placeholder="RB/COT/24 A 12345" /></label>
+    <div className="ph"><div><p className="u">{tr("Réglages", "Settings")}</p><h1>{tr("Mon activité", "My business")}</h1></div><button className="b k" onClick={save} disabled={busy}>{busy ? "…" : tr("Enregistrer", "Save")}</button></div>
+    {sp.get("paid") === "1" && <div className="note ok" style={{ marginBottom: 16 }}><b>{tr("Paiement confirmé.", "Payment confirmed.")}</b> {tr("Bienvenue dans Bonova Pro.", "Welcome to Bonova Pro.")}</div>}
+    {sp.get("paid") === "0" && <div className="note bad" style={{ marginBottom: 16 }}>{tr("Le paiement n'a pas abouti. Rien n'a été débité.", "Payment did not go through. Nothing was charged.")}</div>}
+    <div className="seg" style={{ marginBottom: 20, maxWidth: "100%", overflowX: "auto" }}>{[["profil", tr("Activité", "Business")], ["modele", tr("Modèle", "Template")], ["offre", "Pro"]].map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
+    {tab === "profil" && <div style={{ maxWidth: 760 }}>
+      <div className="blk"><h3>{tr("Votre activité", "Your business")}</h3>
+        <div className="g2"><label className="f"><span>{tr("Nom commercial", "Business name")}</span><input value={p.business_name || ""} onChange={(e) => set("business_name", e.target.value)} placeholder="Studio Awa" /></label>
+          <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "BJ"} onChange={(e) => { const c = country(e.target.value); setP((x) => ({ ...x, country: c.code, currency: c.cur })); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
+          <label className="f"><span>{ct.tax || tr("N° fiscal", "Tax ID")}</span><input value={p.ifu || ""} onChange={(e) => set("ifu", e.target.value)} /></label>
+          <label className="f"><span>{ct.reg || tr("N° d'immatriculation", "Registration no.")}</span><input value={p.rccm || ""} onChange={(e) => set("rccm", e.target.value)} /></label>
+          <label className="f"><span>{tr("Téléphone", "Phone")}</span><input type="tel" value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} /></label>
           <label className="f"><span>Email</span><input type="email" value={p.email || ""} onChange={(e) => set("email", e.target.value)} /></label>
-          <label className="f"><span>Devise par défaut</span><select value={p.currency || "XOF"} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}</select></label></div>
-        <label className="f" style={{ marginBottom: 0 }}><span>Adresse</span><input value={p.address || ""} onChange={(e) => set("address", e.target.value)} placeholder="Quartier, ville, pays" /></label></div>
-      <div className="blk"><h3>Comment vos clients vous paient</h3>
-        {p.momo.map((m, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.2fr 36px", gap: 8, marginBottom: 8 }} className="momo">
-          <select value={m.op} onChange={(e) => set("momo", p.momo.map((x, n) => n === i ? { ...x, op: e.target.value } : x))}>{OPERATORS.map(o => <option key={o}>{o}</option>)}<option>Virement bancaire</option></select>
-          <input placeholder="Numéro ou IBAN" value={m.number} onChange={(e) => set("momo", p.momo.map((x, n) => n === i ? { ...x, number: e.target.value } : x))} />
-          <input placeholder="Titulaire" value={m.name || ""} onChange={(e) => set("momo", p.momo.map((x, n) => n === i ? { ...x, name: e.target.value } : x))} />
-          <button type="button" className="x" aria-label="Retirer" onClick={() => set("momo", p.momo.filter((_, n) => n !== i))}>×</button></div>)}
-        <button type="button" className="b s o" onClick={() => set("momo", [...p.momo, { op: "Wave", number: "", name: "" }])}>+ Moyen de paiement</button></div>
-      <style>{`@media(max-width:700px){.momo{grid-template-columns:1fr 1fr 36px!important}.momo input:last-of-type{grid-column:1/3}}`}</style></div>}
+          <label className="f"><span>{tr("Devise par défaut", "Default currency")}</span><select value={p.currency || "XOF"} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(c => <option key={c.code} value={c.code}>{curLabel(c.code, lang)}</option>)}</select></label>
+          <label className="f"><span>{tr("Langue des documents", "Document language")}</span><select value={p.doc_lang || "fr"} onChange={(e) => set("doc_lang", e.target.value)}><option value="fr">Français</option><option value="en">English</option></select></label>
+          <label className="f"><span>{tr("Langue de l'application", "App language")}</span><select value={lang} onChange={(e) => setLang(e.target.value)}><option value="fr">Français</option><option value="en">English</option></select></label></div>
+        <label className="f" style={{ marginBottom: 0 }}><span>{tr("Adresse", "Address")}</span><input value={p.address || ""} onChange={(e) => set("address", e.target.value)} /></label></div>
+      <div className="blk"><h3>{tr("Comment vos clients vous paient", "How clients pay you")}</h3><PayFields value={p.momo} onChange={(v) => set("momo", v)} />
+        <p className="mute" style={{ fontSize: 13.5, margin: "12px 0 0" }}>{tr("L'argent va directement chez vous. Bonova ne prend aucune commission.", "Money goes straight to you. Bonova takes no cut.")}</p></div></div>}
     {tab === "modele" && <div className="ed">
       <div>
-        <div className="blk"><h3>Modèle</h3><div className="tpls">{TEMPLATES.map(x => <button type="button" key={x.id} className={(p.template || "atelier") === x.id ? "on" : ""} onClick={() => set("template", x.id)}><TplMini id={x.id} accent={p.accent} /><b style={{ display: "block" }}>{x.name}</b><span className="mute" style={{ fontSize: 12 }}>{x.hint}</span></button>)}</div></div>
+        <div className="blk"><h3>{tr("Modèle", "Template")}</h3><div className="tpls">{TEMPLATES.map(x => <button type="button" key={x.id} className={(p.template || "atelier") === x.id ? "on" : ""} onClick={() => set("template", x.id)}><TplMini id={x.id} accent={p.accent} /><b style={{ display: "block" }}>{lang === "en" ? x.en : x.name}</b></button>)}</div></div>
         <div className="blk"><h3>Logo</h3><div className="row" style={{ flexWrap: "wrap" }}>
-          {p.logo ? <img src={p.logo} alt="Logo" style={{ maxHeight: 56, maxWidth: 160, background: "#fff", padding: 6, borderRadius: 8, border: "1px solid var(--line)" }} /> : <span className="mute" style={{ fontSize: 14 }}>Aucun logo</span>}
-          <label className="b s o" style={{ cursor: "pointer" }}>Choisir une image<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) { try { set("logo", await shrink(fl)); } catch { s.toast("Image illisible"); } } }} /></label>
-          {p.logo && <button className="lnk" onClick={() => set("logo", null)}>Retirer</button>}</div></div>
-        <div className="blk"><h3>Couleur</h3><div className="row" style={{ flexWrap: "wrap", gap: 10 }}>{ACCENTS.map(a => <button key={a} className={`swatch ${p.accent === a ? "on" : ""}`} style={{ background: a }} onClick={() => set("accent", a)} aria-label={a} />)}
-          <label className="swatch" style={{ display: "grid", placeItems: "center", background: "conic-gradient(red,yellow,lime,cyan,blue,magenta,red)", position: "relative", overflow: "hidden" }} title="Couleur personnalisée"><input type="color" value={p.accent || "#141210"} onChange={(e) => set("accent", e.target.value)} style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer" }} /></label></div></div>
-        <div className="blk"><h3>Typographie</h3><div className="kinds">{Object.entries(FONTS).map(([k, v]) => <button key={k} className={(p.font || "grotesk") === k ? "on" : ""} onClick={() => set("font", k)} style={{ fontFamily: v.display }}>{v.name}</button>)}</div></div>
-        <div className="blk"><h3>Blocs affichés</h3>
-          {BLOCKS.map(([k, l]) => <label key={k} className="row" style={{ padding: "7px 0", cursor: "pointer" }}><input type="checkbox" checked={!!p.blocks[k]} onChange={(e) => setB(k, e.target.checked)} />{l}</label>)}
-          {(p.template || "atelier") === "atelier" && <div className="row" style={{ marginTop: 8 }}><span style={{ fontSize: 14 }}>En-tête</span><div className="seg"><button className={p.blocks.align !== "right" ? "on" : ""} onClick={() => setB("align", "left")}>Logo à gauche</button><button className={p.blocks.align === "right" ? "on" : ""} onClick={() => setB("align", "right")}>à droite</button></div></div>}</div>
-        <div className="blk"><h3>Pied de page {!pro && <span className="pill">Pro</span>}</h3><input value={p.footer || ""} disabled={!pro} onChange={(e) => set("footer", e.target.value)} placeholder={pro ? "Ex. : Pénalités de retard : 1 % par mois. Merci de votre confiance." : "Disponible avec Kola Pro"} />
-          {!pro && <p className="mute" style={{ fontSize: 13.5, margin: "8px 0 0" }}>En Pro, la mention « Créé avec Kola » disparaît.</p>}</div>
+          {p.logo ? <img src={p.logo} alt="Logo" style={{ maxHeight: 56, maxWidth: 160, background: "#fff", padding: 6, border: "1px solid var(--line)" }} /> : <span className="mute" style={{ fontSize: 14 }}>{tr("Aucun logo", "No logo")}</span>}
+          <label className="b s o" style={{ cursor: "pointer" }}>{tr("Choisir une image", "Choose an image")}<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) { try { set("logo", await shrink(fl)); } catch { s.toast("Image ?"); } } }} /></label>
+          {p.logo && <button className="lnk" onClick={() => set("logo", null)}>{tr("Retirer", "Remove")}</button>}</div></div>
+        <div className="blk"><h3>{tr("Couleur", "Colour")}</h3><div className="row" style={{ gap: 10, flexWrap: "wrap" }}>{ACCENTS.map(a => <button key={a} className={`swatch ${p.accent === a ? "on" : ""}`} style={{ background: a }} onClick={() => set("accent", a)} aria-label={a} />)}
+          <label className="swatch" style={{ display: "grid", placeItems: "center", background: "conic-gradient(red,yellow,lime,cyan,blue,magenta,red)", position: "relative", overflow: "hidden" }}><input type="color" value={p.accent || "#111110"} onChange={(e) => set("accent", e.target.value)} style={{ opacity: 0, position: "absolute", inset: 0, cursor: "pointer" }} /></label></div></div>
+        <div className="blk"><h3>{tr("Typographie", "Typeface")}</h3><div className="kinds">{Object.entries(FONTS).map(([k, v]) => <button key={k} className={(p.font || "grotesk") === k ? "on" : ""} onClick={() => set("font", k)} style={{ fontFamily: v.display }}>{v.name}</button>)}</div></div>
+        <div className="blk"><h3>{tr("Blocs affichés", "Blocks")}</h3>
+          {[["logo", "Logo", "Logo"], ["words", "Montant en lettres", "Amount in words"], ["pay", "Moyens de paiement", "Payment details"], ["notes", "Notes", "Notes"], ["signature", "Signature et cachet", "Signature"]].map(([k, f, e]) => <label key={k} className="row" style={{ padding: "7px 0", cursor: "pointer" }}><input type="checkbox" style={{ width: 18, minHeight: 18 }} checked={!!p.blocks[k]} onChange={(ev) => setB(k, ev.target.checked)} />{tr(f, e)}</label>)}</div>
+        <div className="blk"><h3>{tr("Pied de page", "Footer")} {!pro && <span className="pill">Pro</span>}</h3><input value={p.footer || ""} disabled={!pro} onChange={(e) => set("footer", e.target.value)} placeholder={pro ? tr("Ex. : Merci de votre confiance.", "E.g. Thank you for your business.") : tr("Disponible avec Bonova Pro", "Available with Bonova Pro")} /></div>
       </div>
-      <div className="preview"><DocPaper doc={SAMPLE} profile={preview} /></div></div>}
-    {tab === "offre" && <div id="offre" style={{ maxWidth: 760 }}>
-      {pro ? <div className="panel"><span className="pill paid">Pro actif</span><h2 style={{ fontSize: 30, margin: "12px 0 6px" }}>Merci de faire confiance à Kola.</h2><p className="mute">Documents illimités{s.profile.pro_until ? ` jusqu'au ${new Date(s.profile.pro_until).toLocaleDateString("fr-FR")}` : ""}.</p></div> :
+      <div className="preview"><div className="sheet-stack"><DocPaper doc={{ ...SAMPLE, currency: p.currency || "XOF", tax_rate: ct.vat }} profile={preview} /></div></div></div>}
+    {tab === "offre" && <div id="offre" style={{ maxWidth: 820 }}>
+      {pro ? <div className="panel"><span className="pill paid">Pro</span><h2 style={{ fontSize: 44, margin: "12px 0 6px" }}>{tr("Merci.", "Thank you.")}</h2><p className="mute">{s.profile.pro_until ? `${tr("Actif jusqu'au", "Active until")} ${new Date(s.profile.pro_until).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR")}.` : ""}</p></div> :
       <div className="price p2" style={{ marginTop: 0 }}>
-        <div><div className="u">Mensuel</div><div className="amt">2 500 <small style={{ fontSize: 16 }}>FCFA</small></div><div className="mute">par mois, sans engagement</div>
-          <ul><li>Documents illimités</li><li>Sans mention Kola</li><li>Pied de page personnalisé</li><li>Relances et liens de paiement illimités</li></ul><button className="b full" onClick={() => upgrade("month")}>Payer 2 500 FCFA</button></div>
-        <div className="hl"><div className="u" style={{ color: "var(--ochre)" }}>Annuel · 2 mois offerts</div><div className="amt">25 000 <small style={{ fontSize: 16 }}>FCFA</small></div><div className="mute">soit 2 083 FCFA/mois</div>
-          <ul><li>Tout le mensuel</li><li>Un seul paiement par an</li><li>Support WhatsApp prioritaire</li><li>&nbsp;</li></ul><button className="b k full" onClick={() => upgrade("year")}>Payer 25 000 FCFA</button></div></div>}
+        <div><div className="u">{tr("Mensuel", "Monthly")}</div><div className="amt">{tr("2 500 F", "$4")}</div><div className="mute">{tr("FCFA / mois · ≈ 3,80 € · 4 $", "per month · or 2,500 FCFA")}</div>
+          <ul><li>{tr("Sans mention Bonova", "No Bonova branding")}</li><li>{tr("Pied de page personnalisé", "Custom footer")}</li><li>{tr("Relances automatiques", "Automatic reminders")}</li><li>{tr("Résiliable en un clic", "Cancel in one click")}</li></ul>
+          <div style={{ display: "grid", gap: 8 }}><button className="b full" onClick={() => feda("month")}>Mobile Money — 2 500 FCFA</button><button className="b o full" onClick={() => card("month")}>{tr("Carte ou PayPal — 4 $", "Card or PayPal — $4")}</button></div></div>
+        <div className="hl"><div className="u" style={{ color: "#9DA7FF" }}>{tr("Annuel · 2 mois offerts", "Yearly · 2 months free")}</div><div className="amt">{tr("25 000 F", "$36")}</div><div className="mute">{tr("FCFA / an · ou 36 $", "per year · or 25,000 FCFA")}</div>
+          <ul><li>{tr("Tout le mensuel", "Everything monthly")}</li><li>{tr("Un seul paiement par an", "One payment a year")}</li><li>{tr("Support WhatsApp prioritaire", "Priority WhatsApp support")}</li></ul>
+          <div style={{ display: "grid", gap: 8 }}><button className="b k full" onClick={() => feda("year")}>Mobile Money — 25 000 FCFA</button><button className="b inv full" onClick={() => card("year")}>{tr("Carte ou PayPal — 36 $", "Card or PayPal — $36")}</button></div></div></div>}
       {pay && <p className="note" style={{ marginTop: 14 }}>{pay}</p>}
-      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>Paiement sécurisé par FedaPay : MTN MoMo, Moov Money, Wave, Orange Money ou carte. Environnement de test : aucun prélèvement réel.</p></div>}
+      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>{tr("Mobile Money et cartes en FCFA via FedaPay (MTN, Moov, Wave, Orange…). Carte et PayPal dans le monde entier via Lemon Squeezy. Mode test : aucun prélèvement réel.", "Mobile Money & cards in FCFA via FedaPay (MTN, Moov, Wave, Orange…). Card and PayPal worldwide via Lemon Squeezy. Test mode: no real charge.")}</p></div>}
   </div>);
 }
 export default function Page() { return <Suspense fallback={null}><Settings /></Suspense>; }

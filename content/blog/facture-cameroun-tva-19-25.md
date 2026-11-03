@@ -27,4 +27,4 @@ Attention : le franc CFA d'Afrique centrale (XAF) et celui d'Afrique de l'Ouest 
 
 > Taux donné à titre indicatif au 1ᵉʳ novembre 2026 : vérifiez auprès de la DGI du Cameroun.
 
-Kola gère le XAF et le taux de 19,25 % : [créer une facture](/essai).
+Bonova gère le XAF et le taux de 19,25 % : [créer une facture](/essai).
