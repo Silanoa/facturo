@@ -76,6 +76,9 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
     legal: () => legal.length > 0 ? <div key="legal" className="fine legal">{legal.map((l, i) => <div key={i}>{l}</div>)}</div> : null,
   };
   const body = (parties) => B.order.map((k) => k === "parties" ? (parties ? <div key="parties">{parties}</div> : null) : S[k]());
+  // En impression (hors fond importé), le pied de page passe dans la marge basse de chaque page, à côté de « Page x / y ».
+  const footTxt = [profile.footer || "", profile.plan !== "pro" ? tr("Fait avec Bonova", "Made with Bonova") : ""].filter(Boolean).join("  ·  ").replace(/[\r\n]+/g, " ").replace(/[<>\\]/g, "").slice(0, 180);
+  const pageCss = !(!template && profile.letterhead) ? <style>{`@media print{@page{@bottom-left{content:${JSON.stringify(footTxt)};font:8pt/1.2 system-ui,sans-serif;color:#8a847b;padding-left:14mm}}.paper .pfoot{display:none!important}}`}</style> : null;
   const foot = <div className="fine pfoot"><span>{profile.footer || ""}</span>{profile.plan !== "pro" && <span>{tr("Fait avec Bonova", "Made with Bonova")}</span>}</div>;
   const stamp = isPaid ? <div className="stamp">{tr("PAYÉE", "PAID")}</div> : K === "receipt" ? <div className="stamp">{tr("PAYÉ", "PAID")}</div> : K === "quote" && doc.status === "accepted" ? <div className="stamp">{tr("ACCEPTÉ", "ACCEPTED")}</div> : K === "quote" && doc.status === "declined" ? <div className="stamp no">{tr("REFUSÉ", "DECLINED")}</div> : doc.status === "cancelled" ? <div className="stamp no">{tr("ANNULÉE", "CANCELLED")}</div> : partial ? <div className="stamp part">{tr("ACOMPTE REÇU", "PART PAID")}</div> : null;
   const cls = `paper k-${K} t-${tp} lp-${B.logo_pos || "left"}`;
@@ -83,7 +86,10 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
     const due = K === "receipt" ? tr("Montant reçu", "Amount received") : K === "quote" ? tr("Montant du devis", "Quote total") : isPaid ? tr("Montant réglé", "Amount paid") : partial ? tr("Reste à payer", "Balance due") : tr("Montant dû", "Amount due");
     const lstyle = lh ? { ...style, backgroundImage: `url(${profile.letterhead})` } : style;
     const hasFrom = lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm;
-    return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>
+    // Fond importé : en impression, le fond est répété sur chaque page (img fixe) et les marges haut/bas du modèle sont réservées sur chaque page (thead/tfoot répétés).
+    const wrapLh = (inner) => lh ? <table className="lhw"><thead><tr><td><div className="lhsp" style={{ height: lht }} /></td></tr></thead><tfoot><tr><td><div className="lhsp" style={{ height: lhb }} /></td></tr></tfoot><tbody><tr><td>{inner}</td></tr></tbody></table> : inner;
+    const lht = `${(210 * (+B.lh_top || 0)) / 100}mm`, lhb = `${(210 * (+B.lh_bottom || 0)) / 100}mm`;
+    return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{pageCss}{lh && <><img className="lhbg" src={profile.letterhead} alt="" /><style>{`@media print{@page{margin:0}}`}</style></>}{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>{wrapLh(<>
       {!lh && <div className="n-top"><div className="n-id">{logo}<div className="n-bn">{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div></div>
         <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
       {lh && <div className="n-kind lhk"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div>}
@@ -91,18 +97,18 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
         <div>{hasFrom && <div className="lbl">{tr("Émetteur", "From")}</div>}{lh && <div style={{ fontWeight: 700 }}>{profile.business_name}</div>}<From bare /></div>
         <To /><Dates /></div>
       <div className="n-due"><span>{due}{K === "invoice" && doc.due_date && !isPaid && <em>{tr("à régler avant le", "due by")} {d8(doc.due_date)}</em>}{K === "quote" && doc.due_date && <em>{tr("offre valable jusqu'au", "valid until")} {d8(doc.due_date)}</em>}{K === "receipt" && O.method && <em>{tr("par", "by")} {O.method}</em>}</span><b className="nm">{money(partial ? rest : t.total)}</b></div></>)}
-      {foot}</div></div>);
+      {foot}</>)}</div></div>);
   }
-  if (tp === "marche") return (<div className={cls} style={style}>{stamp}
+  if (tp === "marche") return (<div className={cls} style={style}>{pageCss}{stamp}
     <div className="band"><div>{logo && <div className="band-logo">{logo}</div>}<div className="title">{kn}</div><div className="nm" style={{ marginTop: 6, opacity: .8 }}>{doc.number}</div><div style={{ marginTop: 14 }}><From light /></div></div><div style={{ textAlign: "right" }}><Dates light /></div></div>
     <div className="pad" style={{ paddingTop: 28 }}>{body(<To />)}{foot}</div></div>);
-  if (tp === "registre") return (<div className={cls} style={style}>{stamp}<div className="pad">
+  if (tp === "registre") return (<div className={cls} style={style}>{pageCss}{stamp}<div className="pad">
     <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1.5px solid #191714", paddingBottom: 10, marginBottom: 18, gap: 10, alignItems: "center" }}>{logo}<span className="title">{kn} — {doc.number}</span><span>{d8(doc.issue_date)}</span></div>
     {body(<div className="pg2"><div className="box"><div className="lbl">{tr("Émetteur", "From")}</div><From bare /><div style={{ fontWeight: 700 }}>{profile.business_name}</div></div><div className="box"><To /><div style={{ marginTop: 8 }}><Dates /></div></div></div>)}{foot}</div></div>);
-  if (tp === "sahel") return (<div className={cls} style={style}>{stamp}<div className="pad">
+  if (tp === "sahel") return (<div className={cls} style={style}>{pageCss}{stamp}<div className="pad">
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20 }}><div><div className="title">{kn.toLowerCase()}.</div><div className="nm" style={{ marginTop: 8 }}>{doc.number}</div></div><Dates /></div>
     {body(<div className="pg2" style={{ marginTop: 34 }}><div><div className="lbl">{tr("De", "From")}</div><From /></div><To /></div>)}{foot}</div></div>);
-  return (<div className={cls} style={style}>{stamp}<div className="pad">
+  return (<div className={cls} style={style}>{pageCss}{stamp}<div className="pad">
     <div className="at-top"><From /><div className="r"><div className="title">{kn}</div><div className="nm" style={{ marginTop: 4 }}>{doc.number}</div></div></div>
     {body(<div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginTop: 30, paddingTop: 18, borderTop: "1px solid #e6e3dc" }}><To /><div className="r"><Dates /></div></div>)}{foot}</div></div>);
 }
