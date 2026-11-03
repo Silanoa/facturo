@@ -27,7 +27,7 @@ export default function Support({ lang = "fr", hdr }) {
   const chips = kbSuggest(path, L);
   return (<div className={`sup np ${hdr ? "hdr" : ""}`}>
     {open && <div className="sup-p" role="dialog" aria-label={t.h}>
-      <div className="sup-h"><span className="sup-av" aria-hidden>B</span><div className="sup-ht"><b>{t.h}</b><span><i className="sup-on" />{t.st}</span></div>
+      <div className="sup-h"><span className="sup-av" aria-hidden><img src="/icon.svg" alt="" width="34" height="34" /></span><div className="sup-ht"><b>{t.h}</b><span><i className="sup-on" />{t.st}</span></div>
         {msgs.length > 0 && <button type="button" className="sup-ic" onClick={() => setMsgs([])} title={t.reset} aria-label={t.reset}>↺</button>}
         <button type="button" className="sup-ic" onClick={() => setOpen(false)} aria-label={t.close}>×</button></div>
       <div className="sup-b" aria-live="polite">
@@ -45,6 +45,6 @@ export default function Support({ lang = "fr", hdr }) {
       <form className="sup-f" onSubmit={(e) => { e.preventDefault(); ask(); }}><input ref={inp} value={q} maxLength={600} onChange={(e) => setQ(e.target.value)} placeholder={t.ph} aria-label={t.ph} /><button className="sup-s" type="submit" disabled={!q.trim() || busy} aria-label={t.send}>↑</button></form>
       <div className="sup-x"><span>{t.team} · {SUPPORT.name}</span><span><a href={waSupport(transcript(), L)} target="_blank" rel="noreferrer">WhatsApp</a> · <a href={mailSupport(transcript(), L)}>Email</a></span></div>
     </div>}
-    <button type="button" className={hdr ? "sup-l" : "sup-btn"} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={t.h}>{open && !hdr ? "×" : <><span className="sup-dot" aria-hidden />{t.btn}</>}</button>
+    <button type="button" className={hdr ? "sup-l" : "sup-btn"} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={t.h}>{open && !hdr ? "×" : <><img className="sup-ic" src="/icon.svg" alt="" width="24" height="24" aria-hidden />{t.btn}</>}</button>
   </div>);
 }

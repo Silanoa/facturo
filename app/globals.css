@@ -304,7 +304,7 @@ body:not(:has(.tabbar)) .totbar{bottom:0}
 @media(max-width:900px){.desk-only{display:none!important}}
 @media(max-width:600px){.kinds{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%} .kinds button{padding:10px 4px}}
 .paper .nm,.paper .mono,.paper .pay b{font-family:var(--f-body);font-variant-numeric:tabular-nums;letter-spacing:0}
-@media(max-width:900px){.sup:not(.hdr){right:10px} .sup:not(.hdr) .sup-btn{min-width:0;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:0;opacity:.92} .sup:not(.hdr) .sup-btn::before{content:"?";font:700 18px var(--f-body)} .sup:not(.hdr) .sup-btn[aria-expanded=true]::before{content:"×"}}
+@media(max-width:900px){.sup:not(.hdr){right:10px} .sup:not(.hdr) .sup-btn{min-width:0;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:0;opacity:.92} .sup:not(.hdr) .sup-btn .sup-ic{width:40px;height:40px;margin:0} .sup:not(.hdr) .sup-btn[aria-expanded=true]::before{content:"×"}}
 .t-net .n-due em{display:block;font-style:normal;text-transform:none;letter-spacing:0;font-size:13px;color:#1d1c1a;margin-top:4px}
 .paper.lh{font-size:.94em}
 .sup-p{color:var(--ink)} .sup-p input{color:var(--ink);background:#fff}
@@ -557,3 +557,5 @@ img.ws-av{background:#fff;border:1px solid var(--line)}
 .sup-m.dots{display:flex;gap:4px} .sup-m.dots i{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:supd 1s infinite} .sup-m.dots i:nth-child(2){animation-delay:.15s} .sup-m.dots i:nth-child(3){animation-delay:.3s}
 @keyframes supd{0%,100%{opacity:.3}50%{opacity:1}}
 @media (max-width:480px){.sup{right:12px;bottom:12px}.sup-p{position:fixed;right:12px;left:12px;bottom:68px;width:auto}}
+
+.sup-av{background:none;overflow:hidden}.sup-av img{width:100%;height:100%;display:block;border-radius:50%}.sup-ic{border-radius:50%;margin-left:-8px;flex:none}
