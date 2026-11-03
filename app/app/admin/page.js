@@ -8,16 +8,17 @@ import { fmt, kindName } from "../../../lib/money";
 import { statusName, effStatus } from "../../../lib/share";
 import { country } from "../../../lib/countries";
 // Administration : réservée au rôle « admin » (vérifié côté base par is_admin()).
+function csv(rows) { const cols = ["email", "business_name", "country", "plan", "pro_until", "docs", "created_at", "last_sign_in_at"]; const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`; const t = [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n"); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + t], { type: "text/csv" })); a.download = `bonova-users-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); }
 const isPro = (u) => u.plan === "pro" && (!u.pro_until || new Date(u.pro_until) > new Date());
 export default function Admin() {
   const s = useSession(); const { tr, lang } = useT(); const [d, setD] = useState(null); const [pays, setPays] = useState([]); const [cfg, setCfg] = useState({}); const [err, setErr] = useState(null);
   const [tab, setTab] = useState("overview"); const [q, setQ] = useState(""); const [plan, setPlan] = useState("all"); const [sel, setSel] = useState(null); const loc = lang === "en" ? "en-GB" : "fr-FR";
-  const load = async () => { const [{ data, error }, p, c] = await Promise.all([supabase.rpc("admin_overview"), supabase.rpc("admin_payments"), supabase.from("app_config").select("*")]); if (error) return setErr(error.message); setD(data); setPays(p.data || []); setCfg(Object.fromEntries((c.data || []).map((x) => [x.key, x.value]))); };
+  const load = async () => { const ok = await supabase.rpc("is_admin"); if (!ok.data) return setErr("FORBIDDEN"); const [{ data, error }, p, c] = await Promise.all([supabase.rpc("admin_overview"), supabase.rpc("admin_payments"), supabase.from("app_config").select("*")]); if (error) return setErr(error.message); setD(data); setPays(p.data || []); setCfg(Object.fromEntries((c.data || []).map((x) => [x.key, x.value]))); };
   useEffect(() => { if (s.profile.role === "admin") load(); }, []);
   const users = useMemo(() => (d?.list_users || []).filter((u) => (plan === "all" || (plan === "pro") === isPro(u)) && (!q || `${u.email} ${u.business_name || ""} ${u.country || ""}`.toLowerCase().includes(q.toLowerCase()))), [d, q, plan]);
   const docs = useMemo(() => (d?.list_docs || []).filter((x) => !q || `${x.number} ${x.client || ""} ${x.owner}`.toLowerCase().includes(q.toLowerCase())), [d, q]);
   if (s.profile.role !== "admin") return <div className="in"><h1>{tr("Accès réservé", "Restricted")}</h1><p className="mute">{tr("Cette page est réservée aux administrateurs.", "This page is for administrators only.")}</p><Link className="b o" href="/app">{tr("Retour", "Back")}</Link></div>;
-  if (err) return <div className="in"><div className="note bad">{err}</div></div>;
+  if (err) return <div className="in">{err === "FORBIDDEN" ? <><h1>{tr("Accès réservé", "Restricted")}</h1><p className="mute">{tr("Seul le compte administrateur peut ouvrir cette page.", "Only the administrator account can open this page.")}</p><Link className="b o" href="/app">{tr("Retour", "Back")}</Link></> : <div className="note bad">{err}</div>}</div>;
   if (!d) return <div className="u">…</div>;
   const act = async (fn, args, msg) => { if (msg && !confirm(msg)) return false; const { error } = await supabase.rpc(fn, args); s.toast(error ? error.message : tr("Fait", "Done"), error ? "err" : "ok"); await load(); if (sel) openUser(sel.user.id); return !error; };
   const dt = (x) => x ? new Date(x).toLocaleDateString(loc, { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -28,7 +29,7 @@ export default function Admin() {
   const TABS = [["overview", tr("Vue d'ensemble", "Overview")], ["users", `${tr("Utilisateurs", "Users")} · ${d.users}`], ["subs", `${tr("Abonnés Pro", "Pro members")} · ${proUsers.length}`], ["docs", "Documents"], ["pay", tr("Paiements", "Payments")], ["settings", tr("Réglages", "Settings")]];
   const banner = cfg.banner || { on: false, fr: "", en: "" };
   return (<div className="in adm-w">
-    <div className="ph"><div><p className="u">Admin</p><h1>{TABS.find((t) => t[0] === tab)[1].split(" · ")[0]}</h1></div><button className="b o" onClick={load}>{tr("Actualiser", "Refresh")}</button></div>
+    <div className="ph"><div><p className="u">Admin</p><h1>{TABS.find((t) => t[0] === tab)[1].split(" · ")[0]}</h1></div><div className="row" style={{ gap: 8 }}><button className="b o" onClick={() => csv(d.list_users || [])}>{tr("Exporter CSV", "Export CSV")}</button><button className="b o" onClick={load}>{tr("Actualiser", "Refresh")}</button></div></div>
     <div className="stabs">{TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => { setTab(k); setQ(""); }}>{l}</button>)}</div>
     {tab === "overview" && <>
       <div className="kpis adm">{[[tr("Utilisateurs", "Users"), d.users, `+${d.users_7d} ${tr("sur 7 jours", "in 7 days")}`], [tr("Abonnés Pro", "Pro members"), proUsers.length, d.users ? `${Math.round((proUsers.length / d.users) * 100)} % ${tr("des comptes", "of accounts")}` : ""], ["Documents", d.docs, `+${d.docs_30d} ${tr("sur 30 jours", "in 30 days")}`], [tr("Paiements reçus", "Payments received"), pays.length, soon.length ? `${soon.length} ${tr("Pro expirent sous 7 j", "Pro expiring in 7 d")}` : ""]].map(([l, v, sub]) => <div key={l} className="kpi"><span className="u">{l}</span><b>{v}</b><span className="mute">{sub}</span></div>)}</div>
@@ -63,7 +64,7 @@ function Status({ tr }) {
   const [st, setSt] = useState(null);
   useEffect(() => { supabase.auth.getSession().then(({ data }) => fetch("/api/admin/status", { headers: { authorization: `Bearer ${data.session?.access_token}` } }).then((r) => r.json()).then(setSt).catch(() => setSt({}))); }, []);
   if (!st) return <p className="mute">…</p>;
-  const L = [["fedapay", "FedaPay (Mobile Money)"], ["lemon", "Lemon Squeezy (carte, PayPal)"], ["support_email", tr("Email de support", "Support email")], ["support_wa", tr("WhatsApp de support", "Support WhatsApp")]];
+  const L = [["fedapay", "FedaPay (Mobile Money)"], ["lemon", "Lemon Squeezy (carte, PayPal)"], ["support_email", tr("Email de support", "Support email")], ["support_wa", tr("WhatsApp de support", "Support WhatsApp")], ["admin_email", tr("ADMIN_EMAIL (compte admin unique)", "ADMIN_EMAIL (single admin account)")], ["llm", tr("IA de l'assistant (facultatif)", "Assistant AI (optional)")]];
   return <div className="cfg">{L.map(([k, l]) => <div key={k} className="row"><span className={`dot ${st[k] ? "ok" : ""}`} /><span style={{ flex: 1 }}>{l}</span><span className="mute">{st[k] ? tr("Configuré", "Set up") : tr("À configurer", "Not set up")}</span></div>)}</div>;
 }
 function UserPanel({ sel, me, tr, dt, lang, act, close }) {
@@ -87,7 +88,7 @@ function UserPanel({ sel, me, tr, dt, lang, act, close }) {
       <button className="b s k" disabled={!+pay.amount} onClick={async () => { if (await act("admin_add_payment", { p_user: u.id, p_amount: +pay.amount, p_currency: pay.currency, p_method: pay.method, p_note: pay.note, p_days: pay.days })) setPay({ ...pay, amount: "", note: "" }); }}>{tr("Enregistrer le paiement", "Record payment")}</button></section>
     <section className="dsec"><h3>{tr("Documents", "Documents")} · {docs.length}</h3>{docs.length ? <div className="dmini">{docs.slice(0, 30).map((x) => <div key={x.id} className="row"><span className="mono" style={{ flex: 1 }}>{x.public_token ? <a href={`/f/${x.public_token}`} target="_blank" rel="noreferrer">{x.number}</a> : x.number}</span><span className={`pill ${effStatus(x)}`}>{statusName(effStatus(x), lang, x.kind)}</span><span className="mono" style={{ minWidth: 110, textAlign: "right" }}>{fmt(x.total, x.currency)}</span></div>)}</div> : <p className="mute" style={{ margin: 0 }}>{tr("Aucun document.", "No documents.")}</p>}</section>
     {u.id !== me && <section className="dsec"><h3>{tr("Compte", "Account")}</h3><div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-      <button className="b s o" onClick={() => act("admin_set_role", { p_user: u.id, p_role: p.role === "admin" ? "user" : "admin" }, p.role === "admin" ? tr("Retirer le rôle admin ?", "Remove admin role?") : tr("Donner le rôle admin ?", "Make admin?"))}>{p.role === "admin" ? tr("Retirer le rôle admin", "Remove admin role") : tr("Donner le rôle admin", "Make admin")}</button>
+      {p.role === "admin" && <button className="b s o" onClick={() => act("admin_set_role", { p_user: u.id, p_role: "user" }, tr("Retirer le rôle admin ?", "Remove admin role?"))}>{tr("Retirer le rôle admin", "Remove admin role")}</button>}
       <button className="b s o bad" onClick={async () => { if (await act("admin_delete_user", { p_user: u.id }, `${tr("Supprimer définitivement", "Permanently delete")} ${u.email} ${tr("et tous ses documents ?", "and all their documents?")}`)) close(); }}>{tr("Supprimer le compte", "Delete account")}</button></div></section>}
   </aside></div>);
 }

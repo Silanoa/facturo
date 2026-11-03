@@ -1,6 +1,6 @@
 # Bonova
 
-> Bonova is a free invoice, quote and receipt maker (French and English) for freelancers and small businesses in Africa and worldwide. Make an invoice and send it by WhatsApp, email or PDF in seconds, without creating an account. Unlimited free invoices, 0% fees: clients pay the seller directly by Mobile Money (MTN MoMo, Orange Money, Wave, M-Pesa, Moov, Airtel…), bank transfer/IBAN, PayPal, Wise, or a Stripe/Paystack/Flutterwave/Kkiapay/FedaPay link. All African currencies plus USD, EUR, GBP, CAD and more. Country-aware tax and legal lines (OHADA, France, EU reverse charge, UK, US, Canada). Pro: 2,500 FCFA or $4/month (no branding, automatic reminders), payable by Mobile Money, card or PayPal.
+> Bonova is a free invoice, quote and receipt maker (French and English) for freelancers and small businesses in Africa and worldwide. Make an invoice and send it by WhatsApp, email or PDF in seconds, without creating an account. Unlimited free invoices, 0% fees: clients pay the seller directly by Mobile Money (MTN MoMo, Orange Money, Wave, M-Pesa, Moov, Airtel…), bank transfer/IBAN, PayPal, Wise, or a Stripe/Paystack/Flutterwave/Kkiapay/FedaPay link. All African currencies plus USD, EUR, GBP, CAD and more. Country-aware tax and legal lines (OHADA, France, EU reverse charge, UK, US, Canada). Pro (price shown in the local currency, e.g. 2,500 FCFA or $4.90/month): unlimited templates, signature and stamp, custom footer, no Bonova branding. Paid by Mobile Money in FCFA countries, card or PayPal elsewhere.
 
 ## Product
 - [Home (FR)](https://facturo-woad.vercel.app/)
@@ -17,6 +17,10 @@
 ## Guides
 - [Guides (EN)](https://facturo-woad.vercel.app/en/blog)
 - [Guides (FR)](https://facturo-woad.vercel.app/blog)
+
+## Legal
+- [Confidentialité](https://facturo-woad.vercel.app/confidentialite) · [Privacy](https://facturo-woad.vercel.app/en/privacy)
+- [Conditions](https://facturo-woad.vercel.app/conditions) · [Terms](https://facturo-woad.vercel.app/en/terms)
 
 ## Limits
 - Not a certified e-invoicing system (e.g. MECeF in Benin, FNE in Côte d'Ivoire, French e-invoicing platforms).

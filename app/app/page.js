@@ -16,7 +16,7 @@ export default function Dash() {
   const cur = profile.currency || "XOF";
   const k = useMemo(() => {
     if (!docs) return null; const inv = docs.filter(d => d.kind === "invoice" && d.currency === cur);
-    const open = inv.filter(d => !["paid", "draft", "cancelled"].includes(d.status)); const late = open.filter(d => daysLate(d) > 0 && !d.declared_paid_at);
+    const open = inv.filter(d => !["paid", "draft", "cancelled"].includes(d.status)); const late = profile.settings?.n_due === false ? [] : open.filter(d => daysLate(d) > 0 && !d.declared_paid_at);
     const now = new Date(); const ym = (d) => d.slice(0, 7); const thisM = now.toISOString().slice(0, 7);
     const paidM = inv.filter(d => d.status === "paid" && ym((d.paid_at || d.issue_date)) === thisM).reduce((a, d) => a + +d.total, 0);
     const months = [...Array(6)].map((_, i) => { const x = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1); const key = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}`; return { key, l: x.toLocaleDateString(loc, { month: "short" }).replace(".", ""), v: inv.filter(d => ym(d.issue_date) === key).reduce((a, d) => a + +d.total, 0) }; });

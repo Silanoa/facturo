@@ -7,7 +7,7 @@ export default function sitemap() {
     ...pair("/", "/en", 1), ...pair("/essai", "/en/invoice-generator", 0.9), ...pair("/exemple", "/en/example", 0.6),
     ...pair("/outils", "/en/tools"), ...pair("/outils/calcul-tva", "/en/tools/vat-calculator"), ...pair("/outils/montant-en-lettres", "/en/tools/amount-in-words"),
     { url: u("/outils/generateur-facture"), lastModified: now, priority: 0.8 },
-    ...pair("/blog", "/en/blog", 0.7),
+    ...pair("/blog", "/en/blog", 0.7), ...pair("/confidentialite", "/en/privacy", 0.3), ...pair("/conditions", "/en/terms", 0.3),
     ...allPosts("fr").map(p => ({ url: u(`/blog/${p.slug}`), lastModified: new Date(p.date), changeFrequency: "monthly", priority: 0.6 })),
     ...allPosts("en").map(p => ({ url: u(`/en/blog/${p.slug}`), lastModified: new Date(p.date), changeFrequency: "monthly", priority: 0.6 })),
   ];
