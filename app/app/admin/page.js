@@ -19,10 +19,10 @@ export default function Admin() {
   if (s.profile.role !== "admin") return <div className="in"><h1>{tr("Accès réservé", "Restricted")}</h1><p className="mute">{tr("Cette page est réservée aux administrateurs.", "This page is for administrators only.")}</p><Link className="b o" href="/app">{tr("Retour", "Back")}</Link></div>;
   if (err) return <div className="in"><div className="note bad">{err}</div></div>;
   if (!d) return <div className="u">…</div>;
-  const act = async (fn, args, msg) => { if (msg && !confirm(msg)) return false; const { error } = await supabase.rpc(fn, args); s.toast(error ? error.message : tr("Fait", "Done")); await load(); if (sel) openUser(sel.user.id); return !error; };
+  const act = async (fn, args, msg) => { if (msg && !confirm(msg)) return false; const { error } = await supabase.rpc(fn, args); s.toast(error ? error.message : tr("Fait", "Done"), error ? "err" : "ok"); await load(); if (sel) openUser(sel.user.id); return !error; };
   const dt = (x) => x ? new Date(x).toLocaleDateString(loc, { day: "numeric", month: "short", year: "numeric" }) : "—";
   const sum = (o) => Object.entries(o || {}).map(([c, v]) => fmt(v, c)).join(" · ") || "—";
-  const openUser = async (id) => { const { data, error } = await supabase.rpc("admin_user", { p_user: id }); if (error) return s.toast(error.message); setSel(data); };
+  const openUser = async (id) => { const { data, error } = await supabase.rpc("admin_user", { p_user: id }); if (error) return s.toast(error.message, "err"); setSel(data); };
   const proUsers = (d.list_users || []).filter(isPro); const soon = proUsers.filter((u) => u.pro_until && new Date(u.pro_until) - Date.now() < 7 * 864e5);
   const PlanPill = ({ u }) => isPro(u) ? <span className="pill paid">Pro · {u.pro_until ? dt(u.pro_until) : tr("à vie", "lifetime")}</span> : <span className="pill">{u.plan === "pro" ? tr("Expiré", "Expired") : tr("Gratuit", "Free")}</span>;
   const TABS = [["overview", tr("Vue d'ensemble", "Overview")], ["users", `${tr("Utilisateurs", "Users")} · ${d.users}`], ["subs", `${tr("Abonnés Pro", "Pro members")} · ${proUsers.length}`], ["docs", "Documents"], ["pay", tr("Paiements", "Payments")], ["settings", tr("Réglages", "Settings")]];

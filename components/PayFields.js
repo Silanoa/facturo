@@ -15,11 +15,11 @@ export default function PayFields({ value = [], onChange, country }) {
     {list.map((m, i) => (<div className="payf-row" key={i}>
       <span className="payf-k">{m.type === "momo" ? "Mobile Money" : m.type === "bank" ? tr("Banque", "Bank") : tr("Lien de paiement", "Payment link")}</span>
       {m.type === "momo" && <div className="g2"><select aria-label={tr("Opérateur", "Operator")} value={m.op} onChange={(e) => up(i, "op", e.target.value)}>{ops.map((o) => <option key={o}>{o}</option>)}</select>
-        <input type="tel" inputMode="tel" placeholder={`${dialFor(country)} …`} value={m.number || ""} onChange={(e) => up(i, "number", e.target.value)} aria-label={tr("Numéro", "Number")} /></div>}
+        <input type="tel" inputMode="tel" placeholder={`${dialFor(country)} …`} value={m.number || ""} onChange={(e) => up(i, "number", e.target.value)} aria-label={tr("Numéro", "Number")} /><input placeholder={tr("Nom du titulaire (facultatif)", "Account name (optional)")} value={m.name || ""} onChange={(e) => up(i, "name", e.target.value)} style={{ gridColumn: "1 / -1" }} /></div>}
       {m.type === "bank" && <div className="g2"><input placeholder={tr("Banque", "Bank name")} value={m.bank || ""} onChange={(e) => up(i, "bank", e.target.value)} /><input placeholder={tr("Titulaire du compte", "Account holder")} value={m.name || ""} onChange={(e) => up(i, "name", e.target.value)} />
         <input className="mono" placeholder={tr("IBAN, RIB ou n° de compte", "IBAN or account number")} value={m.iban || ""} onChange={(e) => up(i, "iban", e.target.value)} /><input className="mono" placeholder={tr("BIC / SWIFT (facultatif)", "BIC / SWIFT / sort code (optional)")} value={m.swift || ""} onChange={(e) => up(i, "swift", e.target.value)} /></div>}
       {m.type === "link" && <div className="g2"><select value={m.provider} onChange={(e) => up(i, "provider", e.target.value)} aria-label="Service">{LINKS.map((o) => <option key={o}>{o}</option>)}</select>
-        <input type="url" placeholder={m.provider === "PayPal" ? "paypal.me/…" : "https://…"} value={m.url || ""} onChange={(e) => up(i, "url", e.target.value)} aria-label="URL" /></div>}
+        <input type="url" placeholder={m.provider === "PayPal" ? "paypal.me/…" : "https://…"} value={m.url || ""} onChange={(e) => up(i, "url", e.target.value)} onBlur={(e) => { const v = e.target.value.trim(); if (v && !/^https?:\/\//i.test(v)) up(i, "url", "https://" + v.replace(/^\/+/, "")); }} aria-label="URL" /></div>}
       <button type="button" className="x" aria-label={tr("Retirer", "Remove")} onClick={() => onChange(list.filter((_, n) => n !== i))}>×</button>
     </div>))}
     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>

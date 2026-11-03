@@ -14,7 +14,7 @@ export default function Clients() {
   useEffect(() => { load(); supabase.from("documents").select("kind,status,client,total,currency,issue_date,due_date,paid_at,declared_paid_at").then(({ data }) => setDocs(data || [])); }, []);
   const stats = useMemo(() => Object.fromEntries(clientStats(docs).map(c => [c.name.toLowerCase(), c])), [docs]);
   async function save(e) { e.preventDefault(); const { id, user_id, created_at, ...p } = f; const res = id ? await supabase.from("clients").update(p).eq("id", id) : await supabase.from("clients").insert(p);
-    if (res.error) return toast(res.error.message); toast(id ? tr("Client mis à jour", "Client updated") : tr("Client ajouté", "Client added")); setF(null); load(); }
+    if (res.error) return toast(res.error.message, "err"); toast(id ? tr("Client mis à jour", "Client updated") : tr("Client ajouté", "Client added")); setF(null); load(); }
   const shown = (list || []).filter(c => !q || `${c.name} ${c.phone || ""}`.toLowerCase().includes(q.toLowerCase()));
   return (<div className="in">
     <div className="ph"><h1>Clients</h1><div className="row"><input placeholder={tr("Rechercher", "Search")} value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 220 }} /><button className="b k s" onClick={() => setF(empty)}>+ Client</button></div></div>

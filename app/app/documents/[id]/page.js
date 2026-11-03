@@ -19,8 +19,7 @@ function View() {
   useEffect(() => { load();
     // Temps réel : le client accepte un devis ou déclare un paiement → la page se met à jour seule.
     const ch = supabase.channel(`doc-${id}-${Math.random().toString(36).slice(2, 7)}`).on("postgres_changes", { event: "UPDATE", schema: "public", table: "documents", filter: `id=eq.${id}` }, (p) => {
-      setDoc((d) => { const n = { ...d, ...p.new }; const N = s.profile.settings || {}; if (d && p.new.status !== d.status && N.n_quote !== false) s.toast(n.status === "accepted" ? tr("Le client a accepté le devis", "The client accepted the quote") : n.status === "declined" ? tr("Le client a refusé le devis", "The client declined the quote") : tr("Statut mis à jour", "Status updated"));
-        else if (d && p.new.declared_paid_at && !d.declared_paid_at && N.n_paid !== false) s.toast(tr("Le client indique avoir payé", "The client says they paid")); return n; }); })
+      setDoc((d) => ({ ...d, ...p.new })); })
       .subscribe((x) => setLive(x === "SUBSCRIBED"));
     const poll = setInterval(() => { if (document.visibilityState === "visible") load(); }, 20000);
     const vis = () => document.visibilityState === "visible" && load(); document.addEventListener("visibilitychange", vis);
@@ -29,7 +28,7 @@ function View() {
   if (!doc) return <div className="u">…</div>;
   const k = { fr: kindName(doc.kind, lang) }; const dl = doc.lang || s.profile.doc_lang || "fr"; const st = effStatus(doc); const link = publicUrl(doc); const late = daysLate(doc);
   async function status(v, extra = {}) { const { data, error } = await supabase.from("documents").update({ status: v, ...extra }).eq("id", id).select().single();
-    if (error) return s.toast(error.message); setDoc(data); setPay(null); s.toast(v === "paid" ? (doc.kind === "quote" ? tr("Statut mis à jour", "Status updated") : tr("Marquée payée", "Marked paid")) : tr("Statut mis à jour", "Status updated")); }
+    if (error) return s.toast(error.message, "err"); setDoc(data); setPay(null); s.toast(v === "paid" ? (doc.kind === "quote" ? tr("Statut mis à jour", "Status updated") : tr("Marquée payée", "Marked paid")) : tr("Statut mis à jour", "Status updated")); }
   const addPay = () => { const amt = +pay.amount || 0; if (amt <= 0) return; const paid = (+doc.paid_amount || 0) + amt; const payments = [...(doc.payments || []), { amount: amt, date: pay.date, method: pay.method }];
     status(paid >= +doc.total ? "paid" : "partial", { paid_amount: paid, payments, paid_at: paid >= +doc.total ? new Date(pay.date).toISOString() : null }); };
   const M = PAY_METHODS[lang === "en" ? "en" : "fr"]; const bal = balance(doc);

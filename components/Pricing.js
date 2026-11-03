@@ -15,7 +15,7 @@ const L = {
     start: "Start for free", go: "Go Pro", month: "Monthly", year: "Yearly", shown: (c) => `Prices for: ${c}.`, momo: "Mobile Money, card or PayPal.", card: "Card or PayPal.", cancel: "No commitment, cancel any time." },
 };
 export default function Pricing({ lang = "fr", cc: fixed, tryHref = "/essai", onBuy }) {
-  const t = L[lang === "en" ? "en" : "fr"]; const det = useCountry(); const cc = fixed || det || (lang === "en" ? "US" : "SN"); const P = proPrice(cc, lang); const c = country(cc);
+  const t = L[lang === "en" ? "en" : "fr"]; const det = useCountry(); const cc = fixed || det; const P0 = proPrice(cc || "US", lang); const P = cc ? P0 : { ...P0, month: "…", year: "…", monthOfYear: "…" }; const c = country(cc || "US");
   const cta = (plan, cls, label) => onBuy ? <button className={cls} onClick={() => onBuy(plan, P)}>{label}</button> : <Link href={`/connexion?mode=signup&plan=${plan}`} className={cls}>{label}</Link>;
   return (<div className="pz">
     <div className="pz-c"><div className="pz-n">{t.free}</div><div className="pz-a">0</div><div className="pz-s">{t.forever}</div>
@@ -25,6 +25,6 @@ export default function Pricing({ lang = "fr", cc: fixed, tryHref = "/essai", on
       <ul>{t.pl.map((x) => <li key={x}>{x}</li>)}</ul>{cta("month", "b k full", t.go)}</div>
     <div className="pz-c"><div className="pz-n">{t.pro} · {t.year} <span className="pz-tag">{t.save}</span></div><div className="pz-a">{P.year}</div><div className="pz-s">{t.y} · {t.ym(P.monthOfYear)}</div>
       <ul>{t.pl.slice(0, 1).map((x) => <li key={x}>{x}</li>)}<li>{lang === "en" ? "One payment a year" : "Un seul paiement par an"}</li></ul>{cta("year", "b o full", t.go)}</div>
-    <p className="pz-f">{t.shown(lang === "en" ? c.en : c.fr)} {P.momo ? t.momo : t.card} {t.cancel}</p>
+    <p className="pz-f">{cc && t.shown(lang === "en" ? c.en : c.fr)} {P.momo ? t.momo : t.card} {t.cancel}</p>
   </div>);
 }

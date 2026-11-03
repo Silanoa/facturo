@@ -22,8 +22,23 @@ export default function AppLayout({ children }) {
     if (prof && !(prof.settings || {}).cc_ok) detectCountry().then(async (cc) => { const st = { ...(prof.settings || {}), cc_ok: 1 }; const c = cc ? countryOf(cc) : null;
       const upd = c && c.code !== prof.country ? { country: c.code, currency: c.cur, settings: st } : { settings: st };
       await supabase.from("profiles").update(upd).eq("id", prof.id); if (upd.country) setS((x) => x && ({ ...x, profile: { ...x.profile, ...upd } })); });
-    setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: (m) => { setToast(m); setTimeout(() => setToast(null), 2600); } });
+    setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: pushToast });
   }
+  const tid = useRef(0);
+  function pushToast(m, type, href) { if (!m) return; const t = type || (/erreur|error|échec|failed|invalid|impossible/i.test(String(m)) ? "err" : "ok"); const id = ++tid.current; setToast({ m: String(m), t, href, id }); setTimeout(() => setToast((x) => (x && x.id === id ? null : x)), t === "err" ? 6000 : href ? 7000 : 3000); }
+  // Langue : suivie dans le profil pour la retrouver sur tout appareil.
+  useEffect(() => { if (s && s.profile.id && s.profile.lang !== lang) { supabase.from("profiles").update({ lang }).eq("id", s.profile.id).then(() => {}); setS((x) => x && ({ ...x, profile: { ...x.profile, lang } })); } }, [lang, s?.profile?.id]);
+  // Alertes en direct, sur toutes les pages : ouverture, acceptation/refus de devis, paiement signalé.
+  const known = useRef(null);
+  useEffect(() => { if (!s?.user?.id) return; let ch; (async () => {
+    const { data } = await supabase.from("documents").select("id,status,viewed_at,declared_paid_at").eq("user_id", s.user.id); known.current = Object.fromEntries((data || []).map((d) => [d.id, d]));
+    ch = supabase.channel(`alerts-${s.user.id}-${Math.random().toString(36).slice(2, 7)}`).on("postgres_changes", { event: "UPDATE", schema: "public", table: "documents", filter: `user_id=eq.${s.user.id}` }, ({ new: n }) => {
+      const o = known.current?.[n.id] || {}; known.current = { ...known.current, [n.id]: n }; const N = s.profile.settings || {}; const who = n.client?.name || n.number; const href = `/app/documents/${n.id}`;
+      if (n.status !== o.status && (n.status === "accepted" || n.status === "declined") && N.n_quote !== false) pushToast(n.status === "accepted" ? tr(`${who} a accepté le devis ${n.number}`, `${who} accepted quote ${n.number}`) : tr(`${who} a refusé le devis ${n.number}`, `${who} declined quote ${n.number}`), n.status === "accepted" ? "ok" : "info", href);
+      else if (n.declared_paid_at && !o.declared_paid_at && N.n_paid !== false) pushToast(tr(`${who} indique avoir payé ${n.number}`, `${who} says they paid ${n.number}`), "ok", href);
+      else if (n.viewed_at && !o.viewed_at && N.n_viewed !== false) pushToast(tr(`${who} a ouvert ${n.number}`, `${who} opened ${n.number}`), "info", href);
+    }).subscribe(); })();
+    return () => { ch && supabase.removeChannel(ch); }; }, [s?.user?.id]);
   useEffect(() => { load(); supabase.from("app_config").select("value").eq("key", "banner").maybeSingle().then(({ data }) => { const b = data?.value; if (b?.on && (b.fr || b.en)) setBan(b); }); }, []);
   useEffect(() => { setMenu(null); }, [p]);
   useEffect(() => { if (!menu) return; const f = (e) => { if (!e.target.closest?.("[data-menu]")) setMenu(null); }; const k = (e) => e.key === "Escape" && setMenu(null);
@@ -36,9 +51,9 @@ export default function AppLayout({ children }) {
       <Logo href="/app" />
       <div className="ws" data-menu><button className="ws-b" onClick={() => setMenu(menu === "ws" ? null : "ws")} aria-expanded={menu === "ws"}>
         {s.profile.logo ? <img src={s.profile.logo} alt="" className="ws-av" /> : <span className="ws-av">{(s.profile.business_name || s.user.email || "?").trim()[0].toUpperCase()}</span>}
-        <span className="ws-t"><b>{s.profile.business_name || tr("Mon entreprise", "My business")}</b><span><i className={`ws-plan ${s.profile.plan === "pro" ? "pro" : ""}`}>{s.profile.plan === "pro" ? "Pro" : tr("Gratuit", "Free")}</i></span></span><svg className="ws-c" width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M5 6l3-3 3 3M5 10l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        <span className="ws-t"><b>{s.profile.business_name || tr("Mon espace", "My workspace")}</b><span><i className={`ws-plan ${s.profile.plan === "pro" ? "pro" : ""}`}>{s.profile.plan === "pro" ? "Pro" : tr("Gratuit", "Free")}</i></span></span><svg className="ws-c" width="16" height="16" viewBox="0 0 16 16" aria-hidden><path d="M5 6l3-3 3 3M5 10l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         {menu === "ws" && <div className="ws-m" role="menu" onClick={() => setMenu(null)}>
-          <div className="ws-me"><b>{s.profile.business_name || tr("Mon entreprise", "My business")}</b><span>{s.user.email}</span></div><hr />
+          <div className="ws-me"><b>{s.profile.business_name || tr("Mon espace", "My workspace")}</b><span>{s.user.email}</span></div><hr />
           <Link role="menuitem" href="/app/parametres?t=profil">{tr("Coordonnées", "Details")}</Link><Link role="menuitem" href="/app/parametres?t=modele">{tr("Apparence des documents", "Document design")}</Link><Link role="menuitem" href="/app/parametres?t=paiement">{tr("Moyens de paiement", "Payment methods")}</Link><Link role="menuitem" href="/app/parametres?t=offre">{tr("Abonnement", "Subscription")}{s.profile.plan !== "pro" && <em className="ws-up">Pro</em>}</Link>
           <hr /><button role="menuitem" onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "Français" : "English"}</button>
           <button role="menuitem" onClick={async () => { await supabase.auth.signOut(); r.replace("/"); }}><IOut width="15" height="15" /> {tr("Se déconnecter", "Sign out")}</button></div>}</div>
@@ -57,6 +72,6 @@ export default function AppLayout({ children }) {
       {nav.slice(2).map(([h, l, I]) => <Link key={h} href={h} className={on(h) ? "on" : ""}><I />{l}</Link>)}
     </nav>
     {!p.startsWith("/app/documents/nouveau") && <Support lang={lang} />}
-    {toast && <div className="toast">{toast}</div>}
+    {toast && <div className={`toast ${toast.t}`} role={toast.t === "err" ? "alert" : "status"}><i aria-hidden>{toast.t === "err" ? "!" : toast.t === "info" ? "i" : "✓"}</i><span>{toast.m}</span>{toast.href && p !== toast.href && <Link href={toast.href} onClick={() => setToast(null)}>{tr("Voir", "View")}</Link>}<button aria-label={tr("Fermer", "Close")} onClick={() => setToast(null)}>×</button></div>}
   </div></S.Provider>);
 }
