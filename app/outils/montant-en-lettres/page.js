@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LangProvider } from "../../../lib/i18n";
 import { SiteNav, SiteFooter } from "../../../components/Brand";
 import { Words } from "../../../components/Tools";
-export const metadata = { title: "Montant en lettres : convertir un nombre en lettres", description: "Écrivez n'importe quel montant en lettres, sans faute d'accord : « cinq cent dix-neuf mille deux cents francs CFA ». Formule « Arrêtée la présente facture à la somme de » prête à copier.", alternates: { canonical: "/outils/montant-en-lettres" } };
+export const metadata = { title: "Montant en lettres : convertir un nombre en lettres", description: "Convertissez un montant en lettres sans faute d'accord, en francs CFA, euros ou dollars, avec la formule « Arrêtée la présente facture à la somme de ».", alternates: { canonical: "/outils/montant-en-lettres" } };
 export default function P() { return (<><SiteNav /><main className="wrap" style={{ paddingTop: 30, paddingBottom: 60 }}>
   <p className="u"><Link href="/outils" style={{ textDecoration: "none" }}>Outils</Link> / Montant en lettres</p><h1 style={{ fontSize: "clamp(36px,5vw,60px)", margin: "10px 0 14px" }}>Votre montant, en toutes lettres.</h1>
   <p className="mute" style={{ fontSize: 18, maxWidth: 640, marginBottom: 26 }}>Pour les factures, chèques et contrats. Les règles d'accord sont appliquées.</p>

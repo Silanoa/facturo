@@ -2,8 +2,8 @@ import Link from "next/link";
 import { SiteNav, SiteFooter } from "./Brand";
 import { allPosts, getPost } from "../lib/posts";
 import { SITE } from "../lib/site";
-const T = { fr: { base: "/blog", g: "Guides", h: "Facturer juste, se faire payer vite.", min: "min de lecture", upd: "Mis à jour le", toc: "Dans ce guide", more: "À lire aussi", cta: "Faites votre facture en 40 secondes.", cs: "Mentions légales de votre pays, TVA, montant en lettres, Mobile Money, IBAN, PayPal. Sans compte.", go: "Faire une facture →", try: "/essai", loc: "fr-FR" },
-  en: { base: "/en/blog", g: "Guides", h: "Invoice right. Get paid fast.", min: "min read", upd: "Updated", toc: "In this guide", more: "Read next", cta: "Make your invoice in 40 seconds.", cs: "Your country's legal lines, VAT, Mobile Money, IBAN, PayPal or Stripe link. No sign-up.", go: "Make an invoice →", try: "/en/invoice-generator", loc: "en-GB" } };
+const T = { fr: { base: "/blog", g: "Guides", h: "Facturer juste, se faire payer vite.", min: "min de lecture", upd: "Mis à jour le", toc: "Dans ce guide", more: "À lire aussi", cta: "Faites votre facture en une minute.", cs: "Mentions légales de votre pays, TVA, montant en lettres, Mobile Money, IBAN, PayPal. Sans compte.", go: "Faire une facture →", try: "/essai", loc: "fr-FR" },
+  en: { base: "/en/blog", g: "Guides", h: "Invoice right. Get paid fast.", min: "min read", upd: "Updated", toc: "In this guide", more: "Read next", cta: "Make your invoice in a minute.", cs: "Your country's legal lines, VAT, Mobile Money, IBAN, PayPal or Stripe link. No sign-up.", go: "Make an invoice →", try: "/en/invoice-generator", loc: "en-GB" } };
 const d = (x, l) => new Date(x).toLocaleDateString(T[l].loc, { day: "numeric", month: "long", year: "numeric" });
 export function BlogIndex({ lang = "fr" }) { const t = T[lang]; const posts = allPosts(lang); const [first, ...rest] = posts;
   return (<><SiteNav lang={lang} /><main className="wrap sec" style={{ paddingTop: 40 }}>

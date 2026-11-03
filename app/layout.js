@@ -8,8 +8,8 @@ const mono = IBM_Plex_Mono({ subsets: ["latin"], variable: "--f-mono", weight: [
 const serif = Newsreader({ subsets: ["latin"], variable: "--f-serif", style: ["italic", "normal"], display: "swap" });
 export const metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: "Bonova — Free invoice maker for freelancers · Facture gratuite", template: "%s · Bonova" },
-  description: "Make an invoice in seconds and send it by WhatsApp or email. Get paid by Mobile Money, bank transfer, card or PayPal. No account needed. Créez une facture en quelques secondes, sans inscription.",
+  title: { default: "Bonova — Devis, factures et reçus en ligne", template: "%s · Bonova" },
+  description: "Créez vos devis, factures et reçus en une minute et envoyez-les par WhatsApp, email ou PDF. Paiement par Mobile Money, virement, carte ou PayPal. Sans inscription.",
   applicationName: "Bonova",
   manifest: "/manifest.webmanifest",
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }], apple: "/apple-touch-icon.png", shortcut: "/favicon.ico" },

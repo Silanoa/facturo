@@ -34,7 +34,8 @@ const C = {
     ]],
   },
 };
-export const legalMeta = (k, l) => ({ title: C[k][l][0], alternates: { canonical: k === "privacy" ? (l === "en" ? "/en/privacy" : "/confidentialite") : (l === "en" ? "/en/terms" : "/conditions"), languages: k === "privacy" ? { fr: "/confidentialite", en: "/en/privacy" } : { fr: "/conditions", en: "/en/terms" } } });
+const LD = { privacy: { fr: "Quelles données Bonova collecte, pourquoi, combien de temps elles sont gardées et comment les exporter ou les supprimer.", en: "What data Bonova collects, why, how long it is kept and how to export or delete it." }, terms: { fr: "Conditions d'utilisation de Bonova : compte, offre gratuite et Pro, paiement, résiliation et responsabilités.", en: "Bonova terms of use: account, Free and Pro plans, payment, cancellation and liability." } };
+export const legalMeta = (k, l) => ({ title: C[k][l][0], description: LD[k][l], alternates: { canonical: k === "privacy" ? (l === "en" ? "/en/privacy" : "/confidentialite") : (l === "en" ? "/en/terms" : "/conditions"), languages: k === "privacy" ? { fr: "/confidentialite", en: "/en/privacy" } : { fr: "/conditions", en: "/en/terms" } } });
 export default function Legal({ k, lang }) {
   const [h, d, secs] = C[k][lang];
   return <><SiteNav lang={lang} /><main className="wrap legal"><p className="u">{d}</p><h1>{h}</h1>{secs.map(([t, x]) => <section key={t}><h2>{t}</h2><p>{x}</p></section>)}</main><SiteFooter lang={lang} /></>;
