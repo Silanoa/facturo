@@ -37,7 +37,7 @@ export default function Dash() {
     <div className="ph"><div><p className="u" style={{ margin: "0 0 6px" }}>{new Date().toLocaleDateString(loc, { weekday: "long", day: "numeric", month: "long" })}</p><h1>{tr("Bonjour", "Hello")}</h1>{hello && <p className="mute" style={{ margin: "8px 0 0" }}>{hello}</p>}</div>
       <Link href="/app/documents/nouveau" className="b k np mob-only" ><IPlus width="18" height="18" /> {tr("Nouvelle facture", "New invoice")}</Link></div>
     <div className="stats">
-      <div><div className="u">{tr("À encaisser", "Outstanding")}</div><Big v={k.openSum} c={cur} /><div className="mute" style={{ marginTop: 6, fontSize: 14.5 }}>{k.open.length} {tr("ouverte(s)", "open")}{k.late.length ? <> · <span style={{ color: "var(--late)", fontWeight: 600 }}>{k.late.length} {tr("en retard", "late")}</span></> : ""}</div></div>
+      <div><div className="u">{tr("À encaisser", "Outstanding")}</div><Big v={k.openSum} c={cur} /><div className="mute" style={{ marginTop: 6, fontSize: 14.5 }}>{k.open.length} {k.open.length > 1 ? tr("factures ouvertes", "open invoices") : tr("facture ouverte", "open invoice")}{k.late.length ? <> · <span style={{ color: "var(--late)", fontWeight: 600 }}>{k.late.length} {tr("en retard", "late")}</span></> : ""}</div></div>
       <div><div className="u">{tr("Encaissé ce mois", "Paid this month")}</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, marginTop: 12 }}>{fmt(k.paidM, cur)}</div></div>
       <div><div className="u">{tr("Ce mois", "This month")}</div><div className="mono" style={{ fontSize: 24, fontWeight: 600, marginTop: 12 }}>{k.monthDocs}</div><div className="mute" style={{ fontSize: 13.5 }}>documents</div></div>
     </div>

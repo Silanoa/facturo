@@ -24,7 +24,7 @@ export default function Pricing({ lang = "fr", cc: fixed, tryHref = "/essai", on
     <div className="pz-c hl"><div className="pz-n">{t.pro} · {t.month}</div><div className="pz-a">{P.month}</div><div className="pz-s">{t.m}</div>
       <ul>{t.pl.map((x) => <li key={x}>{x}</li>)}</ul>{cta("month", "b k full", t.go)}</div>
     <div className="pz-c"><div className="pz-n">{t.pro} · {t.year} <span className="pz-tag">{t.save}</span></div><div className="pz-a">{P.year}</div><div className="pz-s">{t.y} · {t.ym(P.monthOfYear)}</div>
-      <ul>{t.pl.slice(0, 1).map((x) => <li key={x}>{x}</li>)}<li>{lang === "en" ? "One payment a year" : "Un seul paiement par an"}</li></ul>{cta("year", "b o full", t.go)}</div>
+      <ul><li>{lang === "en" ? "Everything in Pro monthly" : "Tout ce qui est dans Pro mensuel"}</li><li>{lang === "en" ? "One payment a year" : "Un seul paiement par an"}</li></ul>{cta("year", "b o full", t.go)}</div>
     <p className="pz-f">{cc && t.shown(lang === "en" ? c.en : c.fr)} {P.momo ? t.momo : t.card} {t.cancel}</p>
   </div>);
 }
