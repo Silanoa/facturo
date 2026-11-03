@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Editor, { blankDoc } from "./Editor";
+import { shrink, dominant } from "../lib/img";
 import PayFields from "./PayFields";
 import { totals, kindName } from "../lib/money";
 import { COUNTRIES, country } from "../lib/countries";
@@ -44,6 +45,10 @@ export default function Trial({ heading = true }) {
           <label className="f"><span>{tr("Pays", "Country")}</span><select value={p.country || "BJ"} onChange={(e) => { const c = country(e.target.value); setP({ ...p, country: c.code }); setDoc({ ...doc, currency: c.cur, tax_rate: doc.tax_rate }); }}>{COUNTRIES.map(c => <option key={c.code} value={c.code}>{lang === "en" ? c.en : c.fr}</option>)}</select></label>
           <label className="f"><span>{tr("Téléphone / email", "Phone / email")}</span><input value={p.phone || ""} onChange={(e) => set("phone", e.target.value)} /></label>
           <label className="f"><span>{country(p.country).tax} <span className="mute">({tr("optionnel", "optional")})</span></span><input value={p.ifu || ""} onChange={(e) => set("ifu", e.target.value)} /></label></div>
+        <div className="f"><span>Logo <span className="mute">({tr("optionnel", "optional")})</span></span><div className="row" style={{ gap: 12, alignItems: "center" }}>
+          {p.logo && <img src={p.logo} alt="Logo" style={{ maxHeight: 44, maxWidth: 140, background: "#fff", padding: 4, border: "1px solid var(--line)" }} />}
+          <label className="b s o" style={{ cursor: "pointer" }}>{p.logo ? tr("Changer", "Change") : tr("Ajouter un logo", "Add a logo")}<input type="file" accept="image/*" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) { try { const src = await shrink(fl); const col = await dominant(src); setP((x) => ({ ...x, logo: src, ...(col ? { accent: col } : {}) })); } catch {} } }} /></label>
+          {p.logo && <button type="button" className="lnk" onClick={() => set("logo", null)}>{tr("Retirer", "Remove")}</button>}</div></div>
         <label className="f"><span>{tr("Adresse", "Address")}</span><input value={p.address || ""} onChange={(e) => set("address", e.target.value)} /></label>
         <div className="f"><span>{tr("Comment vous payer", "How clients pay you")}</span><PayFields value={p.momo} onChange={(v) => set("momo", v)} /></div></div>}
     </div>

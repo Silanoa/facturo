@@ -70,7 +70,7 @@ export default function DocPaper({ doc, profile = {}, template }) {
         <To />
         <div><div className="lbl">{tr("Date d'émission", "Issue date")}</div><div>{d8(doc.issue_date)}</div>{doc.due_date && doc.kind !== "receipt" && <><div className="lbl" style={{ marginTop: 10 }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due date")}</div><div>{d8(doc.due_date)}</div></>}</div>
       </div>
-      <div className="n-due"><span>{due}</span><b className="nm">{money(t.total)}</b></div>
+      <div className="n-due"><span>{due}{doc.due_date && doc.kind === "invoice" && doc.status !== "paid" && <em>{tr("à régler avant le", "due by")} {d8(doc.due_date)}</em>}</span><b className="nm">{money(t.total)}</b></div>
       <Items /><Totals /><Bottom /></div></div>);
   }
   if (tp === "marche") return (<div className="paper t-marche" style={style}>{stamp}

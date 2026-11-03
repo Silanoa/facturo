@@ -13,7 +13,7 @@ Quelle que soit votre activité, une facture sérieuse en zone OHADA comporte :
 
 | Mention | Exemple |
 |---|---|
-| Nom ou raison sociale du vendeur | Atelier Sèmè Design |
+| Nom ou raison sociale du vendeur | Studio Lumen Design |
 | Adresse complète | Akpakpa, Cotonou, Bénin |
 | Numéro d'identification fiscale | IFU (Bénin), NINEA (Sénégal), NCC (Côte d'Ivoire), NIU (Cameroun) |
 | Numéro RCCM | RB/COT/24 A 12345 |

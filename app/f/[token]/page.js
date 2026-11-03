@@ -25,7 +25,7 @@ export default function Pub() {
   async function accept() { const { error } = await supabase.rpc("accept_quote", { p_token: token }); if (!error) setAcc(true); }
   const date = (x, o) => new Date(x).toLocaleDateString(loc, o || { day: "numeric", month: "long", year: "numeric" });
   const Row = ({ i, tag, main, sub, val }) => (<div className="payrow"><span className="op">{tag}</span>
-    <div style={{ flex: 1, minWidth: 0 }}><div className="mono" style={{ fontSize: "clamp(13px,4vw,16px)", fontWeight: 600, overflowWrap: "anywhere" }}>{main}</div>{sub && <div className="mute" style={{ fontSize: 13.5 }}>{sub}</div>}</div>
+    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: "clamp(14px,4.2vw,17px)", fontWeight: 650, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere", whiteSpace: String(main).length < 22 ? "nowrap" : "normal" }}>{main}</div>{sub && <div className="mute" style={{ fontSize: 13.5 }}>{sub}</div>}</div>
     <button className="b s o" onClick={() => copy(val || main, i)}>{copied === i ? tr("Copié", "Copied") : <><ICopy width="15" height="15" /> {tr("Copier", "Copy")}</>}</button></div>);
   return (<div lang={L} style={{ minHeight: "100vh" }}>
     <div className="pub np">

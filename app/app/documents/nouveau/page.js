@@ -38,7 +38,7 @@ function Inner() {
   }
   if (!doc) return <div className="u">…</div>;
   return (<div>
-    <div className="ph np"><div><Link href="/app/documents" className="lnk" style={{ fontSize: 14, color: "var(--mute)" }}>← Documents</Link><h1 style={{ marginTop: 6 }}>{doc.id ? `${tr("Modifier", "Edit")} ${doc.number}` : tr("Nouveau", "New")}</h1></div>
+    <div className="ph np"><div><Link href="/app/documents" className="lnk" style={{ fontSize: 14, color: "var(--mute)" }}>← Documents</Link><h1 style={{ marginTop: 6 }}>{doc.id ? `${tr("Modifier", "Edit")} ${doc.number}` : (doc.kind === "quote" ? tr("Nouveau devis", "New quote") : doc.kind === "receipt" ? tr("Nouveau reçu", "New receipt") : tr("Nouvelle facture", "New invoice"))}</h1></div>
       <div className="row"><button className="b o" disabled={busy} onClick={() => save(doc.id ? undefined : "draft")}>{doc.id ? tr("Enregistrer", "Save") : tr("Brouillon", "Draft")}</button>{(!doc.id || doc.status === "draft") && <button className="b k" disabled={busy} onClick={() => save(doc.kind === "receipt" ? "paid" : "sent")}>{busy ? "…" : tr("Valider et envoyer →", "Save & send →")}</button>}</div></div>
     {err && <div className="note bad np" style={{ marginBottom: 14 }}>{err}</div>}
     <Editor doc={doc} setDoc={setDoc} profile={prof} setProfile={setProf} clients={clients} onNumber={async (k) => { if (!doc.id) { const n = await nextNumber(k, doc.lang || dl); setDoc(d => ({ ...d, number: n })); } }} />

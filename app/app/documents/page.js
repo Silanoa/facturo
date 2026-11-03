@@ -21,7 +21,7 @@ function Docs() {
   const sum = list.filter(d => d.kind === "invoice").reduce((a, d) => ({ ...a, [d.currency]: (a[d.currency] || 0) + +d.total }), {});
   return (<div className="in">
     <div className="ph"><h1>Documents</h1><div className="row" style={{ flexWrap: "wrap" }}>
-      {docs?.length > 0 && <button className="b o s" onClick={csv}>Export CSV</button>}
+      {docs?.length > 0 && <button className="b o s desk-only" onClick={csv}>Export CSV</button>}
       <Link href="/app/documents/nouveau?kind=quote" className="b o s">{tr("Devis", "Quote")}</Link><Link href="/app/documents/nouveau?kind=receipt" className="b o s">{tr("Reçu", "Receipt")}</Link>
       <Link href="/app/documents/nouveau" className="b k s"><IPlus width="16" height="16" /> {tr("Facture", "Invoice")}</Link></div></div>
     <div className="row" style={{ flexWrap: "wrap", marginBottom: 14, justifyContent: "space-between" }}>
