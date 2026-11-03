@@ -307,3 +307,7 @@ body:not(:has(.tabbar)) .totbar{bottom:0}
 @media(max-width:900px){.sup:not(.hdr){right:10px} .sup:not(.hdr) .sup-btn{min-width:0;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:0;opacity:.92} .sup:not(.hdr) .sup-btn::before{content:"?";font:700 18px var(--f-body)} .sup:not(.hdr) .sup-btn[aria-expanded=true]::before{content:"×"}}
 .t-net .n-due em{display:block;font-style:normal;text-transform:none;letter-spacing:0;font-size:13px;color:#1d1c1a;margin-top:4px}
 .paper.lh{font-size:.94em}
+.sup-p{color:var(--ink)} .sup-p input{color:var(--ink);background:#fff}
+.paper td,.paper .n-due b{white-space:nowrap}
+@media(max-width:600px){.paper table{font-size:12px} .paper td:first-child{white-space:normal}}
+@media(max-width:600px){.paper td{white-space:normal} .paper td:last-child{white-space:nowrap} .paper td+td,.paper th+th{padding-left:8px}}

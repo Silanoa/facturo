@@ -66,7 +66,7 @@ export default function DocPaper({ doc, profile = {}, template }) {
         <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
       {lh && <div className="n-kind lhk"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div>}
       <div className="n-grid">
-        <div><div className="lbl">{tr("Émetteur", "From")}</div>{lh ? <><div style={{ fontWeight: 700 }}>{profile.business_name}</div><From bare /></> : <From bare />}</div>
+        <div>{(lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm) && <div className="lbl">{tr("Émetteur", "From")}</div>}{lh ? <><div style={{ fontWeight: 700 }}>{profile.business_name}</div><From bare /></> : <From bare />}</div>
         <To />
         <div><div className="lbl">{tr("Date d'émission", "Issue date")}</div><div>{d8(doc.issue_date)}</div>{doc.due_date && doc.kind !== "receipt" && <><div className="lbl" style={{ marginTop: 10 }}>{doc.kind === "quote" ? tr("Valable jusqu'au", "Valid until") : tr("Échéance", "Due date")}</div><div>{d8(doc.due_date)}</div></>}</div>
       </div>
