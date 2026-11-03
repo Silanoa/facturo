@@ -154,7 +154,7 @@ function Settings() {
       <Pricing lang={lang} cc={p.country || undefined} onBuy={(plan, P) => P.momo ? setPay({ plan, P }) : card(plan)} />}
       {pay && pay.P && <div className="note" style={{ marginTop: 14 }}><b>{tr("Moyen de paiement", "Payment method")}</b><div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><button className="b k" onClick={() => feda(pay.plan)}>Mobile Money — {pay.plan === "year" ? pay.P.year : pay.P.month}</button><button className="b o" onClick={() => card(pay.plan)}>{tr("Carte ou PayPal", "Card or PayPal")}</button></div></div>}
       {pay && typeof pay === "string" && <p className="note" style={{ marginTop: 14 }}>{pay}</p>}
-      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>{tr("Mobile Money et cartes en FCFA via FedaPay (MTN, Moov, Wave, Orange…). Carte et PayPal dans le monde entier via Lemon Squeezy. Mode test : aucun prélèvement réel.", "Mobile Money & cards in FCFA via FedaPay (MTN, Moov, Wave, Orange…). Card and PayPal worldwide via Lemon Squeezy. Test mode: no real charge.")}</p></div>}
+      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>{tr("Mobile Money et cartes en FCFA (XOF, Afrique de l’Ouest) via FedaPay (MTN, Moov, Wave, Orange…). Carte et PayPal dans le monde entier via Lemon Squeezy. Mode test : aucun prélèvement réel.", "Mobile Money & cards in CFA francs (XOF, West Africa) via FedaPay (MTN, Moov, Wave, Orange…). Card and PayPal worldwide via Lemon Squeezy. Test mode: no real charge.")}</p></div>}
   </div>);
 }
 export default function Page() { return <Suspense fallback={null}><Settings /></Suspense>; }
