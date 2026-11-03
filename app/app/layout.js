@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { detectCountry } from "../../lib/geo";
+import { clearUserState, bindUser } from "../../lib/clear";
 import { country as countryOf } from "../../lib/countries";
 import { proPrice } from "../../lib/pricing";
 import Link from "next/link";
@@ -18,16 +19,18 @@ export default function AppLayout({ children }) {
     if (!data.session) return r.replace("/connexion?next=" + encodeURIComponent(p));
     const { data: prof } = await supabase.from("profiles").select("*").eq("id", data.session.user.id).single();
     const pro = prof?.plan === "pro" && (!prof.pro_until || new Date(prof.pro_until) > new Date());
-    if (prof?.lang && !localStorage.getItem("lang")) setLang(prof.lang);
-    if (prof && !(prof.settings || {}).cc_ok) detectCountry().then(async (cc) => { const st = { ...(prof.settings || {}), cc_ok: 1 }; const c = cc ? countryOf(cc) : null;
-      const upd = c && c.code !== prof.country ? { country: c.code, currency: c.cur, settings: st } : { settings: st };
-      await supabase.from("profiles").update(upd).eq("id", prof.id); if (upd.country) setS((x) => x && ({ ...x, profile: { ...x.profile, ...upd } })); });
+    bindUser(data.session.user.id);
+    // Le profil fait foi : langue, pays, devise et TVA viennent du compte, jamais du navigateur d'un autre compte.
+    if (prof?.lang && prof.lang !== lang) setLang(prof.lang);
+    // Géolocalisation seulement pour un profil sans pays (nouveau compte) ; un pays déjà choisi n'est jamais écrasé.
+    if (prof && !prof.country) detectCountry().then(async (cc) => { const c = countryOf(cc || (prof.lang === "en" ? "US" : "SN")); const upd = { country: c.code, currency: prof.currency || c.cur, settings: { ...(prof.settings || {}), cc_ok: 1 } };
+      await supabase.from("profiles").update(upd).eq("id", prof.id).is("country", null); setS((x) => x && ({ ...x, profile: { ...x.profile, ...upd } })); });
     setS({ user: data.session.user, profile: { ...(prof || {}), plan: pro ? "pro" : "free" }, reload: load, toast: pushToast });
   }
-  const tid = useRef(0);
+  const tid = useRef(0); const prevLang = useRef(null);
   function pushToast(m, type, href) { if (!m) return; const t = type || (/erreur|error|échec|failed|invalid|impossible/i.test(String(m)) ? "err" : "ok"); const id = ++tid.current; setToast({ m: String(m), t, href, id }); setTimeout(() => setToast((x) => (x && x.id === id ? null : x)), t === "err" ? 6000 : href ? 7000 : 3000); }
   // Langue : suivie dans le profil pour la retrouver sur tout appareil.
-  useEffect(() => { if (s && s.profile.id && s.profile.lang !== lang) { supabase.from("profiles").update({ lang }).eq("id", s.profile.id).then(() => {}); setS((x) => x && ({ ...x, profile: { ...x.profile, lang } })); } }, [lang, s?.profile?.id]);
+  useEffect(() => { const pv = prevLang.current; prevLang.current = lang; if (s && s.profile.id && pv && pv === s.profile.lang && s.profile.lang !== lang) { supabase.from("profiles").update({ lang }).eq("id", s.profile.id).then(() => {}); setS((x) => x && ({ ...x, profile: { ...x.profile, lang } })); } }, [lang, s?.profile?.id]);
   // Alertes en direct, sur toutes les pages : ouverture, acceptation/refus de devis, paiement signalé.
   const known = useRef(null);
   useEffect(() => { if (!s?.user?.id) return; let ch; (async () => {
@@ -56,7 +59,7 @@ export default function AppLayout({ children }) {
           <div className="ws-me"><b>{s.profile.business_name || tr("Mon espace", "My workspace")}</b><span>{s.user.email}</span></div><hr />
           <Link role="menuitem" href="/app/parametres?t=profil">{tr("Coordonnées", "Details")}</Link><Link role="menuitem" href="/app/parametres?t=modele">{tr("Apparence des documents", "Document design")}</Link><Link role="menuitem" href="/app/parametres?t=paiement">{tr("Moyens de paiement", "Payment methods")}</Link><Link role="menuitem" href="/app/parametres?t=offre">{tr("Abonnement", "Subscription")}{s.profile.plan !== "pro" && <em className="ws-up">Pro</em>}</Link>
           <hr /><button role="menuitem" onClick={() => setLang(lang === "en" ? "fr" : "en")}>{lang === "en" ? "Français" : "English"}</button>
-          <button role="menuitem" onClick={async () => { await supabase.auth.signOut(); r.replace("/"); }}><IOut width="15" height="15" /> {tr("Se déconnecter", "Sign out")}</button></div>}</div>
+          <button role="menuitem" onClick={async () => { await supabase.auth.signOut(); clearUserState(); r.replace("/"); }}><IOut width="15" height="15" /> {tr("Se déconnecter", "Sign out")}</button></div>}</div>
       <div className="new-w" data-menu><Link href="/app/documents/nouveau" className="b k new"><IPlus width="17" height="17" /> {tr("Nouvelle facture", "New invoice")}</Link>
         <button className="b k new-more" aria-expanded={menu === "new"} aria-label={tr("Autre document", "Other document")} onClick={() => setMenu(menu === "new" ? null : "new")}>⌄</button>
         {menu === "new" && <div className="ws-m" role="menu" onClick={() => setMenu(null)}><Link role="menuitem" href="/app/documents/nouveau?kind=invoice"><b>{tr("Facture", "Invoice")}</b><small>{tr("Demander un paiement", "Request payment")}</small></Link><Link role="menuitem" href="/app/documents/nouveau?kind=quote"><b>{tr("Devis", "Quote")}</b><small>{tr("Proposer un prix", "Propose a price")}</small></Link><Link role="menuitem" href="/app/documents/nouveau?kind=receipt"><b>{tr("Reçu", "Receipt")}</b><small>{tr("Confirmer un paiement reçu", "Confirm a payment")}</small></Link></div>}</div>

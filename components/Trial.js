@@ -26,7 +26,7 @@ export default function Trial({ heading = true }) {
       setP((x) => (x && x.auto !== 0 ? { ...x, country: cc, auto: 1 } : x)); setDoc((x) => (x && (!d || !x.items.some((i) => +i.price > 0)) ? { ...x, currency: c.cur } : x)); });
   }, []);
   useEffect(() => { if (doc) { localStorage.setItem("bnv_draft", JSON.stringify(doc)); localStorage.setItem("bnv_draft_at", String(Date.now())); } }, [doc]);
-  useEffect(() => { if (p) localStorage.setItem("bnv_profile", JSON.stringify(p)); }, [p]);
+  useEffect(() => { if (p) { localStorage.setItem("bnv_profile", JSON.stringify(p)); localStorage.setItem("bnv_profile_at", String(Date.now())); } }, [p]);
   if (!doc || !p) return <div style={{ minHeight: 600 }} />;
   const ready = doc.items.some(i => +i.price > 0); const set = (k, v) => setP({ ...p, [k]: v });
   const dl = docLang(doc, p); const full = { ...doc, total: totals(doc).total }; const text = shareText(full, p, dl);

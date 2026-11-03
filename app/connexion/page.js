@@ -1,4 +1,6 @@
 "use client";
+import { bindUser } from "../../lib/clear";
+import { country as countryOf } from "../../lib/countries";
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
@@ -6,12 +8,17 @@ import { Logo } from "../../components/Brand";
 import { useT } from "../../lib/i18n";
 import { SUPPORT, waSupport, mailSupport } from "../../lib/site";
 async function afterLogin(r, next) {
-  let draft = null, prof = null; try { draft = JSON.parse(localStorage.getItem("bnv_draft") || "null"); if (Date.now() - (+localStorage.getItem("bnv_draft_at") || 0) > 12 * 3600e3) draft = null; prof = JSON.parse(localStorage.getItem("bnv_profile") || localStorage.getItem("kola_profile") || "null"); } catch {}
-  if (prof && prof.business_name) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single();
-    if (!cur?.business_name) { const { business_name, phone, address, ifu, rccm, momo, template, accent, country, doc_lang, logo } = prof; const lang = localStorage.getItem("lang") || "fr";
-      await supabase.from("profiles").update({ business_name, phone, address, ifu, rccm, momo: (momo || []).filter(m => m.number || m.iban || m.url), currency: draft?.currency || prof.currency, template, accent, country, doc_lang: doc_lang || lang, lang, ...(logo ? { logo } : {}) }).eq("id", u.user.id); }
-    localStorage.removeItem("bnv_profile"); localStorage.removeItem("kola_profile"); }
-  else { localStorage.removeItem("bnv_profile"); const lang = localStorage.getItem("lang"); if (lang) { const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name").eq("id", u.user.id).single(); if (!cur?.business_name) await supabase.from("profiles").update({ lang, doc_lang: lang, ...(lang === "en" ? { currency: "USD", country: "US" } : {}) }).eq("id", u.user.id); } }
+  // Le brouillon d'essai (anonyme, < 12 h) n'est repris que par un compte encore vierge. Sinon on l'efface : rien ne passe d'un compte à l'autre.
+  let draft = null, prof = null; const fresh = (k) => Date.now() - (+localStorage.getItem(k) || 0) < 12 * 3600e3;
+  try { draft = fresh("bnv_draft_at") ? JSON.parse(localStorage.getItem("bnv_draft") || "null") : null; prof = fresh("bnv_profile_at") ? JSON.parse(localStorage.getItem("bnv_profile") || "null") : null; } catch {}
+  const { data: u } = await supabase.auth.getUser(); const { data: cur } = await supabase.from("profiles").select("business_name, country").eq("id", u.user.id).single();
+  const blank = !cur?.business_name; bindUser(u.user.id);
+  if (blank && prof && prof.business_name) { const { business_name, phone, address, ifu, rccm, momo, template, accent, country, doc_lang, logo } = prof; const lang = localStorage.getItem("lang") || "fr";
+    const c = countryOf(country || cur?.country || "SN");
+    await supabase.from("profiles").update({ business_name, phone, address, ifu, rccm, momo: (momo || []).filter(m => m.number || m.iban || m.url), country: c.code, currency: draft?.currency || prof.currency || c.cur, template, accent, doc_lang: doc_lang || lang, lang, ...(logo ? { logo } : {}) }).eq("id", u.user.id); }
+  else if (blank) { const lang = localStorage.getItem("lang"); if (lang) await supabase.from("profiles").update({ lang, doc_lang: lang }).eq("id", u.user.id); }
+  ["bnv_profile", "bnv_profile_at", "kola_profile", "kola_draft"].forEach((k) => localStorage.removeItem(k));
+  if (!blank) { localStorage.removeItem("bnv_draft"); localStorage.removeItem("bnv_draft_at"); draft = null; }
   if (draft && (draft.items || []).some(i => +i.price)) return r.replace("/app/documents/nouveau?import=1");
   r.replace(next && next.startsWith("/app") ? next : "/app");
 }
