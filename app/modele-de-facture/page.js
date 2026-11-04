@@ -1,0 +1,11 @@
+import Link from "next/link";
+import SeoLanding from "../../components/SeoLanding";
+export const metadata = { title: "Modèle de facture gratuit à remplir en ligne (PDF)", description: "Modèle de facture à remplir en ligne et à télécharger en PDF : mentions obligatoires, TVA, montant en lettres, moyens de paiement. Gratuit, sans inscription.", alternates: { canonical: "/modele-de-facture" } };
+export default function P() { return <SeoLanding path="/modele-de-facture" crumb="Modèle de facture" h1="Modèle de facture gratuit, à remplir en ligne." lead="Plutôt qu'un fichier Word ou Excel à modifier, remplissez ce modèle directement : les totaux, la TVA et le montant en lettres se calculent seuls. Téléchargez le PDF ou envoyez-le."
+  sections={[
+    ["Ce que contient le modèle", <ul><li>En-tête avec votre logo, vos coordonnées et vos identifiants (NINEA, IFU, NCC, RCCM, SIRET…)</li><li>Numéro de facture unique et date d'émission, date d'échéance</li><li>Coordonnées du client</li><li>Lignes : désignation, quantité, prix unitaire, montant</li><li>Sous-total, remise, TVA, total et montant en lettres</li><li>Moyens de paiement et référence à indiquer</li></ul>],
+    ["Plusieurs mises en page", <p>Épurée, classique ou en bandeau : choisissez une base, votre couleur et votre police. Vous pouvez aussi importer votre propre papier à en-tête (PDF ou image) et Bonova écrit la facture dessus. <Link href="/exemple">Voir un exemple de facture</Link>.</p>],
+    ["Devis et reçus aussi", <p>Le même modèle sert pour un devis (que le client peut accepter en ligne) et pour un reçu, qui atteste un paiement reçu. Un devis accepté se transforme en facture en un clic.</p>],
+  ]}
+  faq={[["Le modèle est-il vraiment gratuit ?", "Oui. Vous pouvez créer et télécharger vos factures sans payer et sans compte. La mention « Fait avec Bonova » apparaît en pied de page sur l'offre gratuite."], ["Puis-je utiliser une autre devise que le FCFA ?", "Oui : FCFA (XOF, XAF), euro, dollar, naira, cedi, dirham et la plupart des devises."]]}
+  related={[["/outils/generateur-facture", "Générateur de facture"], ["/blog/mentions-obligatoires-facture-ohada", "Mentions obligatoires (OHADA)"], ["/blog/numerotation-facture", "Numéroter ses factures"]]} />; }

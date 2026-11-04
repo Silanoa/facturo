@@ -37,7 +37,7 @@ const C = {
 };
 export default function Landing({ lang = "fr" }) {
   const t = C[lang]; const en = lang === "en"; const tryH = en ? "/en/invoice-generator" : "/essai";
-  const ld = [{ "@context": "https://schema.org", "@type": "Organization", name: "Bonova", url: SITE.url, logo: SITE.url + "/icon.svg" }, { "@context": "https://schema.org", "@type": "WebSite", name: "Bonova", url: SITE.url, inLanguage: ["fr", "en"] }, { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Bonova", applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", url: SITE.url + (en ? "/en" : "/"), inLanguage: lang,
+  const ld = [{ "@context": "https://schema.org", "@type": "Organization", name: "Bonova", alternateName: "Bonova App", url: SITE.url, logo: SITE.url + "/icon-512.png", sameAs: ["https://x.com/bonovaapp", "https://www.linkedin.com/company/bonova-app"] }, { "@context": "https://schema.org", "@type": "WebSite", name: "Bonova", alternateName: ["Bonova App", "bonova.app"], url: SITE.url, inLanguage: ["fr", "en"] }, { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Bonova", applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", url: SITE.url + (en ? "/en" : "/"), inLanguage: lang,
     offers: [{ "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" }, { "@type": "Offer", price: "4.9", priceCurrency: "USD", name: "Pro monthly" }] },
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ[lang].map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }];
   return (<div lang={lang}>

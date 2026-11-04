@@ -35,7 +35,8 @@ export function SiteFooter({ lang = "fr" }) {
     ["Guides", [["/en/blog/how-to-invoice-international-clients-from-africa", "Invoicing clients abroad"], ["/en/blog/get-paid-mobile-money-invoice", "Getting paid by Mobile Money"], ["/en/blog/freelance-invoice-template-free", "Freelance invoice template"], ["/en/blog", "All guides →"]]],
   ] : [
     ["Produit", [["/essai", "Faire une facture"], ["/exemple", "Exemple de facture"], ["/#pricing", "Tarifs"], ["/connexion?mode=signup", "Créer un compte gratuit"]]],
-    ["Outils gratuits", [["/outils/generateur-facture", "Générateur de facture"], ["/outils/calcul-tva", "Calcul de TVA"], ["/outils/montant-en-lettres", "Montant en lettres"]]],
+    ["Outils gratuits", [["/outils/generateur-facture", "Générateur de facture"], ["/outils/calcul-tva", "Calcul de TVA"], ["/outils/montant-en-lettres", "Montant en lettres"], ["/modele-de-facture", "Modèle de facture"]]],
+    ["Par pays", [["/facture-senegal", "Facture au Sénégal"], ["/facture-cote-divoire", "Facture en Côte d'Ivoire"], ["/facture-benin", "Facture au Bénin"], ["/logiciel-de-facturation", "Logiciel de facturation"]]],
     ["Guides", [["/blog/mentions-obligatoires-facture-ohada", "Mentions obligatoires (OHADA)"], ["/blog/facturer-client-etranger", "Facturer un client à l'étranger"], ["/blog/facture-freelance-france", "Facture freelance en France"], ["/blog", "Tous les guides →"]]],
   ];
   return (<footer className="foot"><div className="wrap">

@@ -8,12 +8,13 @@ const mono = IBM_Plex_Mono({ subsets: ["latin"], variable: "--f-mono", weight: [
 const serif = Newsreader({ subsets: ["latin"], variable: "--f-serif", style: ["italic", "normal"], display: "swap" });
 export const metadata = {
   metadataBase: new URL(SITE.url),
-  title: { default: "Bonova — Devis, factures et reçus en ligne", template: "%s · Bonova" },
+  title: { default: "Bonova — Générateur de facture, devis et reçus en ligne", template: "%s · Bonova" },
   description: "Créez vos devis, factures et reçus en une minute et envoyez-les par WhatsApp, email ou PDF. Paiement par Mobile Money, virement, carte ou PayPal. Sans inscription.",
   applicationName: "Bonova",
   manifest: "/manifest.webmanifest",
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }], apple: "/apple-touch-icon.png", shortcut: "/favicon.ico" },
-  openGraph: { type: "website", siteName: "Bonova", url: "/" },
+  openGraph: { type: "website", siteName: "Bonova" },
+  keywords: ["générateur de facture", "facture en ligne", "logiciel de facturation", "devis", "reçu", "Bonova", "invoice generator", "Sénégal", "Côte d'Ivoire", "Bénin", "Mobile Money"],
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
   verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
