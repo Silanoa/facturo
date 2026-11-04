@@ -14,17 +14,25 @@ const L = {
     pl: ["Everything in Free", "Unlimited custom templates", "Signature and stamp on your documents", "No Bonova line, your own footer", "Payment page with only your brand", "Priority support"],
     start: "Start for free", go: "Go Pro", month: "Monthly", year: "Yearly", shown: (c) => `Prices for: ${c}.`, momo: "Mobile Money, card or PayPal.", card: "Card or PayPal.", cancel: "No commitment, cancel any time." },
 };
-export default function Pricing({ lang = "fr", cc: fixed, tryHref = "/essai", onBuy }) {
+// current : "free" | "month" | "year" | "life" (espace connecté). Un abonné garde l'accès aux offres : prolonger ou passer à l'annuel.
+const CUR = {
+  fr: { cur: "Votre offre actuelle", incl: "Inclus dans votre offre", base: "Offre de base", extM: "Prolonger d'un mois", extY: "Prolonger d'un an", toY: "Passer à l'annuel", stack: "Les jours restants sont conservés." },
+  en: { cur: "Your current plan", incl: "Included in your plan", base: "Base plan", extM: "Add one month", extY: "Add one year", toY: "Switch to yearly", stack: "Remaining days are kept." },
+};
+export default function Pricing({ lang = "fr", cc: fixed, tryHref = "/essai", onBuy, current }) {
+  const k = CUR[lang === "en" ? "en" : "fr"]; const pro = ["month", "year", "life"].includes(current);
   const t = L[lang === "en" ? "en" : "fr"]; const det = useCountry(); const cc = fixed || det; const P0 = proPrice(cc || "US", lang); const P = cc ? P0 : { ...P0, month: "…", year: "…", monthOfYear: "…" }; const c = country(cc || "US");
-  const cta = (plan, cls, label) => onBuy ? <button className={cls} onClick={() => onBuy(plan, P)}>{label}</button> : <Link href={`/connexion?mode=signup&plan=${plan}`} className={cls}>{label}</Link>;
+  const cta = (plan, cls, label) => current === "life" ? <span className="pz-cur">{k.incl}</span> : onBuy ? <button className={cls} onClick={() => onBuy(plan, P)}>{label}</button> : <Link href={`/connexion?mode=signup&plan=${plan}`} className={cls}>{label}</Link>;
+  const lbl = (plan) => !pro ? t.go : plan === "month" ? k.extM : current === "year" ? k.extY : k.toY;
+  const badge = (on) => on ? <span className="pz-now">{k.cur}</span> : null;
   return (<div className="pz">
-    <div className="pz-c"><div className="pz-n">{t.free}</div><div className="pz-a">0</div><div className="pz-s">{t.forever}</div>
+    <div className={`pz-c ${current === "free" ? "on" : ""}`}><div className="pz-n">{t.free}{badge(current === "free")}</div><div className="pz-a">0</div><div className="pz-s">{t.forever}</div>
       <ul>{t.fl.map((x) => <li key={x}>{x}</li>)}<li className="no">{t.fn}</li></ul>
-      {onBuy ? <span className="pz-cur">{lang === "en" ? "Your current plan" : "Votre offre actuelle"}</span> : <Link href={tryHref} className="b o full">{t.start}</Link>}</div>
-    <div className="pz-c hl"><div className="pz-n">{t.pro} · {t.month}</div><div className="pz-a">{P.month}</div><div className="pz-s">{t.m}</div>
-      <ul>{t.pl.map((x) => <li key={x}>{x}</li>)}</ul>{cta("month", "b k full", t.go)}</div>
-    <div className="pz-c"><div className="pz-n">{t.pro} · {t.year} <span className="pz-tag">{t.save}</span></div><div className="pz-a">{P.year}</div><div className="pz-s">{t.y} · {t.ym(P.monthOfYear)}</div>
-      <ul><li>{lang === "en" ? "Everything in Pro monthly" : "Tout ce qui est dans Pro mensuel"}</li><li>{lang === "en" ? "One payment a year" : "Un seul paiement par an"}</li></ul>{cta("year", "b o full", t.go)}</div>
-    <p className="pz-f">{cc && t.shown(lang === "en" ? c.en : c.fr)} {P.momo ? t.momo : t.card} {t.cancel}</p>
+      {onBuy ? <span className="pz-cur">{pro ? k.base : k.cur}</span> : <Link href={tryHref} className="b o full">{t.start}</Link>}</div>
+    <div className={`pz-c ${current === "month" || current === "life" ? "on" : !pro ? "hl" : ""}`}><div className="pz-n">{t.pro} · {t.month}{badge(current === "month" || current === "life")}</div><div className="pz-a">{P.month}</div><div className="pz-s">{t.m}</div>
+      <ul>{t.pl.map((x) => <li key={x}>{x}</li>)}</ul>{cta("month", pro ? "b o full" : "b k full", lbl("month"))}</div>
+    <div className={`pz-c ${current === "year" ? "on" : current === "month" ? "hl" : ""}`}><div className="pz-n">{t.pro} · {t.year} <span className="pz-tag">{t.save}</span>{badge(current === "year")}</div><div className="pz-a">{P.year}</div><div className="pz-s">{t.y} · {t.ym(P.monthOfYear)}</div>
+      <ul><li>{lang === "en" ? "Everything in Pro monthly" : "Tout ce qui est dans Pro mensuel"}</li><li>{lang === "en" ? "One payment a year" : "Un seul paiement par an"}</li></ul>{cta("year", current === "month" ? "b k full" : "b o full", lbl("year"))}</div>
+    <p className="pz-f">{cc && t.shown(lang === "en" ? c.en : c.fr)} {P.momo ? t.momo : t.card} {pro && current !== "life" ? k.stack : t.cancel}</p>
   </div>);
 }

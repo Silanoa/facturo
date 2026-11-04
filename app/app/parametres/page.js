@@ -16,6 +16,20 @@ import Pricing from "../../../components/Pricing";
 import { shrink, dominant, letterhead } from "../../../lib/img";
 const SAMPLE = { kind: "invoice", number: "FAC-2026-0042", status: "sent", currency: "XOF", tax_rate: 18, discount: 0, issue_date: "2026-11-02", due_date: "2026-11-17", client: { name: "Atlas Conseil SARL", address: "Plateau, Dakar" }, items: [{ label: "Refonte du site web", qty: 1, price: 450000 }, { label: "Maintenance mensuelle", qty: 3, price: 35000 }] };
 const LS = { month: process.env.NEXT_PUBLIC_LEMON_MONTH, year: process.env.NEXT_PUBLIC_LEMON_YEAR };
+const addMonths = (d, n) => { const x = new Date(d); x.setMonth(x.getMonth() + n); return x; };
+// Résumé de l'offre : même cadre pour Gratuit et Pro (taille, structure), seul le contenu change.
+function PlanNow({ s, lang, tr, hist, current }) {
+  const loc = lang === "en" ? "en-GB" : "fr-FR"; const d8 = (d) => new Date(d).toLocaleDateString(loc, { day: "numeric", month: "long", year: "numeric" });
+  const until = s.profile.pro_until ? new Date(s.profile.pro_until) : null; const left = until ? Math.ceil((until - Date.now()) / 864e5) : null;
+  const name = current === "free" ? tr("Gratuit", "Free") : current === "life" ? "Pro" : current === "year" ? tr("Pro · annuel", "Pro · yearly") : tr("Pro · mensuel", "Pro · monthly");
+  const last = hist && hist[0];
+  return (<div className={`plan-now ${current !== "free" ? "is-pro" : ""}`}>
+    <div className="plan-now-m"><span className="plan-now-k">{tr("Votre offre", "Your plan")}</span><b className="plan-now-n">{name}</b>
+      <span className="plan-now-s">{current === "free" ? tr("Sans limite de durée. Passez à Pro quand vous en avez besoin.", "No time limit. Upgrade whenever you need to.") : current === "life" ? tr("Actif, sans date d'échéance.", "Active, no end date.") : left > 0 ? <>{tr("Actif jusqu'au", "Active until")} <b>{d8(until)}</b> · {left} {left > 1 ? tr("jours restants", "days left") : tr("jour restant", "day left")}</> : tr("Expiré. Vos documents restent accessibles.", "Expired. Your documents remain available.")}</span></div>
+    {current !== "free" && current !== "life" && <dl className="plan-now-d"><div><dt>{tr("Renouvellement", "Renewal")}</dt><dd>{tr("Manuel", "Manual")}</dd></div>{last && <div><dt>{tr("Dernier paiement", "Last payment")}</dt><dd>{d8(last.created_at)}{last.amount ? ` · ${Number(last.amount).toLocaleString(loc)} ${last.currency === "XOF" ? "FCFA" : last.currency || ""}` : ""}</dd></div>}</dl>}
+    {current !== "free" && left !== null && left <= 7 && left > 0 && <p className="plan-now-w">{tr("Votre Pro se termine bientôt. Prolongez ci-dessous pour ne rien perdre.", "Your Pro ends soon. Extend below to keep everything.")}</p>}
+  </div>);
+}
 function Settings() {
   const sp0 = useSearchParams(); const tq = sp0.get("t"); useEffect(() => { if (tq) setTab(tq); }, [tq]);
   const s = useSession(); const sp = useSearchParams(); const { tr, lang, setLang } = useT(); const [tab, setTab] = useState(sp.get("t") || "compte");
@@ -24,7 +38,12 @@ function Settings() {
   const set = (k, v) => setP((x) => ({ ...x, [k]: v })); const setB = (k, v) => setP((x) => ({ ...x, blocks: { ...x.blocks, [k]: v } }));
   const S = p.settings; const setS = (k, v) => setP((x) => ({ ...x, settings: { ...x.settings, [k]: v } })); const N = S.numbering || {}; const setN = (k, v) => setS("numbering", { ...N, [k]: v });
   const pro = s.profile.plan === "pro"; const ct = country(p.country || "ZZ"); const rates = S.tax_rates || [];
-  const [saved, setSaved] = useState(null); const first = useRef(true);
+  const [saved, setSaved] = useState(null); const first = useRef(true); const [hist, setHist] = useState(null);
+  // Retour de paiement : le webhook peut arriver quelques secondes après la redirection → on relit le profil.
+  useEffect(() => { if (sp.get("paid") !== "1") return; let n = 0; const t = setInterval(() => { n++; s.reload(true); setHist(null); if (n >= 6) clearInterval(t); }, 8000); return () => clearInterval(t); }, []);
+  useEffect(() => { if (tab === "offre" && pro && hist === null) supabase.rpc("my_payments").then(({ data }) => setHist(data || [])); }, [tab, pro, hist]);
+  const current = !pro ? "free" : !s.profile.pro_until ? "life" : (hist && hist[0]?.months === 12) ? "year" : "month";
+  const d8 = (d) => new Date(d).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "long", year: "numeric" });
   useEffect(() => { if (first.current) { first.current = false; return; } setSaved("…"); const t = setTimeout(() => save(true), 900); return () => clearTimeout(t); }, [p]);
   async function save(auto) { setBusy(true);
     const { business_name, ifu, rccm, address, phone, email, currency, momo, accent, template, logo, font, blocks, footer, country: cc, doc_lang, letterhead: lhd, settings } = p;
@@ -51,7 +70,7 @@ function Settings() {
   const TABS = [["compte", tr("Compte", "Account")], ["profil", tr("Entreprise", "Business")], ["taxes", tr("Taxes", "Taxes")], ["numeros", tr("Numérotation", "Numbering")], ["defauts", tr("Documents", "Documents")], ["paiement", tr("Moyens de paiement", "Payment methods")], ["modele", tr("Apparence", "Appearance")], ["notifs", "Notifications"], ["donnees", tr("Sécurité et données", "Security & data")], ["offre", tr("Abonnement", "Subscription")]];
   return (<div className="in">
     <div className="ph"><div><p className="u">{tr("Réglages", "Settings")}</p><h1>{TABS.find(t => t[0] === tab)?.[1]}</h1></div>{!["offre", "donnees"].includes(tab) && <span className={`autosave ${saved || ""}`} role="status" aria-live="polite">{saved === "…" || busy ? tr("Enregistrement…", "Saving…") : saved === "err" ? tr("Échec de l'enregistrement", "Save failed") : saved === "ok" ? tr("Enregistré automatiquement", "Saved automatically") : tr("Enregistrement automatique", "Autosave on")}</span>}</div>
-    {sp.get("paid") === "1" && <div className="note ok" style={{ marginBottom: 16 }}><b>{tr("Paiement confirmé.", "Payment confirmed.")}</b> {tr("Bienvenue dans Bonova Pro.", "Welcome to Bonova Pro.")}</div>}
+    {sp.get("paid") === "1" && <div className="note ok" style={{ marginBottom: 16 }}><b>{tr("Paiement reçu.", "Payment received.")}</b> {pro ? tr("Votre offre Pro est à jour.", "Your Pro plan is up to date.") : tr("L'activation de Pro prend généralement moins d'une minute ; cette page se met à jour seule.", "Pro usually activates within a minute; this page updates by itself.")}</div>}
     {sp.get("paid") === "0" && <div className="note bad" style={{ marginBottom: 16 }}>{tr("Le paiement n'a pas abouti. Rien n'a été débité.", "Payment did not go through. Nothing was charged.")}</div>}
     <div className="stabs">{TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
     {tab === "compte" && <div style={{ maxWidth: 760 }}>
@@ -150,11 +169,16 @@ function Settings() {
       <div className="blk danger"><h3>{tr("Supprimer mon compte", "Delete my account")}</h3><p className="hint" style={{ marginTop: 0 }}>{tr("Supprime définitivement le compte, les documents et les clients. Pensez à exporter avant.", "Permanently deletes the account, documents and clients. Export first.")}</p>
         <div className="row" style={{ gap: 8 }}><input value={conf} onChange={(e) => setConf(e.target.value)} placeholder={tr("Tapez SUPPRIMER", "Type DELETE")} style={{ flex: 1 }} /><button className="b s bad" disabled={conf !== "SUPPRIMER" && conf !== "DELETE"} onClick={delAccount}>{tr("Supprimer définitivement", "Delete permanently")}</button></div></div></div>}
     {tab === "offre" && <div id="offre" style={{ maxWidth: 1000 }}>
-      {pro ? <div className="panel"><span className="pill paid">Pro</span><h2 style={{ fontSize: 44, margin: "12px 0 6px" }}>{tr("Merci.", "Thank you.")}</h2><p className="mute">{s.profile.pro_until ? `${tr("Actif jusqu'au", "Active until")} ${new Date(s.profile.pro_until).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR")}.` : ""}</p></div> :
-      <Pricing lang={lang} cc={p.country || undefined} onBuy={(plan, P) => P.momo ? setPay({ plan, P }) : card(plan)} />}
-      {pay && pay.P && <div className="note" style={{ marginTop: 14 }}><b>{tr("Moyen de paiement", "Payment method")}</b><div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><button className="b k" onClick={() => feda(pay.plan)}>Mobile Money (Wave, Orange Money, Free Money, MTN, Moov) — {pay.plan === "year" ? pay.P.year : pay.P.month}</button><button className="b o" onClick={() => card(pay.plan)}>{tr("Carte ou PayPal", "Card or PayPal")}</button></div></div>}
+      <PlanNow s={s} lang={lang} tr={tr} hist={hist} current={current} />
+      <h3 className="plan-h">{pro && current !== "life" ? tr("Prolonger ou changer d'offre", "Extend or change plan") : pro ? tr("Les offres", "Plans") : tr("Choisir une offre", "Choose a plan")}</h3>
+      <Pricing lang={lang} cc={p.country || undefined} current={current} onBuy={(plan, P) => P.momo ? setPay({ plan, P }) : card(plan)} />
+      {pay && pay.P && <div className="note plan-pay" style={{ marginTop: 14 }}><b>{tr("Moyen de paiement", "Payment method")} · {pay.plan === "year" ? tr("Pro annuel", "Pro yearly") : tr("Pro mensuel", "Pro monthly")}</b>
+        {pro && current !== "life" && s.profile.pro_until && <p className="hint" style={{ margin: "6px 0 0" }}>{tr("Après paiement, votre Pro sera actif jusqu'au", "After payment, Pro stays active until")} <b>{d8(addMonths(new Date(Math.max(Date.now(), +new Date(s.profile.pro_until))), pay.plan === "year" ? 12 : 1))}</b>.</p>}
+        <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><button className="b k" onClick={() => feda(pay.plan)}>Mobile Money · {pay.plan === "year" ? pay.P.year : pay.P.month}</button>
+          {LS[pay.plan] ? <button className="b o" onClick={() => card(pay.plan)}>{tr("Carte ou PayPal", "Card or PayPal")}</button> : <button className="b o" disabled title={tr("Bientôt disponible", "Coming soon")}>{tr("Carte ou PayPal · bientôt", "Card or PayPal · soon")}</button>}</div>
+        <p className="hint" style={{ margin: "8px 0 0" }}>Wave, Orange Money, Free Money, MTN, Moov.</p></div>}
       {pay && typeof pay === "string" && <p className="note" style={{ marginTop: 14 }}>{pay}</p>}
-      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>{tr("En zone FCFA (XOF) : Wave, Orange Money, Free Money, MTN, Moov. Partout ailleurs : carte bancaire ou PayPal. Utilisez l’adresse e-mail de votre compte Bonova lors du paiement pour une activation automatique.", "In the CFA franc zone (XOF): Wave, Orange Money, Free Money, MTN, Moov. Everywhere else: card or PayPal. Use your Bonova account email at checkout so Pro activates automatically.")}</p></div>}
+      <p className="mute" style={{ fontSize: 14, marginTop: 14 }}>{tr("Paiement unique, sans renouvellement automatique : vous prolongez quand vous le souhaitez. Utilisez l'adresse e-mail de votre compte Bonova lors du paiement pour une activation automatique.", "One-off payment, no automatic renewal: extend whenever you like. Use your Bonova account email at checkout so Pro activates automatically.")}</p></div>}
   </div>);
 }
 export default function Page() { return <Suspense fallback={null}><Settings /></Suspense>; }
