@@ -66,6 +66,6 @@ export default function Pub() {
     </div>
     <div style={{ display: show ? "block" : "none", padding: "0 12px 30px" }} className="pubdoc"><div style={{ maxWidth: 820, margin: "0 auto" }}><DocPaper doc={doc} profile={profile} /></div></div>
     {profile.plan !== "pro" && <a href={L === "en" ? "/en" : "/"} className="np" style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center", fontSize: 13.5, color: "var(--mute)", padding: "20px 0 40px", textDecoration: "none" }}><Mark size={18} /> {tr("Fait avec Bonova — factures gratuites, sans compte", "Made with Bonova — free invoices, no sign-up")}</a>}
-    <style>{`@media print{.pubdoc{display:block!important;padding:0!important}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media print{.pubdoc{display:block!important;padding:0!important}}` }} />
   </div>);
 }

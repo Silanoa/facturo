@@ -87,7 +87,7 @@ function View() {
           <div className="row" style={{ marginTop: 10, flexWrap: "wrap" }}><a className="b s wa" target="_blank" rel="noreferrer" href={waLink(doc.client?.phone, msg)}>{tr("Relancer sur WhatsApp", "Remind on WhatsApp")}</a><a className="b s o" href={mailLink(doc.client?.email, reminderSubject(doc, tone, dl), msg)}>Email</a></div></div>}
       </aside>
     </div>
-    <style>{`@media(max-width:1100px){.vgrid{grid-template-columns:1fr!important}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:1100px){.vgrid{grid-template-columns:1fr!important}}` }} />
   </div>);
 }
 export default function Page() { return <Suspense fallback={null}><View /></Suspense>; }

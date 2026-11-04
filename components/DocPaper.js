@@ -78,7 +78,7 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
   const body = (parties) => B.order.map((k) => k === "parties" ? (parties ? <div key="parties">{parties}</div> : null) : S[k]());
   // En impression (hors fond importé), le pied de page passe dans la marge basse de chaque page, à côté de « Page x / y ».
   const footTxt = [profile.footer || "", profile.plan !== "pro" ? tr("Fait avec Bonova", "Made with Bonova") : ""].filter(Boolean).join("  ·  ").replace(/[\r\n]+/g, " ").replace(/[<>\\]/g, "").slice(0, 180);
-  const pageCss = !(!template && profile.letterhead) ? <style>{`@media print{@page{@bottom-left{content:${JSON.stringify(footTxt)};font:8pt/1.2 system-ui,sans-serif;color:#8a847b;padding-left:14mm}}.paper .pfoot{display:none!important}}`}</style> : null;
+  const pageCss = !(!template && profile.letterhead) ? <style dangerouslySetInnerHTML={{ __html: `@media print{@page{@bottom-left{content:${JSON.stringify(String(footTxt || "")).replace(/[<>]/g, (c) => c === "<" ? "\\3c " : "\\3e ")};font:8pt/1.2 system-ui,sans-serif;color:#8a847b;padding-left:14mm}}.paper .pfoot{display:none!important}}` }} /> : null;
   const foot = <div className="fine pfoot"><span>{profile.footer || ""}</span>{profile.plan !== "pro" && <span>{tr("Fait avec Bonova", "Made with Bonova")}</span>}</div>;
   const stamp = isPaid ? <div className="stamp">{tr("PAYÉE", "PAID")}</div> : K === "receipt" ? <div className="stamp">{tr("PAYÉ", "PAID")}</div> : K === "quote" && doc.status === "accepted" ? <div className="stamp">{tr("ACCEPTÉ", "ACCEPTED")}</div> : K === "quote" && doc.status === "declined" ? <div className="stamp no">{tr("REFUSÉ", "DECLINED")}</div> : doc.status === "cancelled" ? <div className="stamp no">{tr("ANNULÉE", "CANCELLED")}</div> : partial ? <div className="stamp part">{tr("ACOMPTE REÇU", "PART PAID")}</div> : null;
   const cls = `paper k-${K} t-${tp} lp-${B.logo_pos || "left"}`;
@@ -87,9 +87,9 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
     const lstyle = lh ? { ...style, backgroundImage: `url(${profile.letterhead})` } : style;
     const hasFrom = lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm;
     // Fond importé : en impression, le fond est répété sur chaque page (img fixe) et les marges haut/bas du modèle sont réservées sur chaque page (thead/tfoot répétés).
-    const wrapLh = (inner) => lh ? <table className="lhw"><thead><tr><td><div className="lhsp" style={{ height: lht }} /></td></tr></thead><tfoot><tr><td><div className="lhsp" style={{ height: lhb }} /></td></tr></tfoot><tbody><tr><td>{inner}</td></tr></tbody></table> : inner;
     const lht = `${(210 * (+B.lh_top || 0)) / 100}mm`, lhb = `${(210 * (+B.lh_bottom || 0)) / 100}mm`;
-    return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{pageCss}{lh && <><img className="lhbg" src={profile.letterhead} alt="" /><style>{`@media print{@page{margin:0}}`}</style></>}{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>{wrapLh(<>
+    const wrapLh = (inner) => lh ? <table className="lhw"><thead><tr><td><div className="lhsp" style={{ height: lht }} /></td></tr></thead><tfoot><tr><td><div className="lhsp" style={{ height: lhb }} /></td></tr></tfoot><tbody><tr><td>{inner}</td></tr></tbody></table> : inner;
+    return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{pageCss}{lh && <><img className="lhbg" src={profile.letterhead} alt="" /><style dangerouslySetInnerHTML={{ __html: `@media print{@page{margin:0}}` }} /></>}{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>{wrapLh(<>
       {!lh && <div className="n-top"><div className="n-id">{logo}<div className="n-bn">{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div></div>
         <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
       {lh && <div className="n-kind lhk"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div>}

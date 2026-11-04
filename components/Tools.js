@@ -32,7 +32,7 @@ export function VatCalc() {
     <div className="stats" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>{[[tr("Hors taxes", "Net"), ht], [by.length === 1 ? `${tr("TVA", "VAT")} ${pc(by[0][0])}` : tr("TVA", "VAT"), tva], [tr("Toutes taxes", "Gross"), ttc]].map(([l, v], i) => <div key={l}><div className="u">{l}</div><div className="mono" style={{ fontSize: i === 2 ? 26 : 22, fontWeight: 600, marginTop: 8, color: i === 2 ? "var(--carbon)" : "inherit" }}>{fmt(v, c, lang)}</div></div>)}</div>
     {by.length > 1 && <div className="mute" style={{ fontSize: 14, marginTop: 12 }}>{by.map(([r, v]) => <div key={r}>{tr("TVA", "VAT")} {pc(r)} : <b className="mono">{fmt(v, c, lang)}</b></div>)}</div>}
     <p className="mute" style={{ fontSize: 14, margin: "14px 0 0" }}>{tr("Calcul : TVA = HT × taux · TTC = HT × (1 + taux) · HT = TTC ÷ (1 + taux)", "Formula: VAT = net × rate · gross = net × (1 + rate) · net = gross ÷ (1 + rate)")}</p>
-    <style>{`@media(max-width:700px){.tool .g3,.tool .stats{grid-template-columns:1fr!important}.tool .stats>div{border-right:0!important;border-bottom:1px solid var(--line)}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:700px){.tool .g3,.tool .stats{grid-template-columns:1fr!important}.tool .stats>div{border-right:0!important;border-bottom:1px solid var(--line)}}` }} />
   </div>);
 }
 const CW = { XOF: ["franc CFA", "francs CFA"], XAF: ["franc CFA", "francs CFA"], EUR: ["euro", "euros"], USD: ["dollar", "dollars"], NGN: ["naira", "naira"], GHS: ["cedi", "cedis"], MAD: ["dirham", "dirhams"], KES: ["shilling", "shillings"] };

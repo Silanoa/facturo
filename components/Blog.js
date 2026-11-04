@@ -12,7 +12,7 @@ export function BlogIndex({ lang = "fr" }) { const t = T[lang]; const posts = al
       <div><span className="pill">{first.tag}</span><h2 style={{ fontSize: "clamp(30px,4vw,52px)", margin: "16px 0 0" }}>{first.title}</h2></div>
       <div><p style={{ fontSize: 19, color: "var(--ink-2)", marginTop: 0 }}>{first.description}</p><span className="mute mono" style={{ fontSize: 13 }}>{d(first.date, lang)} · {first.read} {t.min}</span></div></Link>}
     <div className="cards">{rest.map(p => <Link key={p.slug} href={`${t.base}/${p.slug}`}><span className="u" style={{ color: "var(--carbon)" }}>{p.tag}</span><h3>{p.title}</h3><p className="mute" style={{ margin: "0 0 10px", fontSize: 15 }}>{p.description}</p><span className="mute mono" style={{ fontSize: 12.5 }}>{p.read} {t.min}</span></Link>)}</div>
-    <style>{`@media(max-width:900px){.feat{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:900px){.feat{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}}` }} />
   </main><SiteFooter lang={lang} /></>); }
 export function postMeta(slug, lang) { const p = getPost(slug, lang); if (!p) return {}; const t = T[lang];
   return { title: p.title, description: p.description, alternates: { canonical: `${t.base}/${p.slug}` }, openGraph: { type: "article", title: p.title, description: p.description, publishedTime: p.date, url: `${t.base}/${p.slug}` } }; }
@@ -31,5 +31,5 @@ export function BlogPost({ slug, lang = "fr" }) { const t = T[lang]; const p = g
           <div style={{ background: "var(--carbon)", color: "#fff", padding: 22 }}><b style={{ fontSize: 26, fontFamily: "var(--f-display)", textTransform: "uppercase", fontStretch: "62%", lineHeight: 1 }}>{t.cta}</b><p style={{ color: "#D5D9FF", fontSize: 14.5 }}>{t.cs}</p><Link href={t.try} className="b inv full">{t.go}</Link></div></aside></div>
       {more.length > 0 && <section style={{ marginTop: 70 }}><p className="u">{t.more}</p><div className="cards" style={{ marginTop: 14 }}>{more.map(x => <Link key={x.slug} href={`${t.base}/${x.slug}`}><span className="u" style={{ color: "var(--carbon)" }}>{x.tag}</span><h3>{x.title}</h3></Link>)}</div></section>}
     </main><SiteFooter lang={lang} />
-    <style>{`@media(max-width:1000px){.art{grid-template-columns:minmax(0,1fr)!important}.art-side{position:static!important}}`}</style></>);
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:1000px){.art{grid-template-columns:minmax(0,1fr)!important}.art-side{position:static!important}}` }} /></>);
 }

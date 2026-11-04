@@ -31,6 +31,6 @@ export default function Clients() {
           <div className="s">{s ? <>{fmt(s.billed, s.currency)} {tr("facturés", "billed")}{s.avgDays !== null && <> · {tr("paie en", "pays in")} ~{s.avgDays} {tr("j", "d")}</>}{s.open > 0 && <> · <span style={{ color: s.late ? "var(--late)" : "var(--ink-2)", fontWeight: 600 }}>{tr("doit", "owes")} {fmt(s.open, s.currency)}</span></>}</> : (c.phone || c.email || "—")}</div></button>
         {c.phone && <a className="b s o" target="_blank" rel="noreferrer" href={`https://wa.me/${waNumber(c.phone)}`}>WhatsApp</a>}
         <Link className="b s o" href={`/app/documents/nouveau?client=${c.id}`}>{tr("Facturer", "Invoice")}</Link></div>); })}</div>}
-    <style>{`@media(max-width:600px){.li .b.o{display:none}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:600px){.li .b.o{display:none}}` }} />
   </div>);
 }

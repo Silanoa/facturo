@@ -65,7 +65,7 @@ export default function Dash() {
         
       </aside>
     </div>
-    <style>{`@media(max-width:900px){.dgrid{grid-template-columns:1fr!important}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:900px){.dgrid{grid-template-columns:1fr!important}}` }} />
   </div>);
 }
 function Big({ v, c }) { const f = fmt(v, c); const m = f.match(/^(.*\d)\s(\D+)$/); return <div className="big" style={{ marginTop: 10 }}>{m ? m[1] : f}{m && <small> {m[2]}</small>}</div>; }

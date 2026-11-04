@@ -33,7 +33,7 @@ function Docs() {
         <div className="grow"><div className="t">{d.client?.name || "—"}</div><div className="s"><span className="mono">{d.number}</span> · {kindName(d.kind, lang)} · {new Date(d.issue_date).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "short" })}</div></div>
         <span className={`pill ${st}`}>{statusName(st, lang, d.kind)}</span><div className="amt" style={{ minWidth: 120 }}>{fmt(d.total, d.currency)}</div></Link>); })}</div>}
     {Object.keys(sum).length > 0 && <p className="mute" style={{ textAlign: "right", fontSize: 14 }}>{tr("Total factures affichées :", "Invoices total:")} {Object.entries(sum).map(([c, v]) => <b key={c} className="mono" style={{ color: "var(--ink)", marginLeft: 8 }}>{fmt(v, c)}</b>)}</p>}
-    <style>{`@media(max-width:600px){.li .pill{display:none}}`}</style>
+    <style dangerouslySetInnerHTML={{ __html: `@media(max-width:600px){.li .pill{display:none}}` }} />
   </div>);
 }
 export default function Page() { return <Suspense fallback={null}><Docs /></Suspense>; }
