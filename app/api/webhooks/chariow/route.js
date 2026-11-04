@@ -11,5 +11,6 @@ export async function POST(req) {
   const ev = j.event || req.headers.get("x-pulse-event"); const id = j.sale?.id;
   if (ev !== "successful.sale" || !id) return NextResponse.json({ ok: true, skipped: ev || "none" });
   try { const r = await confirmSale(id); return NextResponse.json(r, { status: r.ok ? 200 : 422 }); }
-  catch (e) { console.error("chariow webhook", e.message); return NextResponse.json({ ok: false }, { status: 502 }); }
+  catch (e) { if (e.status === 404) { console.warn("chariow: sale not found (test pulse?)", id); return NextResponse.json({ ok: false, why: "not_found" }); }
+    console.error("chariow webhook", e.message); return NextResponse.json({ ok: false }, { status: 502 }); }
 }
