@@ -25,7 +25,7 @@ async function afterLogin(r, next) {
   r.replace(next && next.startsWith("/app") ? next : "/app");
 }
 function Form() {
-  const { tr } = useT();
+  const { tr, lang } = useT();
   const sp = useSearchParams(); const r = useRouter(); const next = sp.get("next");
   const [mode, setMode] = useState(sp.get("mode") === "signup" ? "signup" : "login");
   const [email, setEmail] = useState(""); const [pw, setPw] = useState(""); const [msg, setMsg] = useState(null); const [busy, setBusy] = useState(false);
