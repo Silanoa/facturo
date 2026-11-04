@@ -4,7 +4,9 @@ import { confirmSale, pulseSigOk } from "../../../../lib/chariow";
 export async function POST(req) {
   if (!process.env.CHARIOW_API_KEY || !process.env.APP_SECRET) return NextResponse.json({ ok: false }, { status: 503 });
   const raw = await req.text(); const secret = process.env.CHARIOW_WEBHOOK_SECRET;
-  if (secret && !pulseSigOk(raw, req.headers.get("x-chariow-signature"), secret)) return NextResponse.json({ ok: false }, { status: 401 });
+  const sigOk = !!secret && pulseSigOk(raw, req.headers.get("x-chariow-signature"), secret);
+  console.log("chariow pulse", req.headers.get("x-pulse-event"), req.headers.get("x-pulse-delivery-id"), "signature", secret ? (sigOk ? "match" : "MISMATCH") : "unchecked");
+  if (secret && !sigOk) return NextResponse.json({ ok: false }, { status: 401 });
   let j; try { j = JSON.parse(raw); } catch { return NextResponse.json({ ok: false }, { status: 400 }); }
   const ev = j.event || req.headers.get("x-pulse-event"); const id = j.sale?.id;
   if (ev !== "successful.sale" || !id) return NextResponse.json({ ok: true, skipped: ev || "none" });
