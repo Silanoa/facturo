@@ -1,26 +1,36 @@
 # Bonova
 
-> Bonova is a free invoice, quote and receipt maker (French and English) for freelancers and small businesses in Africa and worldwide. Make an invoice and send it by WhatsApp, email or PDF in a minute, without creating an account. Unlimited free invoices, 0% fees: clients pay the seller directly by Mobile Money (MTN MoMo, Orange Money, Wave, M-Pesa, Moov, Airtel…), bank transfer/IBAN, PayPal, Wise, or a Stripe/Paystack/Flutterwave/Kkiapay/FedaPay link. All African currencies plus USD, EUR, GBP, CAD and more. Country-aware tax and legal lines (OHADA, France, EU reverse charge, UK, US, Canada). Pro (price shown in the local currency, e.g. 2,500 FCFA or $4.90/month): unlimited templates, signature and stamp, custom footer, no Bonova branding. Paid by Mobile Money in the West African CFA zone (XOF), card or PayPal elsewhere.
+> Bonova (https://bonova.app, also called "Bonova App") is a free online quote, invoice and receipt maker, in French and English, for freelancers and small businesses. It was built first for West and Central Africa (CFA franc zone: Senegal, Côte d'Ivoire, Benin, Togo, Mali, Burkina Faso, Cameroon…) and also works in France, Belgium, Switzerland, Canada, the UK and the US. Not to be confused with other companies or products named "Bonova".
 
-## Product
-- [Home (FR)](https://bonova.app/)
-- [Home (EN)](https://bonova.app/en)
-- [Free invoice generator, no sign-up (EN)](https://bonova.app/en/invoice-generator)
-- [Générateur de facture gratuit (FR)](https://bonova.app/essai)
+Key facts:
+- Create a quote, invoice or receipt in about a minute, from a phone or computer, without an account. Send it as a PDF, by WhatsApp, by email or as a link.
+- Country-aware: currency (XOF/FCFA, XAF, NGN, GHS, EUR, USD, GBP, CAD…), VAT rate, business IDs (NINEA, NCC, IFU, RCCM, SIRET…) and amount in words.
+- 0% fees: clients pay the seller directly by Mobile Money (Wave, Orange Money, MTN MoMo, Moov…), bank transfer or a payment link.
+- Free plan: unlimited quotes, invoices and receipts, no time limit, with a "Made with Bonova" footer line.
+- Pro: 2,500 FCFA per month, or a yearly plan with two months free (price shown in local currency outside the CFA zone). Adds signature and stamp, unlimited custom templates, own footer. No automatic renewal.
+- Not a certified e-invoicing system (e-MECeF in Benin, FNE in Côte d'Ivoire, French approved platforms).
+- Social: https://x.com/bonovaapp · https://www.linkedin.com/company/bonova-app
 
-## Tools
-- [VAT calculator](https://bonova.app/en/tools/vat-calculator)
-- [Amount in words](https://bonova.app/en/tools/amount-in-words)
-- [Calcul TVA](https://bonova.app/outils/calcul-tva)
-- [Montant en lettres](https://bonova.app/outils/montant-en-lettres)
+## About
+- [À propos de Bonova (FR)](https://bonova.app/a-propos)
+- [About Bonova (EN)](https://bonova.app/en/about)
+- [Home (FR)](https://bonova.app/) · [Home (EN)](https://bonova.app/en)
+
+## Free tools
+- [Générateur de facture gratuit](https://bonova.app/outils/generateur-facture) · [Free invoice generator](https://bonova.app/en/invoice-generator)
+- [Calcul de TVA](https://bonova.app/outils/calcul-tva) · [VAT calculator](https://bonova.app/en/tools/vat-calculator)
+- [Montant en lettres](https://bonova.app/outils/montant-en-lettres) · [Amount in words](https://bonova.app/en/tools/amount-in-words)
+- [Modèle de facture](https://bonova.app/modele-de-facture)
+- [Logiciel de facturation](https://bonova.app/logiciel-de-facturation)
+
+## By country
+- [Faire une facture au Sénégal](https://bonova.app/facture-senegal)
+- [Faire une facture en Côte d'Ivoire](https://bonova.app/facture-cote-divoire)
+- [Faire une facture au Bénin](https://bonova.app/facture-benin)
 
 ## Guides
-- [Guides (EN)](https://bonova.app/en/blog)
-- [Guides (FR)](https://bonova.app/blog)
+- [Guides (FR)](https://bonova.app/blog) · [Guides (EN)](https://bonova.app/en/blog)
 
 ## Legal
 - [Confidentialité](https://bonova.app/confidentialite) · [Privacy](https://bonova.app/en/privacy)
 - [Conditions](https://bonova.app/conditions) · [Terms](https://bonova.app/en/terms)
-
-## Limits
-- Not a certified e-invoicing system (e.g. MECeF in Benin, FNE in Côte d'Ivoire, French e-invoicing platforms).

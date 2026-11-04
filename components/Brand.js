@@ -49,6 +49,7 @@ export function SiteFooter({ lang = "fr" }) {
     </div>
     <div className="foot-bar">
       <span>© {new Date().getFullYear()} Bonova</span>
+      {L(en ? "/en/about" : "/a-propos", en ? "About" : "À propos")}
       {L(en ? "/en/privacy" : "/confidentialite", en ? "Privacy" : "Confidentialité")}
       {L(en ? "/en/terms" : "/conditions", en ? "Terms" : "Conditions d'utilisation")}
       <span className="foot-lng">{en ? <>{L("/", "Français")}<b>English</b></> : <><b>Français</b>{L("/en", "English")}</>}</span>
