@@ -11,7 +11,7 @@ import { useT } from "../lib/i18n";
 import { docLang } from "./DocPaper";
 import { detectCountry, rememberCountry } from "../lib/geo";
 const get = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
-export default function Trial({ heading = true }) {
+export default function Trial({ heading = true, country: forced = null }) {
   const { tr, lang } = useT();
   const [logoErr, setLogoErr] = useState(null); const [doc, setDoc] = useState(null); const [p, setP] = useState(null); const [open, setOpen] = useState(false); const [copied, setCopied] = useState(false); const [warn, setWarn] = useState(false); const [resumed, setResumed] = useState(false);
   const restart = () => { localStorage.removeItem("bnv_draft"); localStorage.removeItem("bnv_draft_at"); setResumed(false); setDoc({ ...blankDoc(doc.kind, doc.currency), number: doc.number }); };
@@ -19,10 +19,11 @@ export default function Trial({ heading = true }) {
     const at = +localStorage.getItem("bnv_draft_at") || 0; const d0 = get("bnv_draft"); const d = d0 && Date.now() - at < 12 * 3600e3 && ((d0.items || []).some((i) => i.label || +i.price) || d0.client?.name) ? d0 : null; if (!d) { localStorage.removeItem("bnv_draft"); localStorage.removeItem("kola_draft"); } setResumed(!!d); const pr = get("bnv_profile") || get("kola_profile");
     const seed = get("bnv_seed"); if (seed) localStorage.removeItem("bnv_seed");
     const en = lang === "en";
-    const base = d || { ...blankDoc("invoice", en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
+    const fc = forced ? country(forced) : null;
+    const base = d || { ...blankDoc("invoice", fc ? fc.cur : en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
     setDoc(seed ? { ...base, ...seed, client: { ...base.client, ...(seed.client || {}) } } : base);
-    setP(pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
-    if (!pr || pr.auto !== 0) detectCountry().then((cc) => { if (!cc) return; const c = country(cc);
+    setP(fc ? { ...(pr || { template: "net", accent: "#1F3A5F", doc_lang: lang, momo: [] }), country: fc.code, auto: 1 } : pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
+    if (!fc && (!pr || pr.auto !== 0)) detectCountry().then((cc) => { if (!cc) return; const c = country(cc);
       setP((x) => (x && x.auto !== 0 ? { ...x, country: cc, auto: 1 } : x)); setDoc((x) => (x && (!d || !x.items.some((i) => +i.price > 0)) ? { ...x, currency: c.cur } : x)); });
   }, []);
   useEffect(() => { if (doc) { localStorage.setItem("bnv_draft", JSON.stringify(doc)); localStorage.setItem("bnv_draft_at", String(Date.now())); } }, [doc]);
