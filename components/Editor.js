@@ -116,7 +116,7 @@ export default function Editor({ doc, setDoc, profile, setProfile, clients = [],
   const K = doc.kind;
   async function draft(text = ai) {
     if (!text.trim()) return; setAiBusy(true); setAiMsg(null);
-    let j = {}; try { const r = await fetch("/api/ai/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) }); j = await r.json(); } catch { j = parseDraft(text); }
+    let j = {}; try { const r = await fetch("/api/ai/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }), signal: AbortSignal.timeout?.(8000) }); j = await r.json(); if (!r.ok) j = parseDraft(text); } catch { j = parseDraft(text); } // IA lente ou indisponible : analyse locale
     setAiBusy(false);
     if (!j.items?.length) return setAiMsg({ bad: 1, t: tr("Aucun prix trouvé. Indiquez un montant, par ex. « logo à 150 000 ».", "No price found. Include an amount, e.g. “logo at 500”.") });
     setDoc((d) => { const kind = j.kind || d.kind; const keep = d.items.filter((i) => i.label || +i.price); return { ...d, kind, client: { ...d.client, ...Object.fromEntries(Object.entries(j.client || {}).filter(([, v]) => v)) }, items: [...keep, ...j.items.map(i => ({ label: i.label, qty: i.qty, price: i.price }))], currency: j.currency || d.currency, tax_rate: j.tax_rate ?? d.tax_rate, due_date: j.due_days ? plus(j.due_days) : d.due_date, status: kind === "receipt" ? "paid" : d.status }; });
