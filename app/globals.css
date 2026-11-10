@@ -295,7 +295,7 @@ body:not(:has(.tabbar)) .totbar{bottom:0}
 .t-net td{padding:11px 0;border-bottom:1px solid #eeebe5;vertical-align:top} .t-net th.r,.t-net td.r{text-align:right} .t-net td+td,.t-net th+th{padding-left:12px}
 .t-net .grand{border-top:1px solid #1d1c1a;font-size:15px}
 .t-net .pay{background:#f7f6f3;border-left:0;border:1px solid #ebe8e1}
-.paper.lh{background-size:100% auto;background-repeat:no-repeat;background-position:top center;background-color:#fff}
+.paper.lh{--lh-page:141.4cqw;background-size:100% var(--lh-page);background-repeat:repeat-y;background-position:top center;background-color:#fff}
 .paper.lh .pad{padding-left:8%;padding-right:8%}
 @media(max-width:600px){.t-net .n-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .t-net .n-grid>div:first-child{grid-column:1/-1} .t-net .n-due b{font-size:19px}}
 @media print{.sheet-stack .paper{min-height:281mm} .paper.lh{background-size:100% 100%;page:lh;min-height:297mm!important} @page lh{size:A4;margin:0}}
@@ -563,6 +563,7 @@ img.ws-av{background:#fff;border:1px solid var(--line)}
 @media(max-width:900px){.foot a{padding:4px 0;margin:3px 0}.foot-bar a{display:inline-block;padding:4px 0}.lnk{display:inline-block;padding:3px 0}button.more{min-height:28px}}
 /* fond importé : enveloppe neutre à l'écran */
 .paper .lhbg,.paper .lhw .lhsp{display:none}
+.paper .lhpg{display:block;pointer-events:none}
 .paper table.lhw,.paper table.lhw>*>tr>td{border:0;padding:0;margin:0;white-space:normal;background:none;font:inherit;color:inherit;text-align:left}
 /* Impression / PDF : pagination A4 propre (1 page si court, multi-pages sinon) */
 .paper .legal{padding:0;max-width:none}
@@ -584,6 +585,7 @@ img.ws-av{background:#fff;border:1px solid var(--line)}
   .paper.lh{background:none!important}
   .paper.lh .lhbg{display:block;position:fixed;left:0;top:0;width:100%;height:100%;object-fit:fill;z-index:-1}
   .paper .lhw .lhsp{display:block}
+  .paper .lhpg{display:none!important}
   .paper.lh .pad{padding-top:0!important;padding-bottom:0!important;padding-left:8%!important;padding-right:8%!important}
 }
 /* Écran d'erreur (filet de sécurité) */

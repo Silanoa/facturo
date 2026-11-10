@@ -1,4 +1,5 @@
 "use client";
+import { useLayoutEffect, useRef } from "react";
 import { fmt, totals, kindName, cur, curName, lineRate, amountWords } from "../lib/money";
 import { FONTS, DEFAULT_TPL, blocksOf } from "../lib/templates";
 import { normPay, payLines } from "../lib/pay";
@@ -12,6 +13,80 @@ export function wordsLine(doc, total, lang = "fr") {
   return `${lead} ${amountWords(i, doc.currency, "fr")}${cents ? ` et ${cents} centimes` : ""}.`;
 }
 export const PAY_METHODS = { fr: ["Mobile Money", "Espèces", "Virement", "Carte", "Chèque", "PayPal", "Autre"], en: ["Mobile Money", "Cash", "Bank transfer", "Card", "Cheque", "PayPal", "Other"] };
+
+// Aperçu écran d'un fond importé : même réservation d'en-tête et de pied que l'impression (une page A4 après l'autre), pour que le bandeau du modèle ne recouvre pas les totaux.
+const A4 = 297 / 210;
+function LhFlow({ top, bottom, children }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const root = ref.current; const paper = root && root.closest(".paper");
+    if (!root || !paper) return;
+    const rel = (el) => { const a = el.getBoundingClientRect(), b = root.getBoundingClientRect(); return { t: a.top - b.top, btm: a.bottom - b.top }; };
+    let busy = false, raf = 0;
+    const apply = () => {
+      if (busy || !root.isConnected) return;
+      if (window.matchMedia("print").matches) {
+        root.querySelectorAll(".lhpg").forEach((n) => n.remove());
+        paper.style.minHeight = "";
+        return;
+      }
+      busy = true;
+      try {
+        root.querySelectorAll(".lhpg").forEach((n) => n.remove());
+        const w = paper.getBoundingClientRect().width;
+        if (w < 40) return;
+        const pageH = w * A4, topR = w * ((+top || 0) / 100), botR = w * ((+bottom || 0) / 100);
+        const avail = Math.max(48, pageH - topR - botR), gap = topR + botR;
+        for (let i = 0; i < 16; i++) {
+          const h = root.scrollHeight; let moved = false;
+          for (let p = 0; p < 16; p++) {
+            const fk = (p + 1) * avail + p * gap;
+            if (fk >= h - 1) break;
+            const hit = [...root.children].find((el) => {
+              if (el.classList.contains("lhpg")) return false;
+              const { t, btm } = rel(el);
+              if (btm <= fk + 0.5 || t >= fk + gap - 0.5) return false;
+              if (el.classList.contains("items") && t < fk - 0.5) return false;
+              return true;
+            });
+            if (!hit) continue;
+            const need = fk + gap - rel(hit).t;
+            if (need <= 1) continue;
+            const sp = document.createElement("div");
+            sp.className = "lhpg"; sp.setAttribute("aria-hidden", "true"); sp.style.height = `${Math.round(need * 100) / 100}px`;
+            hit.parentNode.insertBefore(sp, hit);
+            moved = true; break;
+          }
+          if (!moved) break;
+        }
+        const pages = Math.max(1, Math.ceil((topR + root.scrollHeight + botR) / pageH - 0.02));
+        const mh = `${Math.round(pages * pageH * 100) / 100}px`;
+        if (paper.style.minHeight !== mh) paper.style.minHeight = mh;
+      } finally { busy = false; }
+    };
+    const schedule = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; apply(); }); };
+    apply();
+    const ro = new ResizeObserver(schedule); ro.observe(paper);
+    const imgs = [...paper.querySelectorAll("img")];
+    imgs.forEach((img) => { if (!img.complete) img.addEventListener("load", schedule); });
+    if (document.fonts) document.fonts.addEventListener("loadingdone", schedule);
+    const mo = new MutationObserver((muts) => {
+      if (muts.every((m) => [...m.addedNodes, ...m.removedNodes].every((n) => n.nodeType === 1 && n.classList.contains("lhpg")))) return;
+      schedule();
+    });
+    mo.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect(); mo.disconnect();
+      imgs.forEach((img) => img.removeEventListener("load", schedule));
+      if (document.fonts) document.fonts.removeEventListener("loadingdone", schedule);
+      root.querySelectorAll(".lhpg").forEach((n) => n.remove());
+      paper.style.minHeight = "";
+    };
+  }, [top, bottom, children]);
+  return <div ref={ref} className="lhflow">{children}</div>;
+}
+
 export default function DocPaper({ doc, profile: prof0 = {}, template }) {
   // Un document peut porter sa propre apparence (modèle choisi à la création).
   const look = (doc.opts || {}).look; const profile = look ? { ...prof0, ...look, letterhead: look.lh_ref ? (((prof0.settings || {}).templates || []).find((x) => x.name === look.lh_ref) || {}).letterhead || null : null } : prof0;
@@ -86,7 +161,7 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
     const hasFrom = lh || profile.address || profile.phone || profile.email || profile.ifu || profile.rccm;
     // Fond importé : en impression, le fond est répété sur chaque page (img fixe) et les marges haut/bas du modèle sont réservées sur chaque page (thead/tfoot répétés).
     const lht = `${(210 * (+B.lh_top || 0)) / 100}mm`, lhb = `${(210 * (+B.lh_bottom || 0)) / 100}mm`;
-    const wrapLh = (inner) => lh ? <table className="lhw"><thead><tr><td><div className="lhsp" style={{ height: lht }} /></td></tr></thead><tfoot><tr><td><div className="lhsp" style={{ height: lhb }} /></td></tr></tfoot><tbody><tr><td>{inner}</td></tr></tbody></table> : inner;
+    const wrapLh = (inner) => lh ? <table className="lhw"><thead><tr><td><div className="lhsp" style={{ height: lht }} /></td></tr></thead><tfoot><tr><td><div className="lhsp" style={{ height: lhb }} /></td></tr></tfoot><tbody><tr><td><LhFlow top={B.lh_top} bottom={B.lh_bottom}>{inner}</LhFlow></td></tr></tbody></table> : inner;
     return (<div className={`${cls} ${lh ? "lh" : ""}`} style={lstyle}>{pageCss}{lh && <><img className="lhbg" src={profile.letterhead} alt="" /><style dangerouslySetInnerHTML={{ __html: `@media print{@page{margin:0}}` }} /></>}{stamp}<div className="pad" style={lh ? { paddingTop: `${B.lh_top}%`, paddingBottom: `${B.lh_bottom}%` } : null}>{wrapLh(<>
       {!lh && <div className="n-top"><div className="n-id">{logo}<div className="n-bn">{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div></div>
         <div className="n-kind"><div className="title">{kn}</div><div className="nm">{doc.number}</div></div></div>}
