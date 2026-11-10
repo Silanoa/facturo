@@ -22,7 +22,8 @@ export default function Trial({ heading = true, country: forced = null }) {
     const fc = forced ? country(forced) : null;
     const base = d || { ...blankDoc("invoice", fc ? fc.cur : en ? "USD" : "XOF"), number: `${en ? "INV" : "FAC"}-${new Date().getFullYear()}-0001` };
     setDoc(seed ? { ...base, ...seed, client: { ...base.client, ...(seed.client || {}) } } : base);
-    setP(fc ? { ...(pr || { template: "net", accent: "#1F3A5F", doc_lang: lang, momo: [] }), country: fc.code, auto: 1 } : pr || { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
+    // Sans compte, la langue du document suit celle de la page (le profil local peut venir de l'autre langue).
+    setP(fc ? { ...(pr || { template: "net", accent: "#1F3A5F", momo: [] }), doc_lang: lang, country: fc.code, auto: 1 } : pr ? { ...pr, doc_lang: lang } : { template: "net", accent: "#1F3A5F", country: en ? "US" : "SN", doc_lang: lang, momo: [], auto: 1 });
     if (!fc && (!pr || pr.auto !== 0)) detectCountry().then((cc) => { if (!cc) return; const c = country(cc);
       setP((x) => (x && x.auto !== 0 ? { ...x, country: cc, auto: 1 } : x)); setDoc((x) => (x && (!d || !x.items.some((i) => +i.price > 0)) ? { ...x, currency: c.cur } : x)); });
   }, []);

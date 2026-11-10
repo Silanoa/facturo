@@ -527,7 +527,7 @@ img.ws-av{background:#fff;border:1px solid var(--line)}
 .foot-about p{max-width:340px;margin:0 0 22px;color:#ffffffcc;line-height:1.55}
 .foot nav span{display:block}
 .foot-bar{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;border-top:1px solid #ffffff26;margin-top:34px;padding-top:18px;font-size:13.5px;color:#ffffffaa}
-.foot-bar a{display:inline;margin:0}.foot-lng{margin-left:auto;display:inline-flex;gap:12px}.foot-lng b{font-weight:600;color:var(--paper)}
+.foot-bar a{display:inline;margin:0}.foot-lng{margin-left:auto;display:inline-flex;gap:12px;align-items:center}.foot-lng b{font-weight:600;color:var(--paper)}
 @media(max-width:860px){.foot .cols{grid-template-columns:1fr 1fr}.foot-about{grid-column:1/-1}.foot-lng{margin-left:0}}
 .legal{max-width:760px;padding-top:48px;padding-bottom:80px}.legal h1{font-family:var(--f-display);font-weight:800;font-stretch:70%;font-size:clamp(40px,8vw,72px);text-transform:uppercase;line-height:.95;margin:8px 0 28px}.legal h2{font-size:19px;margin:28px 0 8px}.legal p{line-height:1.65;color:var(--ink-2)}
 /* v9 — toasts & autosave */

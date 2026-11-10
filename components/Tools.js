@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { inWords, fmt, CURRENCIES, curName, eurToXof, cfaWords } from "../lib/money";
+import { inWords, fmt, CURRENCIES, curName, eurToXof, cfaWords, amountWords } from "../lib/money";
 import { COUNTRIES } from "../lib/countries";
 import { useT } from "../lib/i18n";
 const n = (v) => parseFloat(String(v).replace(/\s/g, "").replace(",", ".")) || 0;
@@ -35,12 +35,9 @@ export function VatCalc() {
     <style dangerouslySetInnerHTML={{ __html: `@media(max-width:700px){.tool .g3,.tool .stats{grid-template-columns:1fr!important}.tool .stats>div{border-right:0!important;border-bottom:1px solid var(--line)}}` }} />
   </div>);
 }
-const CW = { XOF: ["franc CFA", "francs CFA"], XAF: ["franc CFA", "francs CFA"], EUR: ["euro", "euros"], USD: ["dollar", "dollars"], NGN: ["naira", "naira"], GHS: ["cedi", "cedis"], MAD: ["dirham", "dirhams"], KES: ["shilling", "shillings"] };
 export function wordsFor(v, c, lang = "fr") { const x = n(v); const i = Math.floor(x); const cents = Math.round((x - i) * 100);
-  if (lang === "en") { const nm = curName(c, "en"); return `${inWords(i, "en")} ${nm}${cents ? ` and ${inWords(cents, "en")} cents` : ""}`; }
-  const [s, p] = CW[c] || [curName(c, "fr"), curName(c, "fr")];
-  const w = inWords(i); const unit = (/(million|milliard)s?$/.test(w) ? "de " : "") + (i > 1 ? p : s);
-  return `${w} ${unit}${cents ? ` et ${inWords(cents)} centime${cents > 1 ? "s" : ""}` : ""}`; }
+  if (lang === "en") return `${amountWords(i, c, "en")}${cents ? ` and ${inWords(cents, "en")} cent${cents === 1 ? "" : "s"}` : ""}`;
+  return `${amountWords(i, c, "fr")}${cents ? ` et ${inWords(cents)} centime${cents > 1 ? "s" : ""}` : ""}`; }
 export function Words({ start = "amount" }) {
   const { tr, lang } = useT(); const en = lang === "en"; const [mode, setMode] = useState(start === "eur" ? "eur" : "amount");
   const [v, setV] = useState(en ? "1250.50" : "519200"); const [e, setE] = useState("2000"); const [c, setC] = useState(en ? "USD" : "XOF"); const [ok, setOk] = useState(false);

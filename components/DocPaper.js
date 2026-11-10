@@ -1,17 +1,15 @@
 "use client";
-import { fmt, totals, inWords, kindName, cur, curName, lineRate } from "../lib/money";
+import { fmt, totals, kindName, cur, curName, lineRate, amountWords } from "../lib/money";
 import { FONTS, DEFAULT_TPL, blocksOf } from "../lib/templates";
 import { normPay, payLines } from "../lib/pay";
 import { country, legalLines } from "../lib/countries";
 export const docLang = (doc = {}, profile = {}) => doc.lang || profile.doc_lang || "fr";
 export function wordsLine(doc, total, lang = "fr") {
-  const cents = cur(doc.currency).decimals ? Math.round((total % 1) * 100) : 0;
-  const cn = (curName(doc.currency, lang) || doc.currency).toLowerCase();
+  const cents = cur(doc.currency).decimals ? Math.round((total % 1) * 100) : 0; const i = Math.floor(total);
   if (lang === "en") { const lead = doc.kind === "receipt" ? "Received the sum of" : doc.kind === "quote" ? "This quote amounts to" : "This invoice amounts to";
-    return `${lead} ${inWords(Math.floor(total), "en")} ${cn}${cents ? ` and ${cents} cents` : ""}.`; }
+    return `${lead} ${amountWords(i, doc.currency, "en")}${cents ? ` and ${cents} cents` : ""}.`; }
   const lead = doc.kind === "receipt" ? "Reçu la somme de" : doc.kind === "quote" ? "Le présent devis s'élève à la somme de" : "Arrêtée la présente facture à la somme de";
-  const w = doc.currency === "XOF" || doc.currency === "XAF" ? "francs CFA" : cn;
-  return `${lead} ${inWords(Math.floor(total))} ${w}${cents ? ` et ${cents} centimes` : ""}.`;
+  return `${lead} ${amountWords(i, doc.currency, "fr")}${cents ? ` et ${cents} centimes` : ""}.`;
 }
 export const PAY_METHODS = { fr: ["Mobile Money", "Espèces", "Virement", "Carte", "Chèque", "PayPal", "Autre"], en: ["Mobile Money", "Cash", "Bank transfer", "Card", "Cheque", "PayPal", "Other"] };
 export default function DocPaper({ doc, profile: prof0 = {}, template }) {
@@ -64,10 +62,10 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
     parties: () => tp === "net" ? null : null,
     items: () => <Items key="items" />,
     totals: () => <Totals key="totals" />,
-    words: () => B.words ? <p key="words" className="words">{wordsLine(doc, t.total, lang)}</p> : null,
+    words: () => B.words && t.total > 0 ? <p key="words" className="words">{wordsLine(doc, t.total, lang)}</p> : null,
     pay: () => K === "invoice" && !isPaid && B.pay && O.pay && pays.length > 0 ? <div key="pay" className={`pay ${tp === "registre" ? "box" : ""}`}><div className="lbl">{tr("Modes de paiement", "Payment details")}</div>
       {pays.map((m, i) => <div key={i} style={{ marginTop: 3, wordBreak: "break-word" }}>{m.type === "momo" ? <>{m.op} · <b>{m.number}</b>{m.name ? ` — ${m.name}` : ""}</> : m.type === "bank" ? <>{tr("Virement", "Bank transfer")} · <b>{payLines(m, lang)}</b></> : <>{m.provider} · <b>{m.url.replace(/^https?:\/\//, "")}</b></>}</div>)}
-      {(B.ref && O.ref) && <div className="fine" style={{ marginTop: 6 }}>{tr("Référence à indiquer", "Payment reference")} : {doc.number}{O.link !== false && doc.public_token ? ` · ${tr("Payer en ligne", "Pay online")} : ${typeof window !== "undefined" ? location.host : ""}/f/${doc.public_token}` : ""}</div>}</div> : null,
+      {(B.ref && O.ref) && <div className="fine" style={{ marginTop: 6 }}>{tr("Référence à indiquer : ", "Payment reference: ")}{doc.number}{O.link !== false && doc.public_token ? ` · ${tr("Payer en ligne : ", "Pay online: ")}${typeof window !== "undefined" ? location.host : ""}/f/${doc.public_token}` : ""}</div>}</div> : null,
     notes: () => { const dep = K === "quote" && +O.deposit > 0 ? tr(`Acompte de ${O.deposit} % à la commande, soit ${money(t.total * O.deposit / 100)}.`, `Deposit of ${O.deposit}% on acceptance: ${money(t.total * O.deposit / 100)}.`) : "";
       return (B.notes && doc.notes) || dep ? <div key="notes" className="notes"><div className="lbl">{K === "quote" ? tr("Conditions", "Terms") : tr("Notes", "Notes")}</div>{dep && <p style={{ margin: "0 0 4px", fontWeight: 600 }}>{dep}</p>}{B.notes && doc.notes && <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{doc.notes}</p>}</div> : null; },
     signature: () => K === "quote" ? <div key="sig" className="sigs"><div><div className="lbl">{tr("Bon pour accord", "Accepted by the client")}</div><div className="fine">{tr("Date, nom et signature du client", "Date, name and signature")}</div><div className="sigline" /></div>{B.signature && <div><div className="lbl">{tr("Pour l'émetteur", "For the issuer")}</div><div className="fine">&nbsp;</div>{SigL}</div>}</div>

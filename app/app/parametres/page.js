@@ -52,7 +52,7 @@ function Settings() {
   async function feda(plan) { setPay(tr("Redirection vers la page de paiement…", "Redirecting to the payment page…")); const { data } = await supabase.auth.getSession();
     const r = await fetch("/api/checkout", { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ plan, lang }) });
     const j = await r.json(); if (j.url) location.href = j.url; else setPay(j.error || tr("Paiement indisponible pour le moment.", "Payment unavailable right now.")); }
-  const card = (plan) => { if (!LS[plan]) return setPay(tr("Le paiement par carte / PayPal arrive très bientôt. Utilisez Mobile Money en attendant.", "Card / PayPal checkout is coming very soon. Use Mobile Money meanwhile.")); location.href = `${LS[plan]}?checkout[email]=${encodeURIComponent(s.user.email)}&checkout[custom][user_id]=${s.user.id}&checkout[custom][plan]=${plan}`; };
+  const card = (plan) => { if (!LS[plan]) return setPay(tr("Le paiement par carte ou PayPal n'est pas encore disponible. Utilisez Mobile Money ou écrivez-nous.", "Card and PayPal payment is not available yet. Use Mobile Money or contact us.")); location.href = `${LS[plan]}?checkout[email]=${encodeURIComponent(s.user.email)}&checkout[custom][user_id]=${s.user.id}&checkout[custom][plan]=${plan}`; };
   const preview = { ...p, plan: s.profile.plan };
   const move = (from, to) => { const o = [...p.blocks.order]; const [x] = o.splice(from, 1); o.splice(to, 0, x); setB("order", o); };
   const look = () => ({ template: p.template, accent: p.accent, font: p.font, blocks: p.blocks, letterhead: p.letterhead || null });

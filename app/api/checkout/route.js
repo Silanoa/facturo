@@ -8,7 +8,7 @@ const useFeda = () => process.env.MOMO_PROVIDER === "fedapay" && !!process.env.F
 export async function POST(req) {
   if (await limited(req, "checkout", 10)) return tooMany();
   const body = await req.json().catch(() => ({})); const en = body.lang === "en"; const m = (fr, e) => (en ? e : fr);
-  if (!(useFeda() || chariowOn()) || !process.env.APP_SECRET) return NextResponse.json({ error: m("Le paiement Mobile Money sera activé très bientôt. Écrivez-nous pour passer Pro dès maintenant.", "Mobile Money payment is coming very soon. Contact us to upgrade to Pro right now.") }, { status: 503 });
+  if (!(useFeda() || chariowOn()) || !process.env.APP_SECRET) return NextResponse.json({ error: m("Le paiement Mobile Money est momentanément indisponible. Écrivez-nous sur WhatsApp ou par e-mail pour passer Pro.", "Mobile Money payment is temporarily unavailable. Message us on WhatsApp or by email to upgrade to Pro.") }, { status: 503 });
   const token = (req.headers.get("authorization") || "").replace("Bearer ", "");
   const c = sb(token); const { data: { user } } = await c.auth.getUser(token);
   if (!user) return NextResponse.json({ error: m("Session expirée. Reconnectez-vous.", "Session expired. Please sign in again.") }, { status: 401 });

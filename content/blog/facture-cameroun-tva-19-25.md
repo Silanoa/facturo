@@ -6,7 +6,7 @@ updated: 2026-11-10
 tag: Cameroun
 read: 4
 ---
-Le Cameroun est souvent cité pour son taux de TVA « bizarre » : **19,25 %**. Il s'explique simplement.
+Le Cameroun est souvent cité pour son taux de TVA inhabituel : **19,25 %**. Il s'explique simplement.
 
 ## 17,5 % + 10 % de 17,5 %
 

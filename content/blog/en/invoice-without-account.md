@@ -1,16 +1,16 @@
 ---
 title: Make an invoice without creating an account (free, unlimited)
-description: Why most "free" invoice apps make you sign up, cap you at a few invoices, or take a cut — and how to send a professional invoice in under a minute without any of that.
+description: What an invoice really needs, and how to send a professional one in a minute without signing up, without a cap on the number of invoices and without fees.
 date: 2026-10-30
 updated: 2026-11-10
 tag: Tools
 read: 4
 ---
-Most invoice apps follow the same playbook: a free tier that lets you create a couple of invoices, then a paywall, a forced sign-up or a fee on every payment. Freelancers complain about it constantly.
+Most invoice apps follow the same playbook: a free tier that lets you create a couple of invoices, then a paywall, a forced sign-up or a fee on every payment.
 
-## What you actually need
+## What you need
 
-For one invoice, you need: your name, the client, what you did, a price, and how to pay. That's it. Anything that asks for more before you can send is friction.
+For one invoice, you need: your name, the client, what you did, a price, and how to pay. Nothing else is required to send it.
 
 ## How to do it with Bonova
 
@@ -24,7 +24,7 @@ Your draft stays in your browser. Create an account only if you want history, re
 
 ## No cut on your payments
 
-Bonova never touches your money: the client pays you directly, on your own rails. That's why it's **0% fees** — there is nothing to take a cut from.
+Bonova never touches your money: the client pays you directly, through your own payment methods. That is why there are **no fees**: nothing passes through Bonova.
 
 ## Next steps
 

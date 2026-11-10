@@ -1,5 +1,5 @@
 ---
-title: How to invoice international clients from Africa (and actually get paid)
+title: How to invoice international clients from Africa and get paid
 description: Currency, VAT, legal lines and the payment rails that work when you're in Lagos, Dakar or Nairobi and your client is in London, Paris or New York.
 date: 2026-11-02
 updated: 2026-11-10

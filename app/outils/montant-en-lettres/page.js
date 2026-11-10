@@ -22,7 +22,7 @@ export default function P() { return (<><SiteNav /><main className="wrap" style=
     <h2>Montants courants en francs CFA</h2>
     <div style={{ overflowX: "auto" }}><table><thead><tr><th>En chiffres</th><th>En lettres</th></tr></thead>
       <tbody>{CFA.map((v) => <tr key={v}><td className="mono" style={{ whiteSpace: "nowrap" }}>{fmt(v, "XOF")}</td><td>{cap(cfaWords(v))}</td></tr>)}</tbody></table></div>
-    <h2>Les trois règles qui piègent tout le monde</h2>
+    <h2>Trois règles d'accord à connaître</h2>
     <ul><li><b>Cent</b> et <b>vingt</b> prennent un « s » quand ils sont multipliés et terminent le nombre : deux cents, quatre-vingts. Mais : deux cent mille, quatre-vingt-trois.</li><li><b>Mille</b> est invariable : trois mille, jamais « trois milles ».</li><li><b>Million</b> et <b>milliard</b> sont des noms : deux millions <i>de</i> francs CFA.</li></ul>
     <p>Depuis la réforme de 1990, on peut aussi relier tous les mots par des traits d'union (deux-cent-mille). Les deux graphies sont acceptées ; Bonova utilise la graphie traditionnelle, la plus courante sur les documents commerciaux.</p>
     <p>Le montant en lettres est ajouté automatiquement à chaque <Link href="/essai">facture créée avec Bonova</Link>. Pour calculer la taxe avant de l'écrire, utilisez le <Link href="/outils/calcul-tva">calcul de TVA</Link>.</p></div>
