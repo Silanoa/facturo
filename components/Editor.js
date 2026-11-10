@@ -14,7 +14,8 @@ export const KIND_HELP = {
   invoice: ["Après le travail", "Demande le paiement.", "After the work", "Requests payment."],
   receipt: ["Après paiement", "Confirme une somme reçue.", "After payment", "Confirms money received."],
 };
-// Dictée : enregistrement MediaRecorder (Chrome, Edge, Firefox, Safari) puis transcription serveur (Groq Whisper).
+// Dictée. Si la transcription serveur est configurée (GROQ_API_KEY) : MediaRecorder + Whisper, tous navigateurs.
+// Sinon : reconnaissance vocale du navigateur (Chrome, Edge, Safari). Bouton masqué si aucune des deux n'est possible.
 const MIC_MAX = 60;
 const MIC_TXT = {
   fr: { idle: "Dicter", rec: "Arrêter", busy: "Transcription…", denied: "Accès au micro refusé. Autorisez-le dans les réglages du navigateur, puis réessayez.", nomic: "Aucun micro détecté.", busymic: "Le micro est utilisé par une autre application.", empty: "Rien n'a été entendu. Réessayez en parlant plus près du micro.", short: "Enregistrement trop court. Maintenez la dictée au moins une seconde.", limit: "Durée maximale atteinte (1 min). La dictée a été arrêtée.", big: "Enregistrement trop long. Limitez-vous à une minute.", rate: "Trop de dictées en peu de temps. Réessayez dans une minute.", net: "Connexion impossible. Vérifiez votre réseau et réessayez.", fail: "La transcription n'a pas abouti. Réessayez ou saisissez le texte.", https: "La dictée nécessite une page sécurisée (https).", unsup: "La dictée n'est pas disponible sur ce navigateur." },
@@ -30,10 +31,12 @@ function Mic({ onText, onDone, lang }) {
   const R = useRef({});
   useEffect(() => {
     let live = true;
-    if (window.MediaRecorder && navigator.mediaDevices?.getUserMedia) fetch("/api/ai/transcribe").then((r) => r.json()).then((j) => live && setOk(!!j.ok)).catch(() => {});
+    const sr = !!(window.SpeechRecognition || window.webkitSpeechRecognition); const rec = !!(window.MediaRecorder && navigator.mediaDevices?.getUserMedia);
+    const fallback = () => live && setOk(sr ? "speech" : false);
+    if (rec) fetch("/api/ai/transcribe").then((r) => r.json()).then((j) => j.ok ? live && setOk("server") : fallback()).catch(fallback); else fallback();
     return () => { live = false; cleanup(); };
   }, []);
-  function cleanup() { const r = R.current; clearInterval(r.tick); clearTimeout(r.cap); try { r.stream?.getTracks().forEach((t) => t.stop()); } catch {} r.stream = null; }
+  function cleanup() { const r = R.current; clearInterval(r.tick); clearTimeout(r.cap); try { r.stream?.getTracks().forEach((t) => t.stop()); } catch {} r.stream = null; if (r.sr) { try { r.sr.onend = null; r.sr.abort(); } catch {} r.sr = null; } }
   async function send(blob, dur) {
     if (dur < 0.8 || blob.size < 800) { setSt("idle"); return setErr(T.short); }
     setSt("busy");
@@ -47,9 +50,24 @@ function Mic({ onText, onDone, lang }) {
     } catch { setErr(T.net); }
     setSt("idle");
   }
+  function startSpeech() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let sr;
+    try { sr = new SR(); } catch { return setErr(T.unsup); }
+    const r = R.current; r.sr = sr; r.t0 = Date.now(); r.hitCap = false; let final = "", last = "", failed = false;
+    sr.lang = en ? "en-US" : "fr-FR"; sr.interimResults = true; sr.maxAlternatives = 1; sr.continuous = !/Android|iPhone|iPad/i.test(navigator.userAgent);
+    // Texte reconstruit à chaque résultat : évite les doublons sur Android.
+    sr.onresult = (e) => { let f = "", i2 = ""; for (let i = 0; i < e.results.length; i++) { const x = e.results[i][0].transcript.trim(); if (e.results[i].isFinal) f += (f ? " " : "") + x; else i2 += (i2 ? " " : "") + x; } final = f; last = (f + (i2 ? " " + i2 : "")).trim(); if (last) onText?.(last); };
+    sr.onerror = (e) => { failed = true; const c = e.error; setErr(c === "not-allowed" || c === "service-not-allowed" ? T.denied : c === "audio-capture" ? T.nomic : c === "no-speech" ? T.empty : c === "network" ? T.net : c === "aborted" ? "" : T.fail); };
+    let ended = false; sr.onend = () => { if (ended) return; ended = true; const txt = (final || last).trim(); r.sr = null; cleanup(); setSt("idle"); if (r.hitCap) setErr(T.limit); if (txt) onDone?.(txt); else if (!failed) setErr(T.empty); };
+    try { sr.start(); } catch { r.sr = null; return setErr(T.unsup); }
+    setSec(0); setSt("rec");
+    r.tick = setInterval(() => setSec(Math.floor((Date.now() - r.t0) / 1000)), 250);
+    r.cap = setTimeout(() => { r.hitCap = true; stop(); }, MIC_MAX * 1000);
+  }
   async function start() {
     setErr("");
     if (!window.isSecureContext) return setErr(T.https);
+    if (ok === "speech") return startSpeech();
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } }); }
     catch (e) { const n = e?.name; return setErr(n === "NotAllowedError" || n === "SecurityError" || n === "PermissionDeniedError" ? T.denied : n === "NotFoundError" || n === "OverconstrainedError" || n === "DevicesNotFoundError" ? T.nomic : n === "NotReadableError" || n === "AbortError" ? T.busymic : T.unsup); }
@@ -65,7 +83,11 @@ function Mic({ onText, onDone, lang }) {
     r.tick = setInterval(() => setSec(Math.floor((Date.now() - r.t0) / 1000)), 250);
     r.cap = setTimeout(() => { r.hitCap = true; stop(); }, MIC_MAX * 1000);
   }
-  function stop() { const mr = R.current.mr; try { if (mr && mr.state !== "inactive") mr.stop(); } catch { cleanup(); setSt("idle"); } }
+  function stop() {
+    const r = R.current;
+    if (r.sr) { clearTimeout(r.cap); clearInterval(r.tick); setSt("busy"); const sr = r.sr; try { sr.stop(); } catch { cleanup(); setSt("idle"); return; } setTimeout(() => { if (R.current.sr === sr) { const h = sr.onend; h && h(); } }, 5000); return; }
+    try { if (r.mr && r.mr.state !== "inactive") r.mr.stop(); } catch { cleanup(); setSt("idle"); }
+  }
   if (!ok) return null;
   const mm = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const icon = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>;
