@@ -14,23 +14,68 @@ export const KIND_HELP = {
   invoice: ["Après le travail", "Demande le paiement.", "After the work", "Requests payment."],
   receipt: ["Après paiement", "Confirme une somme reçue.", "After payment", "Confirms money received."],
 };
-// Dictée : Web Speech API (Chrome, Edge, Safari). Masquée si le navigateur ne la gère pas.
+// Dictée : enregistrement MediaRecorder (Chrome, Edge, Firefox, Safari) puis transcription serveur (Groq Whisper).
+const MIC_MAX = 60;
+const MIC_TXT = {
+  fr: { idle: "Dicter", rec: "Arrêter", busy: "Transcription…", denied: "Accès au micro refusé. Autorisez-le dans les réglages du navigateur, puis réessayez.", nomic: "Aucun micro détecté.", busymic: "Le micro est utilisé par une autre application.", empty: "Rien n'a été entendu. Réessayez en parlant plus près du micro.", short: "Enregistrement trop court. Maintenez la dictée au moins une seconde.", limit: "Durée maximale atteinte (1 min). La dictée a été arrêtée.", big: "Enregistrement trop long. Limitez-vous à une minute.", rate: "Trop de dictées en peu de temps. Réessayez dans une minute.", net: "Connexion impossible. Vérifiez votre réseau et réessayez.", fail: "La transcription n'a pas abouti. Réessayez ou saisissez le texte.", https: "La dictée nécessite une page sécurisée (https).", unsup: "La dictée n'est pas disponible sur ce navigateur." },
+  en: { idle: "Dictate", rec: "Stop", busy: "Transcribing…", denied: "Microphone access denied. Allow it in your browser settings, then try again.", nomic: "No microphone found.", busymic: "The microphone is in use by another app.", empty: "Nothing was heard. Try again, closer to the microphone.", short: "Recording too short. Speak for at least a second.", limit: "Maximum length reached (1 min). Dictation stopped.", big: "Recording too long. Keep it under one minute.", rate: "Too many dictations in a short time. Try again in a minute.", net: "Connection failed. Check your network and try again.", fail: "Transcription failed. Try again or type the text.", https: "Dictation needs a secure (https) page.", unsup: "Dictation isn't available in this browser." },
+};
+function pickMime() {
+  const M = window.MediaRecorder; if (!M?.isTypeSupported) return "";
+  return ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus", "audio/ogg"].find((t) => { try { return M.isTypeSupported(t); } catch { return false; } }) || "";
+}
 function Mic({ onText, onDone, lang }) {
-  const [on, setOn] = useState(false); const [err, setErr] = useState(""); const [ok, setOk] = useState(false); const rec = useRef(null); const base = useRef("");
-  useEffect(() => { setOk(!!(window.SpeechRecognition || window.webkitSpeechRecognition)); }, []);
-  if (!ok) return null; const en = lang === "en";
-  const start = () => {
-    setErr(""); const SR = window.SpeechRecognition || window.webkitSpeechRecognition; const r = new SR();
-    r.lang = en ? "en-US" : "fr-FR"; r.interimResults = true; r.continuous = !/Android|iPhone|iPad/i.test(navigator.userAgent); r.maxAlternatives = 1; rec.current = r; base.current = "";
-    let final = "";
-    // On reconstruit tout le texte à chaque résultat : évite les doublons d'Android.
-    r.onresult = (e) => { let f = "", interim = ""; for (let i = 0; i < e.results.length; i++) { const x = e.results[i][0].transcript.trim(); if (e.results[i].isFinal) f += (f ? " " : "") + x; else interim += (interim ? " " : "") + x; } final = f; onText((f + (interim ? " " + interim : "")).trim()); };
-    r.onerror = (e) => { setErr(e.error === "not-allowed" || e.error === "service-not-allowed" ? (en ? "Microphone blocked: allow it in your browser settings." : "Micro bloqué : autorisez-le dans les réglages du navigateur.") : e.error === "no-speech" ? (en ? "Nothing heard. Try again, closer to the mic." : "Rien entendu. Réessayez, plus près du micro.") : e.error === "network" ? (en ? "Dictation needs an internet connection." : "La dictée a besoin d'internet.") : (en ? "Dictation unavailable on this browser." : "Dictée indisponible sur ce navigateur.")); setOn(false); };
-    r.onend = () => { setOn(false); if (final.trim()) onDone?.(final.trim()); };
-    try { r.start(); setOn(true); } catch { setErr(en ? "Dictation unavailable." : "Dictée indisponible."); }
-    if (!window.isSecureContext) setErr(en ? "Dictation needs a secure (https) page." : "La dictée nécessite une page sécurisée (https).");
-  };
-  return <span className="mic-w"><button type="button" className={`mic ${on ? "on" : ""}`} onClick={() => on ? rec.current?.stop() : start()} aria-pressed={on}>{on ? <><i className="rec" />{en ? "Listening… tap to stop" : "J'écoute… touchez pour arrêter"}</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>{en ? "Dictate" : "Dicter"}</>}</button>{err && <em className="mic-err" role="status">{err}</em>}</span>;
+  const en = lang === "en"; const T = MIC_TXT[en ? "en" : "fr"];
+  const [ok, setOk] = useState(false); const [st, setSt] = useState("idle"); const [sec, setSec] = useState(0); const [err, setErr] = useState("");
+  const R = useRef({});
+  useEffect(() => {
+    let live = true;
+    if (window.MediaRecorder && navigator.mediaDevices?.getUserMedia) fetch("/api/ai/transcribe").then((r) => r.json()).then((j) => live && setOk(!!j.ok)).catch(() => {});
+    return () => { live = false; cleanup(); };
+  }, []);
+  function cleanup() { const r = R.current; clearInterval(r.tick); clearTimeout(r.cap); try { r.stream?.getTracks().forEach((t) => t.stop()); } catch {} r.stream = null; }
+  async function send(blob, dur) {
+    if (dur < 0.8 || blob.size < 800) { setSt("idle"); return setErr(T.short); }
+    setSt("busy");
+    try {
+      const type = (blob.type || "audio/webm").split(";")[0];
+      const r = await fetch(`/api/ai/transcribe?lang=${en ? "en" : "fr"}`, { method: "POST", headers: { "content-type": type }, body: blob });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 429) setErr(T.rate); else if (r.status === 413) setErr(T.big); else if (!r.ok) setErr(T.fail);
+      else if (!j.text) setErr(T.empty);
+      else { onText?.(j.text); onDone?.(j.text); }
+    } catch { setErr(T.net); }
+    setSt("idle");
+  }
+  async function start() {
+    setErr("");
+    if (!window.isSecureContext) return setErr(T.https);
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } }); }
+    catch (e) { const n = e?.name; return setErr(n === "NotAllowedError" || n === "SecurityError" || n === "PermissionDeniedError" ? T.denied : n === "NotFoundError" || n === "OverconstrainedError" || n === "DevicesNotFoundError" ? T.nomic : n === "NotReadableError" || n === "AbortError" ? T.busymic : T.unsup); }
+    let mr; const mime = pickMime();
+    try { mr = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : { audioBitsPerSecond: 32000 }); }
+    catch { try { mr = new MediaRecorder(stream); } catch { stream.getTracks().forEach((t) => t.stop()); return setErr(T.unsup); } }
+    const r = R.current; r.stream = stream; r.mr = mr; r.chunks = []; r.t0 = Date.now(); r.hitCap = false;
+    mr.ondataavailable = (e) => { if (e.data?.size) r.chunks.push(e.data); };
+    mr.onerror = () => { cleanup(); setSt("idle"); setErr(T.fail); };
+    mr.onstop = () => { const dur = (Date.now() - r.t0) / 1000; cleanup(); const blob = new Blob(r.chunks, { type: mr.mimeType || mime || "audio/webm" }); r.chunks = []; if (r.hitCap) setErr(T.limit); send(blob, dur); };
+    try { mr.start(1000); } catch { cleanup(); return setErr(T.unsup); }
+    setSec(0); setSt("rec");
+    r.tick = setInterval(() => setSec(Math.floor((Date.now() - r.t0) / 1000)), 250);
+    r.cap = setTimeout(() => { r.hitCap = true; stop(); }, MIC_MAX * 1000);
+  }
+  function stop() { const mr = R.current.mr; try { if (mr && mr.state !== "inactive") mr.stop(); } catch { cleanup(); setSt("idle"); } }
+  if (!ok) return null;
+  const mm = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const icon = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>;
+  return <span className="mic-w">
+    {err && st === "idle" && <em className="mic-err" role="status">{err}</em>}
+    <button type="button" className={`mic ${st === "rec" ? "on" : ""}`} disabled={st === "busy"} aria-pressed={st === "rec"} data-state={st}
+      onClick={() => st === "rec" ? stop() : st === "idle" && start()}>
+      {st === "rec" ? <><i className="rec" /><span className="mono">{mm(sec)} / 1:00</span> · {T.rec}</> : st === "busy" ? <>{T.busy}</> : <>{icon}{T.idle}</>}
+    </button>
+  </span>;
 }
 function Tip({ children }) { return <span className="tip" tabIndex={0} role="note">?<span className="tip-b">{children}</span></span>; }
 export default function Editor({ doc, setDoc, profile, setProfile, clients = [], onNumber, compact, account }) {

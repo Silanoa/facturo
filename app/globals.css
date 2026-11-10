@@ -329,7 +329,7 @@ body:not(:has(.tabbar)) .totbar{bottom:0}
 /* v6 — éditeur */
 .kind-help{margin:10px 0 0;font-size:14px;color:var(--ink-2)}
 .mic-w{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end} .mic{display:inline-flex;align-items:center;gap:6px}
-.mic .rec{width:8px;height:8px;border-radius:50%;background:#ff5a4a;animation:pulse 1s infinite} .mic-err{font:normal 12px var(--f-body);color:#ffb4a8}
+.mic .rec{width:8px;height:8px;border-radius:50%;background:#ff5a4a;animation:pulse 1s infinite} .mic-err{font:normal 12px var(--f-body);color:#ffb4a8;max-width:340px;text-align:right} .mic:disabled{opacity:.7;cursor:progress} .mic .mono{letter-spacing:0}
 @keyframes pulse{50%{opacity:.25}}
 .quick-f .bad{color:#ffb4a8}
 .tip{position:relative;display:inline-grid;place-items:center;width:17px;height:17px;border:1px solid var(--line);border-radius:50%;font:600 11px/1 var(--f-body);color:var(--mute);cursor:help;margin-left:4px;vertical-align:1px;text-transform:none;letter-spacing:0}
