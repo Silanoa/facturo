@@ -2,6 +2,7 @@
 title: TVA dans l'UEMOA : pourquoi 18 %, et comment la calculer
 description: Taux de TVA au Bénin, Sénégal, Côte d'Ivoire, Togo, Burkina, Mali et Niger, règles de la directive UEMOA, calcul HT/TTC et erreurs à éviter.
 date: 2026-10-18
+updated: 2026-11-10
 tag: Fiscalité
 read: 4
 ---
@@ -35,5 +36,7 @@ Le [calculateur de TVA](/outils/calcul-tva) fait les deux sens pour vous.
 ## Faut-il facturer la TVA ?
 
 Seulement si vous êtes **assujetti**, c'est-à-dire au régime du réel (ou si vous avez opté pour la TVA). Les contribuables à l'impôt synthétique (TPS au Bénin, CGU au Sénégal, impôt synthétique en Côte d'Ivoire…) ne la facturent généralement pas.
+
+Dans les deux cas, la facture doit porter les [mentions obligatoires de la zone OHADA](/blog/mentions-obligatoires-facture-ohada) : identifiant fiscal, RCCM, numéro, total et, par usage, le [montant en lettres](/outils/montant-en-lettres). Pour les règles propres à un pays, voir [la facture au Bénin](/blog/modele-facture-benin), [au Sénégal](/blog/facture-auto-entrepreneur-senegal) et [en Côte d'Ivoire](/blog/facture-cote-divoire).
 
 > Les taux sont donnés à titre indicatif au 1ᵉʳ novembre 2026. Vérifiez la loi de finances de votre pays.

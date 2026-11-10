@@ -2,6 +2,7 @@
 title: Free freelance invoice template (what to include, by country)
 description: The fields every freelance invoice needs, plus the country-specific lines for France, the UK, the US, Canada and OHADA countries.
 date: 2026-10-31
+updated: 2026-11-10
 tag: Templates
 read: 6
 ---
@@ -32,5 +33,7 @@ A good invoice is boring on purpose: the client's accountant should find everyth
 Never reuse or skip numbers. Use a prefix by document type (INV for invoices, QUO for quotes, REC for receipts) and the year.
 
 ---
+
+Before you send it, check the tax with the [VAT calculator](/en/tools/vat-calculator) and, for clients abroad, read [how to invoice international clients from Africa](/en/blog/how-to-invoice-international-clients-from-africa).
 
 **Bonova** fills these lines automatically based on the country you choose — free, unlimited, no account needed.

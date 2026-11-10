@@ -2,6 +2,7 @@
 title: Facture pour auto-entrepreneur au Sénégal : NINEA, CGU et TVA
 description: Vous êtes indépendant ou petite entreprise au Sénégal ? Les mentions de votre facture, la question de la TVA à 18 % et du régime CGU, et un modèle gratuit.
 date: 2026-10-16
+updated: 2026-11-10
 tag: Sénégal
 read: 5
 ---
@@ -25,7 +26,7 @@ Le **NINEA** (Numéro d'identification national des entreprises et des associati
 3. Le client : nom, adresse, et son NINEA s'il s'agit d'une entreprise
 4. Les lignes : description, quantité, prix unitaire
 5. Sous-total, TVA ou « TVA non applicable », total
-6. Le montant en lettres
+6. Le montant en lettres (voir le [convertisseur de montant en lettres](/outils/montant-en-lettres))
 7. Vos moyens de paiement : **Wave**, **Orange Money**, **Free Money**, virement
 
 ## Être payé plus vite

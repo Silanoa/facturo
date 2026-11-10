@@ -2,6 +2,7 @@
 title: How to get paid by Mobile Money with an invoice (M-Pesa, MTN MoMo, Wave, Orange Money)
 description: What to write on the invoice, which reference to ask for, and how to avoid fake transfer scams when clients pay by Mobile Money.
 date: 2026-11-01
+updated: 2026-11-10
 tag: Get paid
 read: 5
 ---
@@ -28,5 +29,7 @@ The classic scam: a "client" sends a fake confirmation SMS, then asks you to ref
 Once the money is in, send a receipt. It builds trust and it's the document the client's accountant will ask for.
 
 ---
+
+If your client is abroad, combine Mobile Money with a bank or card option: see [how to invoice international clients from Africa](/en/blog/how-to-invoice-international-clients-from-africa). You can also [make an invoice without an account](/en/blog/invoice-without-account) and add your numbers in a few seconds.
 
 With **Bonova**, your Mobile Money numbers appear on every invoice, the client gets a link with a one-tap copy button and an "I've paid" button, and you issue the receipt in one click.

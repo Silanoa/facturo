@@ -2,6 +2,7 @@
 title: Facturer un client étranger depuis l'Afrique (devise, TVA, paiement)
 description: Devise, mentions, autoliquidation de TVA pour les clients européens et moyens de paiement qui marchent des deux côtés : la méthode simple.
 date: 2026-11-02
+updated: 2026-11-10
 tag: International
 read: 6
 ---
@@ -9,7 +10,7 @@ Vous êtes à Cotonou, Abidjan ou Douala et votre client est à Paris, Bruxelles
 
 ## 1. Facturez dans la devise du client
 
-En **EUR, USD ou CAD**, le client paie plus vite : pas de conversion à faire. Fixez la devise dès le devis et précisez qui supporte les frais de virement.
+En **EUR, USD ou CAD**, le client paie plus vite : pas de conversion à faire. Fixez la devise dès le devis et précisez qui supporte les frais de virement. Pour un client en zone euro, l'équivalent en francs CFA se calcule à la parité fixe de 655,957 FCFA pour 1 € : le [convertisseur euros en francs CFA](/outils/montant-en-lettres) donne le montant en chiffres et en lettres.
 
 ## 2. Les mentions attendues
 
@@ -30,5 +31,7 @@ Un lien de paiement (PayPal, Stripe, Paystack, Flutterwave, Kkiapay, FedaPay) **
 PDF par email pour le service comptable, lien sur WhatsApp pour la relance.
 
 ---
+
+Pour les mentions propres à chaque pays, voir aussi [les mentions obligatoires en zone OHADA](/blog/mentions-obligatoires-facture-ohada) et [le paiement par Mobile Money](/blog/facture-mobile-money).
 
 **Bonova** gère la devise, la mention d'autoliquidation et tous ces moyens de paiement sur une même facture, gratuitement et sans compte.

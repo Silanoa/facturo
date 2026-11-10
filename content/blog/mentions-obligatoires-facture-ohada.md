@@ -2,6 +2,7 @@
 title: Mentions obligatoires d'une facture en zone OHADA : la liste complète
 description: IFU ou NINEA, RCCM, numérotation, TVA, montant en lettres… Les mentions à faire figurer sur une facture au Bénin, au Sénégal, en Côte d'Ivoire et dans les 17 pays OHADA.
 date: 2026-10-12
+updated: 2026-11-10
 tag: Réglementation
 read: 6
 ---
@@ -26,7 +27,7 @@ Quelle que soit votre activité, une facture sérieuse en zone OHADA comporte :
 | Total TTC | 261 960 F |
 | Montant en lettres | Deux cent soixante et un mille neuf cent soixante francs CFA |
 
-Le **montant en lettres** n'est pas exigé partout par la loi, mais il est d'usage constant dans l'espace francophone et souvent demandé par les administrations et les grandes entreprises. Il évite les falsifications.
+Le **montant en lettres** n'est pas exigé partout par la loi, mais il est d'usage constant dans l'espace francophone et souvent demandé par les administrations et les grandes entreprises. Il évite les falsifications. Pour l'écrire sans faute d'accord, utilisez le [convertisseur de montant en lettres](/outils/montant-en-lettres).
 
 ## Ce qui change selon les pays
 

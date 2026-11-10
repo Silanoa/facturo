@@ -2,6 +2,7 @@
 title: Facture au Cameroun : NIU, RCCM et TVA à 19,25 %
 description: D'où vient le taux de 19,25 %, comment le calculer, et les mentions d'une facture conforme au Cameroun.
 date: 2026-10-22
+updated: 2026-11-10
 tag: Cameroun
 read: 4
 ---
@@ -21,7 +22,7 @@ Exemple : 100 000 F CFA HT → TVA 17 500 F + CAC 1 750 F = 19 250 F → **119 2
 - Client et son NIU
 - Désignation, quantité, prix HT
 - TVA et CAC (ou taux global 19,25 %), total TTC
-- Montant en lettres, en **francs CFA (XAF)**
+- Montant en lettres, en **francs CFA (XAF)** : le [convertisseur de montant en lettres](/outils/montant-en-lettres) applique les règles d'accord
 
 Attention : le franc CFA d'Afrique centrale (XAF) et celui d'Afrique de l'Ouest (XOF) ont la même valeur mais ne sont pas interchangeables. Sur une facture camerounaise, indiquez XAF.
 

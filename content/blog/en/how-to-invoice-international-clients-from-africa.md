@@ -2,6 +2,7 @@
 title: How to invoice international clients from Africa (and actually get paid)
 description: Currency, VAT, legal lines and the payment rails that work when you're in Lagos, Dakar or Nairobi and your client is in London, Paris or New York.
 date: 2026-11-02
+updated: 2026-11-10
 tag: International
 read: 7
 ---
@@ -52,5 +53,7 @@ Email the invoice as a PDF **and** include a link they can open on their phone. 
 Send a friendly reminder on the due date, a firmer one after 7 days and a final notice after 21 days. Keep each message short and include the link and the amount.
 
 ---
+
+For the Mobile Money side, see [how to get paid by Mobile Money with an invoice](/en/blog/get-paid-mobile-money-invoice). To write the total in words, use the [amount in words converter](/en/tools/amount-in-words), which also converts euros to CFA francs at the fixed rate of 655.957.
 
 **Bonova** does all of the above for free and without sign-up: pick the client's currency, add your Wise, PayPal or Stripe link next to your Mobile Money number, and send the invoice by email or WhatsApp in seconds.

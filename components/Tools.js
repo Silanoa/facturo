@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { inWords, fmt, CURRENCIES, curName } from "../lib/money";
+import { inWords, fmt, CURRENCIES, curName, eurToXof, cfaWords } from "../lib/money";
 import { COUNTRIES } from "../lib/countries";
 import { useT } from "../lib/i18n";
 const n = (v) => parseFloat(String(v).replace(/\s/g, "").replace(",", ".")) || 0;
@@ -41,13 +41,21 @@ export function wordsFor(v, c, lang = "fr") { const x = n(v); const i = Math.flo
   const [s, p] = CW[c] || [curName(c, "fr"), curName(c, "fr")];
   const w = inWords(i); const unit = (/(million|milliard)s?$/.test(w) ? "de " : "") + (i > 1 ? p : s);
   return `${w} ${unit}${cents ? ` et ${inWords(cents)} centime${cents > 1 ? "s" : ""}` : ""}`; }
-export function Words() {
-  const { tr, lang } = useT(); const [v, setV] = useState(lang === "en" ? "1250.50" : "519200"); const [c, setC] = useState(lang === "en" ? "USD" : "XOF"); const [ok, setOk] = useState(false);
-  const w = wordsFor(v, c, lang); const full = lang === "en" ? `Amount due: ${w}.` : `Arrêtée la présente facture à la somme de ${w}.`;
+export function Words({ start = "amount" }) {
+  const { tr, lang } = useT(); const en = lang === "en"; const [mode, setMode] = useState(start === "eur" ? "eur" : "amount");
+  const [v, setV] = useState(en ? "1250.50" : "519200"); const [e, setE] = useState("2000"); const [c, setC] = useState(en ? "USD" : "XOF"); const [ok, setOk] = useState(false);
+  const xof = eurToXof(n(e)); const fig = fmt(xof, "XOF", lang);
+  const w = mode === "eur" ? cfaWords(xof, lang) : wordsFor(v, c, lang);
+  const full = mode === "eur" ? (en ? `Amount due: ${w} (${fig}).` : `Arrêtée la présente facture à la somme de ${w} (${fig}).`) : (en ? `Amount due: ${w}.` : `Arrêtée la présente facture à la somme de ${w}.`);
+  const pick = (m) => { setMode(m); setOk(false); };
   return (<div className="panel tool" style={{ padding: 24 }}>
-    <div className="g2" style={{ gridTemplateColumns: "1.6fr 1fr" }}><label className="f"><span>{tr("Montant en chiffres", "Amount in figures")}</span><input inputMode="decimal" className="mono" style={{ fontSize: 22 }} value={v} onChange={(e) => setV(e.target.value)} /></label>
-      <label className="f"><span>{tr("Devise", "Currency")}</span><select value={c} onChange={(e) => setC(e.target.value)}>{CURRENCIES.map(x => <option key={x.code} value={x.code}>{x.code} — {curName(x.code, lang)}</option>)}</select></label></div>
-    <div style={{ background: "#fff", border: "1px solid var(--line)", padding: 18 }}><div className="u">{tr("En lettres", "In words")}</div><p className="d" style={{ fontSize: "clamp(22px,3vw,30px)", margin: "10px 0 0", lineHeight: 1.15, fontWeight: 600 }}>{w.charAt(0).toUpperCase() + w.slice(1)}</p></div>
-    <div className="row" style={{ marginTop: 14, flexWrap: "wrap" }}><button className="b s" onClick={async () => { try { await navigator.clipboard.writeText(full); } catch {} setOk(true); setTimeout(() => setOk(false), 1600); }}>{ok ? tr("Copié", "Copied") : tr("Copier la formule complète", "Copy")}</button><span className="mute" style={{ fontSize: 14 }}>« {full} »</span></div>
+    <div className="seg" role="tablist" style={{ marginBottom: 16 }}><button role="tab" aria-selected={mode === "amount"} className={mode === "amount" ? "on" : ""} onClick={() => pick("amount")}>{tr("Montant en lettres", "Amount in words")}</button><button role="tab" aria-selected={mode === "eur"} className={mode === "eur" ? "on" : ""} onClick={() => pick("eur")}>{tr("Euros → francs CFA", "Euros → CFA francs")}</button></div>
+    {mode === "amount" ? <div className="g2" style={{ gridTemplateColumns: "1.6fr 1fr" }}><label className="f"><span>{tr("Montant en chiffres", "Amount in figures")}</span><input inputMode="decimal" className="mono" style={{ fontSize: 22 }} value={v} onChange={(x) => setV(x.target.value)} /></label>
+      <label className="f"><span>{tr("Devise", "Currency")}</span><select value={c} onChange={(x) => setC(x.target.value)}>{CURRENCIES.map(x => <option key={x.code} value={x.code}>{x.code} — {curName(x.code, lang)}</option>)}</select></label></div>
+    : <div className="g2" style={{ gridTemplateColumns: "1.6fr 1fr" }}><label className="f"><span>{tr("Montant en euros", "Amount in euros")}</span><input inputMode="decimal" className="mono" style={{ fontSize: 22 }} value={e} onChange={(x) => setE(x.target.value)} /></label>
+      <div className="f"><span>{tr("En francs CFA", "In CFA francs")}</span><output className="mono" style={{ display: "block", fontSize: 22, fontWeight: 600, padding: "10px 0" }}>{fig}</output></div></div>}
+    <div style={{ background: "#fff", border: "1px solid var(--line)", padding: 18 }}><div className="u">{mode === "eur" ? tr("En lettres, en francs CFA", "In words, in CFA francs") : tr("En lettres", "In words")}</div><p className="d" style={{ fontSize: "clamp(22px,3vw,30px)", margin: "10px 0 0", lineHeight: 1.15, fontWeight: 600 }}>{w.charAt(0).toUpperCase() + w.slice(1)}</p></div>
+    {mode === "eur" && <p className="mute" style={{ fontSize: 14, margin: "12px 0 0" }}>{tr("Parité fixe : 1 € = 655,957 FCFA (franc CFA UEMOA et CEMAC). Le résultat est arrondi au franc.", "Fixed peg: €1 = 655.957 FCFA (West and Central African CFA franc). Rounded to the nearest franc.")}</p>}
+    <div className="row" style={{ marginTop: 14, flexWrap: "wrap" }}><button className="b s" onClick={async () => { try { await navigator.clipboard.writeText(full); } catch {} setOk(true); setTimeout(() => setOk(false), 1600); }}>{ok ? tr("Copié", "Copied") : tr("Copier la formule complète", "Copy")}</button><span className="mute" style={{ fontSize: 14 }}>{en ? `“${full}”` : `« ${full} »`}</span></div>
   </div>);
 }
