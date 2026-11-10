@@ -11,7 +11,14 @@ export async function POST(req) {
   const local = parseDraft(text);
   if (hasLLM()) {
     try { const j = JSON.parse((await llm(SYS, text, true)).replace(/^```json|```$/g, ""));
-      if (Array.isArray(j.items) && j.items.length) return NextResponse.json({ ...local, ...Object.fromEntries(Object.entries(j).filter(([, v]) => v !== null && v !== "")), client: { ...local.client, ...(j.client || {}) }, engine: "ai" });
+      if (Array.isArray(j.items) && j.items.length) {
+        // Le modèle ne doit pas inventer ce qui n'a pas été dit : type, devise, TVA, échéance seulement s'ils sont mentionnés.
+        const said = { kind: /devis|quote|re[çc]u|receipt|facture|invoice|pay[ée]|paid/i, currency: /fcfa|cfa|xof|xaf|f\b|francs?|€|euros?|\$|dollars?|usd|eur|naira|ngn|cedis?|ghs|dirhams?|mad|dh\b|kes|shillings?/i, tax_rate: /tva|vat|tax|%/i, due_days: /jours?|days?|semaines?|weeks?|mois|months?|[ée]ch[ée]ance|due|sous \d/i };
+        const ai = Object.fromEntries(Object.entries(j).filter(([k, v]) => v !== null && v !== "" && (!said[k] || local[k] != null || said[k].test(text))));
+        const client = { ...local.client, ...Object.fromEntries(Object.entries(j.client || {}).filter(([, v]) => v)) };
+        const items = j.items.filter((i) => i && i.label).map((i) => ({ label: String(i.label).slice(0, 200), qty: +i.qty > 0 ? +i.qty : 1, price: +i.price || 0 }));
+        if (items.length) return NextResponse.json({ ...local, ...ai, items, client, engine: "ai" });
+      }
     } catch {}
   }
   return NextResponse.json({ ...local, engine: "local" });
