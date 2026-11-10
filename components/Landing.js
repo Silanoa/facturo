@@ -26,7 +26,7 @@ const C = {
     s5: "Tarifs", s5h: "Gratuit pour commencer.",
     s6: "Questions", end: ["Votre prochaine facture,", "dans une minute."],
     s7: "Ressources", s7h: "Outils gratuits et guides.", s7p: "Pour calculer un montant ou vérifier une règle avant de facturer. Sans compte.",
-    tl: "Outils gratuits", tools: [["/outils/generateur-facture", "Générateur de facture"], ["/outils/calcul-tva", "Calcul de TVA (HT, TTC)"], ["/outils/montant-en-lettres", "Montant en lettres, euros en FCFA"], ["/modele-de-facture", "Modèle de facture"]],
+    tl: "Outils gratuits", tools: [["/outils/generateur-facture", "Générateur de facture"], ["/outils/calcul-tva", "Calcul de TVA (HT, TTC)"], ["/outils/montant-en-lettres", "Montant en lettres"], ["/modele-de-facture", "Modèle de facture"]],
     gl: "Guides", guides: [["/blog/mentions-obligatoires-facture-ohada", "Mentions obligatoires d'une facture en zone OHADA"], ["/blog/tva-uemoa-18", "TVA dans l'UEMOA : taux et calcul"], ["/blog/facturer-client-etranger", "Facturer un client à l'étranger"], ["/blog/facture-mobile-money", "Se faire payer par Mobile Money"], ["/blog", "Tous les guides →"]] },
   en: { k: "Bonova · for freelancers and small businesses", h: ["Invoice", "in a minute."], hs: "Get paid faster.", lead: "Bonova is an online invoice maker. Create quotes, invoices and receipts in a minute. Currency, tax and legal lines follow your country. Send by WhatsApp, email or PDF and track payments.",
     cta: "Make my first invoice", demo: "See an example", meta: ["No account", "No fees", "English / Français"],
@@ -38,7 +38,7 @@ const C = {
     s5: "Pricing", s5h: "Free to start.",
     s6: "Questions", end: ["Your next invoice,", "a minute from now."],
     s7: "Resources", s7h: "Free tools and guides.", s7p: "To work out an amount or check a rule before you invoice. No account needed.",
-    tl: "Free tools", tools: [["/en/invoice-generator", "Invoice generator"], ["/en/tools/vat-calculator", "VAT calculator"], ["/en/tools/amount-in-words", "Amount in words, euros to CFA"], ["/en/example", "Invoice example"]],
+    tl: "Free tools", tools: [["/en/invoice-generator", "Invoice generator"], ["/en/tools/vat-calculator", "VAT calculator"], ["/en/tools/amount-in-words", "Amount in words"], ["/en/example", "Invoice example"]],
     gl: "Guides", guides: [["/en/blog/how-to-invoice-international-clients-from-africa", "How to invoice international clients from Africa"], ["/en/blog/get-paid-mobile-money-invoice", "Getting paid by Mobile Money"], ["/en/blog/freelance-invoice-template-free", "Free freelance invoice template"], ["/en/blog/invoice-without-account", "Make an invoice without an account"], ["/en/blog", "All guides →"]] },
 };
 export default function Landing({ lang = "fr" }) {
