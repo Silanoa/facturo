@@ -36,7 +36,7 @@ function Mic({ onText, onDone, lang }) {
     if (rec) fetch("/api/ai/transcribe").then((r) => r.json()).then((j) => j.ok ? live && setOk("server") : fallback()).catch(fallback); else fallback();
     return () => { live = false; cleanup(); };
   }, []);
-  function cleanup() { const r = R.current; clearInterval(r.tick); clearTimeout(r.cap); try { r.stream?.getTracks().forEach((t) => t.stop()); } catch {} r.stream = null; if (r.sr) { try { r.sr.onend = null; r.sr.abort(); } catch {} r.sr = null; } }
+  function cleanup() { const r = R.current; clearInterval(r.tick); clearInterval(r.meter); try { r.ac?.close(); } catch {} r.ac = null; clearTimeout(r.cap); try { r.stream?.getTracks().forEach((t) => t.stop()); } catch {} r.stream = null; if (r.sr) { try { r.sr.onend = null; r.sr.abort(); } catch {} r.sr = null; } }
   async function send(blob, dur) {
     if (dur < 0.8 || blob.size < 800) { setSt("idle"); return setErr(T.short); }
     setSt("busy");
@@ -74,10 +74,13 @@ function Mic({ onText, onDone, lang }) {
     let mr; const mime = pickMime();
     try { mr = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : { audioBitsPerSecond: 32000 }); }
     catch { try { mr = new MediaRecorder(stream); } catch { stream.getTracks().forEach((t) => t.stop()); return setErr(T.unsup); } }
-    const r = R.current; r.stream = stream; r.mr = mr; r.chunks = []; r.t0 = Date.now(); r.hitCap = false;
+    const r = R.current; r.stream = stream; r.mr = mr; r.chunks = []; r.t0 = Date.now(); r.hitCap = false; r.peak = -1;
+    // Niveau sonore mesuré pendant l'enregistrement : un silence n'est pas envoyé (évite une transcription inventée).
+    try { const AC = window.AudioContext || window.webkitAudioContext; const ac = new AC(); ac.resume?.().catch(() => {}); const an = ac.createAnalyser(); an.fftSize = 1024; ac.createMediaStreamSource(stream).connect(an); const d = new Float32Array(an.fftSize); r.ac = ac;
+      r.meter = setInterval(() => { if (ac.state !== "running") return; an.getFloatTimeDomainData(d); let q = 0; for (const v of d) q += v * v; r.peak = Math.max(r.peak, Math.sqrt(q / d.length)); }, 100); } catch {}
     mr.ondataavailable = (e) => { if (e.data?.size) r.chunks.push(e.data); };
     mr.onerror = () => { cleanup(); setSt("idle"); setErr(T.fail); };
-    mr.onstop = () => { const dur = (Date.now() - r.t0) / 1000; cleanup(); const blob = new Blob(r.chunks, { type: mr.mimeType || mime || "audio/webm" }); r.chunks = []; if (r.hitCap) setErr(T.limit); send(blob, dur); };
+    mr.onstop = () => { const dur = (Date.now() - r.t0) / 1000; cleanup(); const blob = new Blob(r.chunks, { type: mr.mimeType || mime || "audio/webm" }); r.chunks = []; if (r.hitCap) setErr(T.limit); if (r.peak >= 0 && r.peak < 0.004) { setSt("idle"); return setErr(T.empty); } send(blob, dur); };
     try { mr.start(1000); } catch { cleanup(); return setErr(T.unsup); }
     setSec(0); setSt("rec");
     r.tick = setInterval(() => setSec(Math.floor((Date.now() - r.t0) / 1000)), 250);

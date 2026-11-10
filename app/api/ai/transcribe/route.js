@@ -1,6 +1,6 @@
 // Dictée : audio enregistré dans le navigateur (MediaRecorder) -> transcription Groq Whisper, sinon Gemini (audio en ligne).
 import { limited, tooMany } from "../../../../lib/ratelimit";
-import { gemini } from "../../../../lib/llm";
+import { gemini, geminiReady } from "../../../../lib/llm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -11,8 +11,8 @@ const PROMPT = { fr: "Facture, devis, reçu. Création d'un logo à 150 000 fran
 const JUNK = /(sous-titr|amara\.org|merci d'avoir regard|abonnez-vous|thanks for watching|thank you for watching|subscribe to)/i;
 const j = (b, s = 200) => Response.json(b, { status: s, headers: { "cache-control": "no-store" } });
 const has = () => !!(process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY);
-const GSYS = { fr: "Tu transcris un enregistrement audio dicté pour une facture. Réponds uniquement par la transcription mot pour mot, en français, sans commentaire, sans guillemets, sans traduction. Écris les montants et quantités en chiffres. N'ajoute rien qui n'a pas été dit. Si l'audio ne contient pas de parole, réponds exactement : <vide>", en: "You transcribe an audio recording dictated for an invoice. Reply only with the verbatim transcription, in English, with no comment, no quotes, no translation. Write amounts and quantities in digits. Add nothing that was not said. If the audio contains no speech, reply exactly: <empty>" };
-export async function GET() { return j({ ok: has() }); }
+const GSYS = { fr: "Tu transcris un enregistrement audio dicté pour une facture. Réponds uniquement par la transcription mot pour mot, en français, sans commentaire, sans guillemets, sans traduction. Écris les montants et quantités en chiffres. N'ajoute rien qui n'a pas été dit. N'invente jamais de contenu : si l'audio est silencieux, inaudible ou ne contient que du bruit, réponds exactement : <vide>", en: "You transcribe an audio recording dictated for an invoice. Reply only with the verbatim transcription, in English, with no comment, no quotes, no translation. Write amounts and quantities in digits. Add nothing that was not said. Never make up content: if the audio is silent, inaudible or only noise, reply exactly: <empty>" };
+export async function GET() { return j({ ok: !!process.env.GROQ_API_KEY || await geminiReady() }); }
 export async function POST(req) {
   if (!has()) return j({ error: "UNAVAILABLE" }, 503);
   if (await limited(req, "stt", 8, 60) || await limited(req, "stt-h", 60, 3600) || await limited({ headers: new Headers() }, "stt-day-all", 900, 86400)) return tooMany(); // dernier : plafond global pour rester dans l'offre gratuite
