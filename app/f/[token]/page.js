@@ -38,7 +38,7 @@ export default function Pub() {
       <div className="big" style={{ margin: "10px 0 8px", fontSize: "clamp(44px,12vw,72px)" }}>{fmt(paid || closed ? doc.total : due, doc.currency, L)}</div>
       {part && <p className="mute" style={{ margin: "0 0 6px" }}>{tr("Reste à payer sur", "Balance due on")} {fmt(doc.total, doc.currency, L)} · {tr("déjà réglé", "already paid")} {fmt(doc.paid_amount, doc.currency, L)}</p>}
       <p style={{ margin: "0 0 22px", fontSize: 16 }}>{isR ? <span className="pill paid">{tr("Paiement reçu", "Payment received")}{O.paid_on ? ` · ${date(O.paid_on)}` : ""}</span>
-        : doc.status === "cancelled" ? <span className="pill cancelled">{tr("Annulé", "Cancelled")}</span>
+        : doc.status === "cancelled" ? <span className="pill cancelled">{doc.kind === "invoice" ? tr("Annulée", "Cancelled") : tr("Annulé", "Cancelled")}</span>
         : (doc.status === "declined" || dec) ? <span className="pill declined">{tr("Devis refusé", "Quote declined")}</span>
         : doc.status === "invoiced" ? <span className="pill accepted">{tr("Devis accepté et facturé", "Quote accepted and invoiced")}</span>
         : paid ? <span className="pill paid">{tr("Payée — merci", "Paid — thank you")}</span>

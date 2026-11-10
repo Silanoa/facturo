@@ -9,7 +9,7 @@ import { useT } from "../../../lib/i18n";
 import { useSession } from "../../../lib/session";
 const empty = { name: "", phone: "", email: "", address: "", tax_id: "" };
 export default function Clients() {
-  const { toast } = useSession(); const { tr } = useT(); const [list, setList] = useState(null); const [docs, setDocs] = useState([]); const [f, setF] = useState(null); const [q, setQ] = useState("");
+  const { toast } = useSession(); const { tr, lang } = useT(); const [list, setList] = useState(null); const [docs, setDocs] = useState([]); const [f, setF] = useState(null); const [q, setQ] = useState("");
   const load = () => supabase.from("clients").select("*").order("name").then(({ data }) => setList(data || []));
   useEffect(() => { load(); supabase.from("documents").select("kind,status,client,total,currency,issue_date,due_date,paid_at,declared_paid_at").then(({ data }) => setDocs(data || [])); }, []);
   const stats = useMemo(() => Object.fromEntries(clientStats(docs).map(c => [c.name.toLowerCase(), c])), [docs]);
@@ -28,7 +28,7 @@ export default function Clients() {
         <span className="av" style={{ background: avColor(c.name) }}>{initials(c.name)}</span>
         <button className="grow" onClick={() => setF(c)} style={{ background: "none", border: 0, textAlign: "left", padding: 0, cursor: "pointer", font: "inherit", color: "inherit" }}>
           <div className="t">{c.name}</div>
-          <div className="s">{s ? <>{fmt(s.billed, s.currency)} {tr("facturés", "billed")}{s.avgDays !== null && <> · {tr("paie en", "pays in")} ~{s.avgDays} {tr("j", "d")}</>}{s.open > 0 && <> · <span style={{ color: s.late ? "var(--late)" : "var(--ink-2)", fontWeight: 600 }}>{tr("doit", "owes")} {fmt(s.open, s.currency)}</span></>}</> : (c.phone || c.email || "—")}</div></button>
+          <div className="s">{s ? <>{fmt(s.billed, s.currency, lang)} {tr("facturés", "billed")}{s.avgDays !== null && <> · {tr("paie en", "pays in")} ~{s.avgDays} {tr("j", "d")}</>}{s.open > 0 && <> · <span style={{ color: s.late ? "var(--late)" : "var(--ink-2)", fontWeight: 600 }}>{tr("doit", "owes")} {fmt(s.open, s.currency, lang)}</span></>}</> : (c.phone || c.email || "—")}</div></button>
         {c.phone && <a className="b s o" target="_blank" rel="noreferrer" href={`https://wa.me/${waNumber(c.phone)}`}>WhatsApp</a>}
         <Link className="b s o" href={`/app/documents/nouveau?client=${c.id}`}>{tr("Facturer", "Invoice")}</Link></div>); })}</div>}
     <style dangerouslySetInnerHTML={{ __html: `@media(max-width:600px){.li .b.o{display:none}}` }} />

@@ -41,7 +41,7 @@ export function SiteFooter({ lang = "fr" }) {
   return (<footer className="foot"><div className="wrap">
     <div className="foot-big">bonova</div>
     <div className="cols">
-      <div className="foot-about"><p>{en ? "Quotes, invoices and receipts for freelancers and small businesses. Get paid by Mobile Money, transfer, card or PayPal." : "Devis, factures et reçus pour les indépendants et les petites entreprises. Faites-vous payer par Mobile Money, virement, carte ou PayPal."}</p>
+      <div className="foot-about"><p>{en ? "Quotes, invoices and receipts for freelancers and small businesses. Get paid by Mobile Money, bank transfer or a payment link such as PayPal." : "Devis, factures et reçus pour les indépendants et les petites entreprises. Faites-vous payer par Mobile Money, virement bancaire ou lien de paiement."}</p>
         <h4>{en ? "Help" : "Aide"}</h4>
         {SUPPORT.wa && <a href={waSupport("", lang)} target="_blank" rel="noreferrer">WhatsApp</a>}<a href={mailSupport("", lang)}>{SUPPORT.email}</a></div>
       {cols.map(([h, ls]) => <nav key={h} aria-label={h}><h4>{h}</h4>{ls.map(([u, t]) => <span key={u}>{L(u, t)}</span>)}</nav>)}

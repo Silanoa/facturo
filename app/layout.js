@@ -9,7 +9,7 @@ const serif = Newsreader({ subsets: ["latin"], variable: "--f-serif", style: ["i
 export const metadata = {
   metadataBase: new URL(SITE.url),
   title: { default: "Bonova — Générateur de facture, devis et reçus en ligne", template: "%s · Bonova" },
-  description: "Créez vos devis, factures et reçus en une minute et envoyez-les par WhatsApp, email ou PDF. Paiement par Mobile Money, virement, carte ou PayPal. Sans inscription.",
+  description: "Créez vos devis, factures et reçus en une minute et envoyez-les par WhatsApp, email ou PDF. Paiement par Mobile Money, virement ou lien de paiement. Sans inscription.",
   applicationName: "Bonova",
   manifest: "/manifest.webmanifest",
   icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }, { url: "/favicon-48.png", sizes: "48x48", type: "image/png" }, { url: "/favicon-96.png", sizes: "96x96", type: "image/png" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/apple-touch-icon.png", shortcut: "/favicon.ico" },

@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { useSession } from "../../../lib/session";
 import { useT } from "../../../lib/i18n";
-import { CURRENCIES, curLabel } from "../../../lib/money";
+import { CURRENCIES, curLabel, fmt } from "../../../lib/money";
 import { COUNTRIES, country } from "../../../lib/countries";
 import { TEMPLATES, ACCENTS, FONTS, SECTIONS, blocksOf } from "../../../lib/templates";
 import { KINDS } from "../../../lib/money";
@@ -14,6 +14,9 @@ import PayFields from "../../../components/PayFields";
 import { TplMini } from "../../../components/Editor";
 import Pricing from "../../../components/Pricing";
 import { shrink, dominant, letterhead } from "../../../lib/img";
+// Aperçu des modèles : numéro et lignes dans la langue des documents (INV-… en anglais), avec la numérotation choisie.
+const SAMPLE_EN_ITEMS = [{ label: "Website redesign", qty: 1, price: 450000 }, { label: "Monthly maintenance", qty: 3, price: 35000 }];
+const sampleFor = (prof, st, currency, vat, ui) => { const l = prof.doc_lang || ui || "fr"; return { ...SAMPLE, lang: l, number: prefixFor("invoice", l, st) + "0042", currency, tax_rate: vat, ...(l === "en" ? { items: SAMPLE_EN_ITEMS } : {}) }; };
 const SAMPLE = { kind: "invoice", number: "FAC-2026-0042", status: "sent", currency: "XOF", tax_rate: 18, discount: 0, issue_date: "2026-11-02", due_date: "2026-11-17", client: { name: "Atlas Conseil SARL", address: "Plateau, Dakar" }, items: [{ label: "Refonte du site web", qty: 1, price: 450000 }, { label: "Maintenance mensuelle", qty: 3, price: 35000 }] };
 const LS = { month: process.env.NEXT_PUBLIC_LEMON_MONTH, year: process.env.NEXT_PUBLIC_LEMON_YEAR };
 const addMonths = (d, n) => { const x = new Date(d); x.setMonth(x.getMonth() + n); return x; };
@@ -26,7 +29,7 @@ function PlanNow({ s, lang, tr, hist, current }) {
   return (<div className={`plan-now ${current !== "free" ? "is-pro" : ""}`}>
     <div className="plan-now-m"><span className="plan-now-k">{tr("Votre offre", "Your plan")}</span><b className="plan-now-n">{name}</b>
       <span className="plan-now-s">{current === "free" ? tr("Sans limite de durée. Passez à Pro quand vous en avez besoin.", "No time limit. Upgrade whenever you need to.") : current === "life" ? tr("Actif, sans date d'échéance.", "Active, no end date.") : left > 0 ? <>{tr("Actif jusqu'au", "Active until")} <b>{d8(until)}</b> · {left} {left > 1 ? tr("jours restants", "days left") : tr("jour restant", "day left")}</> : tr("Expiré. Vos documents restent accessibles.", "Expired. Your documents remain available.")}</span></div>
-    {current !== "free" && current !== "life" && <dl className="plan-now-d"><div><dt>{tr("Renouvellement", "Renewal")}</dt><dd>{tr("Manuel", "Manual")}</dd></div>{last && <div><dt>{tr("Dernier paiement", "Last payment")}</dt><dd>{d8(last.created_at)}{last.amount ? ` · ${Number(last.amount).toLocaleString(loc)} ${last.currency === "XOF" ? "FCFA" : last.currency || ""}` : ""}</dd></div>}</dl>}
+    {current !== "free" && current !== "life" && <dl className="plan-now-d"><div><dt>{tr("Renouvellement", "Renewal")}</dt><dd>{tr("Manuel", "Manual")}</dd></div>{last && <div><dt>{tr("Dernier paiement", "Last payment")}</dt><dd>{d8(last.created_at)}{last.amount ? ` · ${fmt(last.amount, last.currency || "XOF", lang)}` : ""}</dd></div>}</dl>}
     {current !== "free" && left !== null && left <= 7 && left > 0 && <p className="plan-now-w">{tr("Votre Pro se termine bientôt. Prolongez ci-dessous pour ne rien perdre.", "Your Pro ends soon. Extend below to keep everything.")}</p>}
   </div>);
 }
@@ -155,7 +158,7 @@ function Settings() {
           {pro ? <div className="row" style={{ flexWrap: "wrap", gap: 10 }}>{S.sign_img && <img src={S.sign_img} alt="" style={{ height: 56, background: "#fff", border: "1px solid var(--line)", borderRadius: 8, padding: 4 }} />}<label className="b s o" style={{ cursor: "pointer" }}>{S.sign_img ? tr("Remplacer", "Replace") : tr("Importer une image", "Upload an image")}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,application/pdf,.svg,.pdf" hidden onChange={async (e) => { const fl = e.target.files?.[0]; if (fl) setS("sign_img", await shrink(fl)); }} /></label>{S.sign_img && <button className="lnk" onClick={() => setS("sign_img", null)}>{tr("Retirer", "Remove")}</button>}</div>
             : <button type="button" className="lnk" onClick={() => setTab("offre")}>{tr("Disponible avec Pro →", "Available with Pro →")}</button>}</div>
       </div>
-      <div className="preview"><div className="sheet-stack"><DocPaper doc={{ ...SAMPLE, currency: p.currency || "XOF", tax_rate: ct.vat }} profile={preview} /></div></div></div>}
+      <div className="preview"><div className="sheet-stack"><DocPaper doc={sampleFor(preview, S, p.currency || "XOF", ct.vat, lang)} profile={preview} /></div></div></div>}
     {tab === "notifs" && <div style={{ maxWidth: 760 }}>
       <div className="blk"><h3>{tr("Dans l'application", "In the app")}</h3>
         <Tog k="n_viewed">{tr("Quand un client ouvre un document", "When a client opens a document")}</Tog><Tog k="n_quote">{tr("Quand un devis est accepté ou refusé", "When a quote is accepted or declined")}</Tog><Tog k="n_paid">{tr("Quand un client indique avoir payé", "When a client says they've paid")}</Tog>

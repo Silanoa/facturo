@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import { useDocs } from "../../../lib/data";
-import { fmt, KINDS, kindName } from "../../../lib/money";
+import { fmt, KINDS, kindName, balanceOf } from "../../../lib/money";
 import { effStatus, statusName, initials, avColor } from "../../../lib/share";
 import { useT } from "../../../lib/i18n";
 import { IPlus } from "../../../components/Icons";
@@ -18,7 +18,7 @@ function Docs() {
   }
   const match = (d) => { const s = effStatus(d); if (f === "open") return d.kind === "invoice" && !["paid", "draft", "cancelled"].includes(d.status); if (f === "late") return s === "late"; if (f === "all") return true; return d.kind === f; };
   const list = (docs || []).filter(d => match(d) && (!q || `${d.number} ${d.client?.name || ""}`.toLowerCase().includes(q.toLowerCase())));
-  const sum = list.filter(d => d.kind === "invoice").reduce((a, d) => ({ ...a, [d.currency]: (a[d.currency] || 0) + +d.total }), {});
+  const due = f === "open" || f === "late"; const sum = list.filter(d => d.kind === "invoice").reduce((a, d) => ({ ...a, [d.currency]: (a[d.currency] || 0) + (due ? balanceOf(d) : +d.total) }), {});
   return (<div className="in">
     <div className="ph"><h1>Documents</h1><div className="row" style={{ flexWrap: "wrap" }}>
       {docs?.length > 0 && <button className="b o s desk-only" onClick={csv}>Export CSV</button>}
@@ -31,8 +31,8 @@ function Docs() {
       <div className="list">{list.map(d => { const st = effStatus(d); return (<Link className="li" key={d.id} href={`/app/documents/${d.id}`}>
         <span className="av" style={{ background: avColor(d.client?.name) }}>{initials(d.client?.name)}</span>
         <div className="grow"><div className="t">{d.client?.name || "—"}</div><div className="s"><span className="mono">{d.number}</span> · {kindName(d.kind, lang)} · {new Date(d.issue_date).toLocaleDateString(lang === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "short" })}</div></div>
-        <span className={`pill ${st}`}>{statusName(st, lang, d.kind)}</span><div className="amt" style={{ minWidth: 120 }}>{fmt(d.total, d.currency)}</div></Link>); })}</div>}
-    {Object.keys(sum).length > 0 && <p className="mute" style={{ textAlign: "right", fontSize: 14 }}>{tr("Total factures affichées :", "Invoices total:")} {Object.entries(sum).map(([c, v]) => <b key={c} className="mono" style={{ color: "var(--ink)", marginLeft: 8 }}>{fmt(v, c)}</b>)}</p>}
+        <span className={`pill ${st}`}>{statusName(st, lang, d.kind)}</span><div className="amt" style={{ minWidth: 120 }}>{fmt(d.total, d.currency, lang)}</div></Link>); })}</div>}
+    {Object.keys(sum).length > 0 && <p className="mute" style={{ textAlign: "right", fontSize: 14 }}>{due ? tr("Reste à encaisser :", "Balance due:") : tr("Total factures affichées :", "Invoices total:")} {Object.entries(sum).map(([c, v]) => <b key={c} className="mono" style={{ color: "var(--ink)", marginLeft: 8 }}>{fmt(v, c, lang)}</b>)}</p>}
     <style dangerouslySetInnerHTML={{ __html: `@media(max-width:600px){.li .pill{display:none}}` }} />
   </div>);
 }

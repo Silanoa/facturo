@@ -26,8 +26,8 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
   const taxL = ct.tax || "Tax ID"; const paid = +doc.paid_amount || 0; const rest = Math.max(0, t.total - paid);
   const isPaid = K === "invoice" && doc.status === "paid"; const partial = K === "invoice" && ["partial", "sent", "draft"].includes(doc.status || "draft") && paid > 0;
   const logo = B.logo && profile.logo ? <img src={profile.logo} alt="" className="logo-img" /> : null;
-  const From = ({ light, bare }) => (<div>
-    {!bare && logo && <div style={{ marginBottom: 10 }}>{logo}</div>}
+  const From = ({ light, bare, nologo }) => (<div>
+    {!bare && !nologo && logo && <div style={{ marginBottom: 10 }}>{logo}</div>}
     {!bare && <div style={{ fontSize: "1.2em", fontWeight: 700 }}>{profile.business_name || tr("Votre nom ou activité", "Your name or business")}</div>}
     {profile.address && <div>{profile.address}</div>}
     {(profile.phone || profile.email) && <div>{[profile.phone, profile.email].filter(Boolean).join(" · ")}</div>}
@@ -98,7 +98,7 @@ export default function DocPaper({ doc, profile: prof0 = {}, template }) {
       {foot}</>)}</div></div>);
   }
   if (tp === "marche") return (<div className={cls} style={style}>{pageCss}{stamp}
-    <div className="band"><div>{logo && <div className="band-logo">{logo}</div>}<div className="title">{kn}</div><div className="nm" style={{ marginTop: 6, opacity: .8 }}>{doc.number}</div><div style={{ marginTop: 14 }}><From light /></div></div><div style={{ textAlign: "right" }}><Dates light /></div></div>
+    <div className="band"><div>{logo && <div className="band-logo">{logo}</div>}<div className="title">{kn}</div><div className="nm" style={{ marginTop: 6, opacity: .8 }}>{doc.number}</div><div style={{ marginTop: 14 }}><From light nologo /></div></div><div style={{ textAlign: "right" }}><Dates light /></div></div>
     <div className="pad" style={{ paddingTop: 28 }}>{body(<To />)}{foot}</div></div>);
   if (tp === "registre") return (<div className={cls} style={style}>{pageCss}{stamp}<div className="pad">
     <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1.5px solid #191714", paddingBottom: 10, marginBottom: 18, gap: 10, alignItems: "center" }}>{logo}<span className="title">{kn} — {doc.number}</span><span>{d8(doc.issue_date)}</span></div>
