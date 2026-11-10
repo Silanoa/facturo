@@ -37,11 +37,20 @@ const C = {
 };
 export default function Landing({ lang = "fr" }) {
   const t = C[lang]; const en = lang === "en"; const tryH = en ? "/en/invoice-generator" : "/essai";
-  const ld = [{ "@context": "https://schema.org", "@type": "Organization", name: "Bonova", alternateName: "Bonova App", url: SITE.url, logo: SITE.url + "/icon-512.png", description: "Bonova (bonova.app) est un générateur de devis, factures et reçus en ligne, en français et en anglais, pour les indépendants et les petites entreprises, notamment en Afrique de l'Ouest et du Centre.", slogan: "Facturez en une minute.", sameAs: ["https://x.com/bonovaapp", "https://www.linkedin.com/company/bonova-app"] }, { "@context": "https://schema.org", "@type": "WebSite", name: "Bonova", alternateName: ["Bonova App", "bonova.app"], url: SITE.url, inLanguage: ["fr", "en"] }, { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Bonova", applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", url: SITE.url + (en ? "/en" : "/"), inLanguage: lang,
-    offers: [{ "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" }, { "@type": "Offer", price: "4.9", priceCurrency: "USD", name: "Pro monthly" }] },
-    { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ[lang].map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) }];
+  const orgId = SITE.url + "/#organization";
+  const sameAs = ["https://x.com/bonovaapp", "https://www.linkedin.com/company/bonova-app"];
+  const alt = ["Bonova App", "bonova.app"];
+  const desc = en
+    ? "Bonova (bonova.app) is a free online quote, invoice and receipt maker, in French and English, for freelancers and small businesses, especially in West and Central Africa."
+    : "Bonova (bonova.app) est un générateur de devis, factures et reçus en ligne, en français et en anglais, pour les indépendants et les petites entreprises, notamment en Afrique de l'Ouest et du Centre.";
+  const ld = [
+    { "@context": "https://schema.org", "@type": "Organization", "@id": orgId, name: "Bonova", alternateName: alt, url: SITE.url, logo: { "@type": "ImageObject", url: SITE.url + "/icon-512.png", width: 512, height: 512 }, image: SITE.url + "/icon-512.png", description: desc, slogan: en ? "Invoice in a minute." : "Facturez en une minute.", sameAs },
+    { "@context": "https://schema.org", "@type": "WebSite", "@id": SITE.url + "/#website", name: "Bonova", alternateName: alt, url: SITE.url, inLanguage: ["fr", "en"], publisher: { "@id": orgId } },
+    { "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Bonova", alternateName: alt, applicationCategory: "BusinessApplication", operatingSystem: "Web, Android, iOS", url: SITE.url + (en ? "/en" : "/"), inLanguage: lang, image: SITE.url + "/icon-512.png", description: desc, publisher: { "@id": orgId }, sameAs, offers: [{ "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" }, { "@type": "Offer", price: "4.9", priceCurrency: "USD", name: "Pro monthly" }] },
+    { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ[lang].map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
+  ];
   return (<div lang={lang}>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, "\\u003c") }} />
     <SiteNav lang={lang} />
     <main>
       <div className="wrap"><section className="hero">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SiteNav, SiteFooter } from "../../../components/Brand";
-export const metadata = { title: "Free invoicing tools — no sign-up", description: "Invoice generator, VAT calculator and amount in words. Free, no sign-up.", alternates: { canonical: "/en/tools", languages: { fr: "/outils", en: "/en/tools" } } };
+export const metadata = { title: "Free invoicing tools — no sign-up", description: "Invoice generator, VAT calculator and amount in words. Free, no sign-up.", alternates: { canonical: "/en/tools", languages: { fr: "/outils", en: "/en/tools", "x-default": "/outils" } } };
 const T = [["/en/invoice-generator", "Invoice generator", "Invoice, quote or receipt as PDF, in your currency, no account."], ["/en/tools/vat-calculator", "VAT calculator", "Net to gross at any rate."], ["/en/tools/amount-in-words", "Amount in words", "Write any amount in words for invoices and cheques."]];
 export default function P() { return (<><SiteNav lang="en" /><main className="wrap sec" style={{ paddingTop: 40 }}><p className="u">Free, no sign-up</p><h1 style={{ fontSize: "clamp(44px,7vw,96px)", maxWidth: 1000, margin: "12px 0 40px" }}>Invoicing tools.</h1>
   <div className="cards">{T.map(([h, t, d], i) => <Link key={h} href={h}><span className="mono" style={{ color: "var(--carbon)", fontSize: 14 }}>0{i + 1}</span><h3>{t}</h3><p className="mute" style={{ margin: 0 }}>{d}</p></Link>)}</div></main><SiteFooter lang="en" /></>); }

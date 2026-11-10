@@ -1,7 +1,7 @@
 import { allPosts } from "../lib/posts";
 import { SITE } from "../lib/site";
 export default function sitemap() {
-  const u = (p) => `${SITE.url}${p}`; const now = new Date("2026-11-04");
+  const u = (p) => `${SITE.url}${p === "/" ? "" : p}`; const now = new Date("2026-11-04");
   const pair = (fr, en, priority = 0.8) => [fr, en].map(p => ({ url: u(p), lastModified: now, changeFrequency: "monthly", priority, alternates: { languages: { fr: u(fr), en: u(en), "x-default": u(fr) } } }));
   return [
     ...pair("/", "/en", 1), ...pair("/outils/generateur-facture", "/en/invoice-generator", 0.9), ...pair("/a-propos", "/en/about", 0.7), ...pair("/exemple", "/en/example", 0.6),

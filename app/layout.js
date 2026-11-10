@@ -12,7 +12,7 @@ export const metadata = {
   description: "Créez vos devis, factures et reçus en une minute et envoyez-les par WhatsApp, email ou PDF. Paiement par Mobile Money, virement, carte ou PayPal. Sans inscription.",
   applicationName: "Bonova",
   manifest: "/manifest.webmanifest",
-  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }], apple: "/apple-touch-icon.png", shortcut: "/favicon.ico" },
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }, { url: "/favicon-48.png", sizes: "48x48", type: "image/png" }, { url: "/favicon-96.png", sizes: "96x96", type: "image/png" }, { url: "/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/apple-touch-icon.png", shortcut: "/favicon.ico" },
   openGraph: { type: "website", siteName: "Bonova" },
   keywords: ["générateur de facture", "facture en ligne", "logiciel de facturation", "devis", "reçu", "Bonova", "invoice generator", "Sénégal", "Côte d'Ivoire", "Bénin", "Mobile Money"],
   twitter: { card: "summary_large_image" },

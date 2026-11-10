@@ -19,7 +19,7 @@ const T = {
 };
 export default function About({ lang = "fr" }) {
   const t = T[lang]; const en = lang === "en"; const path = en ? "/en/about" : "/a-propos";
-  const ld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: t.h1.replace(/\.$/, ""), url: SITE.url + path, inLanguage: lang, about: { "@type": "Organization", name: "Bonova", alternateName: "Bonova App", url: SITE.url, logo: SITE.url + "/icon-512.png", description: t.lead, sameAs: ["https://x.com/bonovaapp", "https://www.linkedin.com/company/bonova-app"] } },
+  const ld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: t.h1.replace(/\.$/, ""), url: SITE.url + path, inLanguage: lang, about: { "@type": "Organization", name: "Bonova", alternateName: ["Bonova App", "bonova.app"], url: SITE.url, logo: { "@type": "ImageObject", url: SITE.url + "/icon-512.png", width: 512, height: 512 }, description: t.lead, sameAs: ["https://x.com/bonovaapp", "https://www.linkedin.com/company/bonova-app"] } },
     { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: en ? "Home" : "Accueil", item: SITE.url + (en ? "/en" : "/") }, { "@type": "ListItem", position: 2, name: t.crumb, item: SITE.url + path }] }];
   return (<><SiteNav lang={lang} /><main className="wrap" style={{ paddingTop: 30, paddingBottom: 120 }}>
     <p className="u"><Link href={en ? "/en" : "/"}>Bonova</Link> / {t.crumb}</p>
